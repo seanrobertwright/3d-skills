@@ -1,0 +1,54 @@
+{
+  "holds": "a screwed enclosure and its lid, mated through four M3 heat-set inserts",
+  "asserts": [
+    {
+      "insert_hole_d": [3.90, 4.10],
+      "source": "parts-db:M3-insert.hole_d",
+      "measure": {"kind": "cylinder_diameter", "at": [30, 20], "rank": "smallest"},
+      "note": "too large and the insert spins under torque; too small and it splits the boss going in"
+    },
+    {
+      "boss_od": [7.90, 8.10],
+      "source": "parts-db:M3-insert.min_boss_od",
+      "measure": {"kind": "cylinder_diameter", "at": [30, 20], "rank": "largest"}
+    },
+    {
+      "boss_wall": [1.90, 2.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "coaxial_step_radial", "at": [30, 20], "between": [0, 1]},
+      "note": "2mm of wall around the insert is what stops the boss splitting during installation"
+    },
+    {
+      "insert_depth": [5.90, 6.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "cylinder_depth", "at": [30, 20], "rank": "smallest"},
+      "note": "the 5.7mm insert plus 0.3mm for displaced melt (parts-db:M3-insert.length)"
+    },
+    {
+      "lid_screw_clearance": [3.30, 3.50],
+      "source": "parts-db:M3.clearance",
+      "measure": {"kind": "cylinder_diameter", "at": [30, 50], "rank": "largest"},
+      "note": "the lid must locate on the inserts, not bind on the screw shanks"
+    },
+    {
+      "floor_thickness": [2.30, 2.50],
+      "source": "user-confirmed",
+      "measure": {"kind": "plane_gap", "between": [0, 1]}
+    },
+    {
+      "lid_thickness": [2.90, 3.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "plane_gap", "between": [0, 2]}
+    },
+    {
+      "enclosure_height": [29.90, 30.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "bbox_z"}
+    }
+  ],
+  "golden": {
+    "bbox": [80.0, 130.0, 30.0],
+    "volume": 45350.95,
+    "tol_pct": 1.0
+  }
+}

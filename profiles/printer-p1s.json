@@ -1,0 +1,22 @@
+{
+  "name": "Bambu Lab P1S",
+  "model": "P1S",
+  "nozzle_diameter": 0.4,
+  "nozzle_material": "hardened-steel",
+  "build_volume": {
+    "x": 256,
+    "y": 256,
+    "z": 256
+  },
+  "plate": {
+    "width": 256,
+    "depth": 256,
+    "origin": "center"
+  },
+  "enclosed": true,
+  "ams": {
+    "present": true,
+    "bays": 4
+  },
+  "source": "vendor-spec"
+}

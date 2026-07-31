@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Bash(uv run lril3d-send*)",
+      "Bash(python*send_to_printer*)",
+      "Bash(python*lril3d_print*)",
+      "Bash(curl*://*/upload*)",
+      "Bash(ftp*)",
+      "Bash(lftp*)"
+    ]
+  }
+}

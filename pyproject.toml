@@ -1,0 +1,51 @@
+[project]
+name = "threedp"
+version = "0.1.0"
+description = "Verification-loop toolkit for agent-authored 3D-printable geometry"
+readme = "README.md"
+# PIN, do not relax to >=3.13. This machine's default interpreter is 3.14.6 and
+# bpy ships cp313 wheels only; >=3.13 lets uv resolve 3.14 and the install fails.
+requires-python = "==3.13.*"
+dependencies = [
+  "build123d>=0.11.1",
+  "trimesh>=4.12.2",
+  "shapely>=2.1.2",
+  "rtree>=1.4.1",
+  "networkx>=3.6.1",
+  "manifold3d>=3.5.2",
+  "vtk>=9.6.2",
+  "numpy>=2.5.1",
+  "lxml>=6.1.1",                                    # REQUIRED to read 3MF (spike 8)
+  "bpy>=5.2.0",
+  "sdf",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.uv.sources]
+sdf = { git = "https://github.com/fogleman/sdf" }    # NOT PyPI 'sdf' (correction C2)
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/threedp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+  "brep: exercises the BREP (STEP) extraction path",
+  "mesh: exercises the mesh (STL/3MF) probing path",
+]
+
+[tool.ruff]
+line-length = 100
+# PRD.md is the source of truth and is never reformatted. ruff formats fenced Python blocks in
+# Markdown, and it rewrote the PRD's API-specification snippet on first run.
+extend-exclude = ["viewer", "*.md", ".agents"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

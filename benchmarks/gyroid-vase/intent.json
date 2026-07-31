@@ -1,0 +1,46 @@
+{
+  "holds": "a gyroid-walled vase. TIER 2: topology and statistics only, by design and not by omission",
+  "asserts": [
+    {
+      "watertight": [1, 1],
+      "source": "user-confirmed",
+      "measure": {"kind": "watertight"},
+      "note": "sdf emits a triangle soup; this is the assertion that catches an unmerged export"
+    },
+    {
+      "vase_height": [39.90, 40.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "bbox_z"}
+    },
+    {
+      "vase_width": [29.90, 30.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "bbox_x"}
+    },
+    {
+      "solid_volume": [5400.0, 5700.0],
+      "source": "user-confirmed",
+      "measure": {"kind": "volume"},
+      "note": "a statistical property of the whole lattice; it cannot localise a defect, only notice one"
+    },
+    {
+      "inner_diameter": [23.50, 24.50],
+      "source": "user-confirmed",
+      "tier": 2,
+      "measure": {"kind": "cylinder_diameter", "at": [0, 0], "rank": "smallest"},
+      "note": "TIER 2 ESTIMATE. A gyroid wall has no single inner diameter; this reads whichever section happened to fit a circle and is reported, never gated."
+    },
+    {
+      "lattice_wall": [0.0, null],
+      "source": "user-confirmed",
+      "tier": 2,
+      "measure": {"kind": "sampled_min_wall", "samples": 1500},
+      "note": "TIER 2 ESTIMATE. A gyroid thins to nothing where struts graze; a sampled minimum is a statistic, not a guarantee."
+    }
+  ],
+  "golden": {
+    "bbox": [30.0, 30.0, 40.0],
+    "volume": 5543.67,
+    "tol_pct": 2.0
+  }
+}

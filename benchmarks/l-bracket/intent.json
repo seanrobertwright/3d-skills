@@ -1,0 +1,47 @@
+{
+  "holds": "an L-bracket bolted down with two counterbored M4 screws and through-bolted to a wall with two more",
+  "asserts": [
+    {
+      "base_hole_d": [4.40, 4.60],
+      "source": "parts-db:M4.clearance",
+      "measure": {"kind": "cylinder_diameter", "at": [13, 28], "rank": "smallest"}
+    },
+    {
+      "counterbore_d": [6.90, 7.10],
+      "source": "parts-db:M4.head_d",
+      "measure": {"kind": "cylinder_diameter", "at": [13, 28], "rank": "largest"}
+    },
+    {
+      "material_under_counterbore": [1.00, null],
+      "source": "user-confirmed",
+      "measure": {"kind": "plane_gap", "between": [0, 1]},
+      "note": "PRD 15.1: a real M4 socket head is 4.0mm tall, so a 4mm counterbore in a 4mm plate leaves nothing to bolt against"
+    },
+    {
+      "counterbore_depth": [4.10, 4.30],
+      "source": "parts-db:M4.head_h",
+      "measure": {"kind": "plane_gap", "between": [1, 2]},
+      "note": "the head must sit below flush; 4.2 recesses a 4.0mm head by 0.2"
+    },
+    {
+      "plate_thickness": [5.90, 6.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "plane_gap", "between": [0, 2]}
+    },
+    {
+      "bracket_height": [49.90, 50.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "bbox_z"}
+    },
+    {
+      "bracket_width": [39.90, 40.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "bbox_x"}
+    }
+  ],
+  "golden": {
+    "bbox": [40.0, 40.0, 50.0],
+    "volume": 19588.623,
+    "tol_pct": 1.0
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "holds": "608 bearing (22 OD x 7 W), press fit into a pocket, retained by a 1mm radial lip",
+  "asserts": [
+    {
+      "bore_diameter": [21.95, 22.05],
+      "source": "parts-db:608.od",
+      "measure": {"kind": "cylinder_diameter", "at": [0, 0], "rank": 1},
+      "note": "the bore must accept a 22.00mm outer race as a press fit, not a slip fit"
+    },
+    {
+      "pocket_depth": [6.90, 7.10],
+      "source": "parts-db:608.width",
+      "measure": {"kind": "cylinder_depth", "at": [0, 0], "rank": 1},
+      "note": "a 7mm-wide 608 in a shallower pocket stands proud and will not retain"
+    },
+    {
+      "retaining_lip": [0.80, 1.50],
+      "source": "user-confirmed",
+      "measure": {"kind": "coaxial_step_radial", "at": [0, 0], "between": [1, 2]},
+      "note": "too little and the outer race pushes through; too much and the lip fouls the inner race"
+    },
+    {
+      "min_wall": [3.00, null],
+      "source": "user-confirmed",
+      "measure": {"kind": "coaxial_step_radial", "at": [0, 0], "between": [0, 1]},
+      "note": "the boss wall carries the press-fit hoop stress; below 3mm it splits"
+    },
+    {
+      "mount_hole_d": [4.40, 4.60],
+      "source": "parts-db:M4.clearance",
+      "measure": {"kind": "cylinder_diameter", "at": [27, 0], "rank": "smallest"}
+    },
+    {
+      "counterbore_d": [6.90, 7.10],
+      "source": "parts-db:M4.head_d",
+      "measure": {"kind": "cylinder_diameter", "at": [27, 0], "rank": "largest"},
+      "note": "an absent counterbore reads as the clearance hole's own diameter, which is the defect"
+    },
+    {
+      "material_under_counterbore": [1.00, null],
+      "source": "user-confirmed",
+      "measure": {"kind": "cylinder_depth", "at": [27, 0], "rank": "smallest"},
+      "note": "PRD 15.1: a 4mm M4 socket head counterbored into a 4mm plate leaves zero material"
+    }
+  ],
+  "golden": {
+    "bbox": [70.0, 34.0, 14.0],
+    "volume": 14693.01,
+    "tol_pct": 1.0
+  }
+}

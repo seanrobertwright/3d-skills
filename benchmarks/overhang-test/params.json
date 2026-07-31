@@ -1,0 +1,6 @@
+{
+  "BOTTOM_R":  {"value": 2.0,  "role": "outer",   "note": "small footprint so the flare is the whole part"},
+  "RISE":      {"value": 10.0, "role": "neutral"},
+  "ANGLE_DEG": {"value": 60.0, "role": "neutral", "note": "from vertical; 45 is the usual support threshold"},
+  "STEM_H":    {"value": 4.0,  "role": "neutral", "note": "vertical stem below the flare, unsupported area is zero here"}
+}

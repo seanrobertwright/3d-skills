@@ -1,0 +1,16 @@
+{
+  "OUTER_X":      {"value": 80.0, "role": "outer"},
+  "OUTER_Y":      {"value": 60.0, "role": "outer"},
+  "HEIGHT":       {"value": 30.0, "role": "outer"},
+  "WALL":         {"value": 2.4,  "role": "neutral", "note": "6 perimeters of a 0.4mm nozzle"},
+  "FLOOR":        {"value": 2.4,  "role": "neutral"},
+  "BOSS_OD":      {"value": 8.0,  "role": "outer",   "note": "parts-db:M3-insert.min_boss_od"},
+  "BOSS_H":       {"value": 12.0, "role": "neutral"},
+  "INSERT_HOLE_D":{"value": 4.0,  "role": "hole",    "note": "parts-db:M3-insert.hole_d"},
+  "INSERT_DEPTH": {"value": 6.0,  "role": "neutral", "note": "5.7 insert plus 0.3 for displaced melt"},
+  "BOSS_X":       {"value": 30.0, "role": "neutral"},
+  "BOSS_Y":       {"value": 20.0, "role": "neutral"},
+  "LID_THICK":    {"value": 3.0,  "role": "neutral"},
+  "LID_HOLE_D":   {"value": 3.4,  "role": "hole",    "note": "parts-db:M3.clearance"},
+  "LID_OFFSET_Y": {"value": 70.0, "role": "neutral", "note": "lid laid beside the body on the plate"}
+}

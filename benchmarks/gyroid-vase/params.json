@@ -1,0 +1,10 @@
+{
+  "RADIUS":       {"value": 15.0, "role": "outer"},
+  "HEIGHT":       {"value": 40.0, "role": "neutral"},
+  "WALL":         {"value": 3.0,  "role": "neutral", "note": "radial thickness of the lattice band"},
+  "BASE":         {"value": 2.5,  "role": "neutral", "note": "solid disc so the vase has a floor"},
+  "RIM":          {"value": 2.0,  "role": "neutral", "note": "solid ring so the lattice does not end in mid-air"},
+  "PERIOD":       {"value": 12.0, "role": "neutral", "note": "gyroid cell size"},
+  "GYROID_T":     {"value": 0.55, "role": "neutral", "note": "iso-band half-width; drives strut thickness"},
+  "STEP":         {"value": 0.3,  "role": "neutral", "note": "marching-cubes step; drives runtime and triangle count"}
+}

@@ -1,0 +1,12 @@
+{
+  "WIDTH":        {"value": 40.0, "role": "outer",   "note": "X extent of both legs"},
+  "THICK":        {"value": 6.0,  "role": "neutral", "note": "plate thickness; see CBORE_DEPTH"},
+  "LEG_UP":       {"value": 50.0, "role": "outer",   "note": "vertical leg height"},
+  "LEG_OUT":      {"value": 40.0, "role": "outer",   "note": "base leg depth"},
+  "HOLE_D":       {"value": 4.5,  "role": "hole",    "note": "parts-db:M4.clearance"},
+  "CBORE_D":      {"value": 7.0,  "role": "hole",    "note": "parts-db:M4.head_d"},
+  "CBORE_DEPTH":  {"value": 4.2,  "role": "neutral", "note": "a 4.0mm M4 head recessed, leaving 1.8mm"},
+  "HOLE_X":       {"value": 13.0, "role": "neutral"},
+  "BASE_HOLE_Y":  {"value": 28.0, "role": "neutral"},
+  "WALL_HOLE_Z":  {"value": 35.0, "role": "neutral"}
+}

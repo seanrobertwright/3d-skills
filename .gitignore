@@ -1,0 +1,23 @@
+# Printer credentials — PRD §9: never committed.
+.env
+.env.*
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Generated geometry and images — models are programs; outputs are rebuildable.
+out/
+renders/
+
+# Node / viewer
+node_modules/
+viewer/dist/
+
+# Claude Code local (machine-specific) settings. The committed gate lives in
+# .claude/settings.json — see ADR-5.
+.claude/settings.local.json
