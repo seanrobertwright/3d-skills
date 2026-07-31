@@ -35,7 +35,14 @@ __all__ = [
     "from_shape",
     "MAX_AXIS_TILT_DEG",
     "MAX_TAPER_PER_MM",
+    "BREP_SUFFIXES",
+    "MESH_SUFFIXES",
 ]
+
+# What `extract` dispatches on. The error message is built from these, so adding a format here
+# updates what the user is told is supported.
+BREP_SUFFIXES = (".step", ".stp")
+MESH_SUFFIXES = (".stl", ".3mf", ".obj", ".ply")
 
 # A Z-scan slices an angled bore into an ellipse. Beyond this tilt a mesh-derived dimension is
 # not a Tier 1 measurement, however circular the fit happens to look (ADR-4).
@@ -53,6 +60,19 @@ _MIN_PROBE_HEIGHT = 0.05
 # tan(1 deg), matching MAX_AXIS_TILT_DEG: the same 1 deg of "close enough to axis-aligned".
 MAX_TAPER_PER_MM = 0.017455
 
+# What `_measure_axis_and_taper` returns when the axis could not be established at all.
+#
+# The axis component is nominally +Z only because a direction has to be returned; the INFINITE
+# taper is the load-bearing half. It exceeds MAX_TAPER_PER_MM by construction, so the feature is
+# routed to `tapered` and refuses Tier 1 rather than being graded as a cylinder whose axis was
+# never actually measured.
+#
+# Every "cannot measure the axis" exit must use this. Returning taper 0.0 instead would report
+# the most favourable possible answer -- perfectly vertical, perfectly straight -- on precisely
+# the input where nothing was measured, which is the confident-plausible-wrong failure this
+# module exists to prevent (ADR-4).
+_UNMEASURABLE_AXIS: tuple[tuple[float, float, float], float] = ((0.0, 0.0, 1.0), float("inf"))
+
 
 @dataclass(frozen=True)
 class Cylinder:
@@ -65,6 +85,9 @@ class Cylinder:
     z_min: float = 0.0
     z_max: float = 0.0
     fit: CircleFit | None = None
+    # dr/dz on the mesh path. `inf` means the axis could not be established at all, which is a
+    # different fact from "this is a cone" and must not be reported as one.
+    taper_per_mm: float = 0.0
 
     @property
     def diameter(self) -> float:
@@ -146,9 +169,20 @@ class FeatureSet:
         if not hits:
             taper = [c for c in self.tapered if abs(c.xy[0] - x) <= tol and abs(c.xy[1] - y) <= tol]
             if taper:
+                # Two different facts land in `tapered`, and reporting one as the other would be
+                # the same confident-but-wrong move this module exists to prevent.
+                if any(np.isinf(c.taper_per_mm) for c in taper):
+                    raise MeasurementError(
+                        f"the axis of the feature at ({x:g}, {y:g}) could not be established, so "
+                        f"no diameter can be reported for it. Two sections through it found no "
+                        f"matching ring - which happens when coaxial equal-diameter features are "
+                        f"separated by a gap, or the run is too thin to probe twice. This is a "
+                        f"refusal to measure, not a claim that the feature is wrong"
+                    )
                 raise MeasurementError(
                     f"the surface at ({x:g}, {y:g}) is tapered, not cylindrical - its radius "
-                    f"changes with height, so no single diameter describes it"
+                    f"changes with height ({taper[0].taper_per_mm:+.4f} mm/mm), so no single "
+                    f"diameter describes it"
                 )
             bad = self.noncircular_at(x, y, tol)
             if bad:
@@ -224,12 +258,10 @@ def from_shape(shape, source: str = "<shape>") -> FeatureSet:
         elif gt == GeomType.PLANE:
             pln = BRepAdaptor_Surface(f.wrapped).Plane()
             loc = pln.Axis().Location()
-            n = pln.Axis().Direction()
             # OCCT's plane axis is unsigned with respect to the face; take the face's own normal
             # so a build-plate face reads -1 and a top face reads +1.
             fn = f.normal_at()
             planes.append(PlaneFace(z=float(loc.Z()), normal_z=float(fn.Z), area=float(f.area)))
-            del n
 
     cylinders = _merge_cylinders(cylinders)
     planes = _merge_planes(planes)
@@ -413,6 +445,7 @@ def _scan_cylinders(
             z_min=run["z_min"],
             z_max=run["z_max"],
             fit=fit,
+            taper_per_mm=taper,
         )
         if not fit.is_circular:
             noncircular.append(cyl)
@@ -441,6 +474,18 @@ def _measure_axis_and_taper(
     diameter is inflated by 0.084mm, more than a press-fit tolerance. Two sections taken at 25%
     and 75% of the feature's height expose the tilt directly: a tilted axis walks its centre by
     ``dz * tan(theta)``, a straight one does not (ADR-4).
+
+    Every path that fails to establish the axis returns :data:`_UNMEASURABLE_AXIS`, never a
+    zero taper. There are three such paths and they are easy to get inconsistent:
+
+    * the run is too thin to take two distinct sections through;
+    * a section plane misses the mesh;
+    * no ring at either height matches this feature's radius and centre -- which happens when
+      two coaxial equal-diameter bores separated by solid material merge into a single run, so
+      the 25%/75% probes land in the gap between them.
+
+    All three mean the same thing: the axis is unknown. Reporting an unknown axis as +Z with
+    zero taper would hand a Tier 1 dimensional verdict to a feature nothing measured.
     """
     z_min, z_max = run["z_min"], run["z_max"]
     height = z_max - z_min
@@ -448,7 +493,7 @@ def _measure_axis_and_taper(
         # Too thin to take two distinct sections through, so neither the axis nor the taper can
         # be established. Reported as infinite taper, which routes it to `tapered` rather than
         # letting an unverifiable sliver be presented as a cylinder with a diameter.
-        return (0.0, 0.0, 1.0), float("inf")
+        return _UNMEASURABLE_AXIS
     target: CircleFit = run["fit"]
     # A part routinely carries several identical features -- two Ø7 counterbores 54mm apart, for
     # instance. Matching on radius alone pairs one with the other across the two sections and
@@ -461,7 +506,7 @@ def _measure_axis_and_taper(
         try:
             rings = measure.section_rings(mesh, z)
         except MeasurementError:
-            return (0.0, 0.0, 1.0), 0.0
+            return _UNMEASURABLE_AXIS
         best, best_err = None, float("inf")
         for ring in rings:
             try:
@@ -474,7 +519,7 @@ def _measure_axis_and_taper(
             if err < best_err and err < max(0.25 * target.radius, 0.2):
                 best, best_err = f, err
         if best is None:
-            return (0.0, 0.0, 1.0), 0.0
+            return _UNMEASURABLE_AXIS
         fits.append(best)
 
     dx = fits[1].cx - fits[0].cx
@@ -540,17 +585,20 @@ def _mesh_planes(mesh: trimesh.Trimesh) -> list[PlaneFace]:
 
 
 def extract(path: str | Path) -> FeatureSet:
-    """Extract features from a STEP, STL or 3MF file."""
+    """Extract features from a STEP, STL, 3MF, OBJ or PLY file."""
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"no such geometry file: {path}")
     suffix = path.suffix.lower()
-    if suffix in (".step", ".stp"):
+    if suffix in BREP_SUFFIXES:
         from build123d import import_step
 
         return from_shape(import_step(str(path)), source=str(path))
-    if suffix in (".stl", ".3mf", ".obj", ".ply"):
+    if suffix in MESH_SUFFIXES:
         return from_mesh(load_mesh(path), source=str(path))
+    # Built from the tuples above rather than written out, so the message cannot drift away from
+    # what the function actually accepts.
     raise MeasurementError(
-        f"unsupported geometry format {suffix!r}; expected .step/.stp (BREP) or .stl/.3mf (mesh)"
+        f"unsupported geometry format {suffix!r}; expected "
+        f"{'/'.join(BREP_SUFFIXES)} (BREP) or {'/'.join(MESH_SUFFIXES)} (mesh)"
     )

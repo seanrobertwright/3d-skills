@@ -147,6 +147,37 @@ def test_absent_feature_raises_rather_than_defaulting(canonical_stl):
 
 
 @pytest.mark.mesh
+def test_unmeasurable_axis_refuses_rather_than_reporting_zero_taper(interrupted_bore_stl):
+    """An axis that could not be established must not be reported as a perfect +Z axis.
+
+    Two coaxial Ø10 bores separated by 30mm of solid coalesce into one run, and the 25%/75%
+    probe heights land in the gap where no ring matches. Every such exit returns
+    ``_UNMEASURABLE_AXIS`` -- infinite taper -- so the feature is refused.
+
+    The guard matters because the flattering answer is silent: with the probe returning taper
+    0.0 instead, this exact part reports ``diameter=9.9984, tilt=0.00deg, Tier1=True``. Nothing
+    measured that axis; it is the sentinel's default leaking out as a dimensional verdict.
+    """
+    f = features.extract(interrupted_bore_stl)
+
+    assert not any(abs(c.radius - 5.0) < 0.5 for c in f.cylinders), (
+        "the Ø10 feature was graded as a measurable cylinder despite an unestablished axis"
+    )
+    unmeasurable = [c for c in f.tapered if abs(c.radius - 5.0) < 0.5]
+    assert unmeasurable, "the Ø10 feature should be recorded as unmeasurable, not discarded"
+    assert np.isinf(unmeasurable[0].taper_per_mm), (
+        "an unestablished axis must carry infinite taper, not a finite one - a finite value "
+        "would be indistinguishable from a genuine cone"
+    )
+
+    with pytest.raises(measure.MeasurementError) as exc:
+        f.select_cylinder(0.0, 0.0, rank="largest")
+    # The refusal must say what actually happened. Reporting "its radius changes with height"
+    # here would be a confident, plausible, wrong reason - the same defect one level up.
+    assert "axis" in str(exc.value) and "could not be established" in str(exc.value)
+
+
+@pytest.mark.mesh
 def test_plane_transitions_are_bisected_to_tolerance(canonical_stl):
     mesh = features.load_mesh(canonical_stl)
     zs = measure.plane_transitions(mesh)

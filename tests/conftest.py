@@ -171,6 +171,49 @@ def tilted_bore_stl(artifacts_dir) -> Path:
     return out
 
 
+def build_interrupted_bore():
+    """Two coaxial Ø10 bores at opposite ends of a 40mm block, separated by 30mm of solid.
+
+    This is the geometry that defeats the axis probe. The Z-scan fits both bores to the same
+    radius and the same centre, so they coalesce into a **single run** spanning z = -20..+20 --
+    and the probe heights at 25% and 75% of that run (z = -10 and +10) then land in the solid
+    gap, where no ring matches. The axis is therefore unmeasurable.
+
+    The part itself is perfectly well-formed; what is being tested is that the verifier says
+    "I cannot measure this" instead of reporting the most flattering possible answer. Measured
+    with the pre-fix sentinel, this exact part yielded ``diameter=9.9984, tilt=0.00deg,
+    Tier1=True`` -- a confident Tier 1 dimensional verdict derived from nothing.
+    """
+    from build123d import Align, Box, BuildPart, Cylinder, Locations, Mode
+
+    with BuildPart() as p:
+        Box(40.0, 40.0, 40.0)
+        with Locations((0, 0, -20.0)):
+            Cylinder(
+                radius=5.0,
+                height=5.0,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+                mode=Mode.SUBTRACT,
+            )
+        with Locations((0, 0, 20.0)):
+            Cylinder(
+                radius=5.0,
+                height=5.0,
+                align=(Align.CENTER, Align.CENTER, Align.MAX),
+                mode=Mode.SUBTRACT,
+            )
+    return p.part
+
+
+@pytest.fixture(scope="session")
+def interrupted_bore_stl(artifacts_dir) -> Path:
+    from build123d import export_stl
+
+    out = artifacts_dir / "interrupted-bore.stl"
+    export_stl(build_interrupted_bore(), str(out), tolerance=0.01, angular_tolerance=0.1)
+    return out
+
+
 @pytest.fixture(scope="session")
 def overhang_mesh():
     from threedp.features import _tessellate

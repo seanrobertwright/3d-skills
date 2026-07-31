@@ -52,6 +52,8 @@ __all__ = [
     "load",
     "check",
     "MEASURE_KINDS",
+    "MEASURE_UNITS",
+    "unit_for",
 ]
 
 RESERVED_KEYS = {"source", "measure", "tier", "note", "unit"}
@@ -196,6 +198,36 @@ def _parse_assertion(entry: dict[str, Any], index: int) -> Assertion:
     return Assertion(name, lo, hi, str(source), dict(spec), tier, str(entry.get("note", "")))
 
 
+def _is_number(v: Any) -> bool:
+    # bool is an int subclass; `"volume": true` is a malformed intent, not a volume of 1.
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _validate_golden(golden: Any, where: str) -> dict[str, Any]:
+    """Validate the golden regression block.
+
+    ``check()`` indexes ``bbox`` by axis and floats ``volume``. Left unvalidated, a two-entry
+    bbox raises ``IndexError`` from inside ``check()`` instead of the ``IntentError`` that means
+    "the intent file itself is malformed" -- a distinction every other path through ``load()``
+    is careful about, and the one that tells a user whether to fix their JSON or their part.
+    """
+    if not isinstance(golden, dict):
+        raise IntentError(f"{where}: 'golden' must be an object, got {type(golden).__name__}")
+    if "bbox" in golden:
+        bbox = golden["bbox"]
+        if not isinstance(bbox, (list, tuple)) or len(bbox) != 3:
+            raise IntentError(
+                f"{where}: golden 'bbox' must be [x, y, z] - three numbers; got {bbox!r}"
+            )
+        for axis, v in zip("xyz", bbox, strict=True):
+            if not _is_number(v):
+                raise IntentError(f"{where}: golden bbox {axis} is {v!r}, expected a number")
+    for key in ("volume", "tol_pct"):
+        if key in golden and not _is_number(golden[key]):
+            raise IntentError(f"{where}: golden {key!r} is {golden[key]!r}, expected a number")
+    return dict(golden)
+
+
 def load(path: str | Path | dict[str, Any]) -> Intent:
     """Load and validate an ``intent.json``."""
     if isinstance(path, dict):
@@ -222,7 +254,8 @@ def load(path: str | Path | dict[str, Any]) -> Intent:
             raise IntentError(f"{where} asserts {a.name!r} twice; one of them is dead")
         seen.add(a.name)
 
-    return Intent(str(data.get("holds", "")), asserts, dict(data.get("golden", {})), where)
+    golden = _validate_golden(data.get("golden", {}), where)
+    return Intent(str(data.get("holds", "")), asserts, golden, where)
 
 
 # --- measurement kinds ------------------------------------------------------------------------
@@ -391,6 +424,27 @@ def _k_unsupported_area(fs: FeatureSet, spec: dict[str, Any]):
     return report.unsupported_area, 1, ""
 
 
+# Not every measurement is a length, and the report is the one surface a human actually reads
+# before committing a part to a multi-hour print. The formatter previously suffixed every value
+# with "mm", which printed degrees, areas, volumes and booleans as millimetres on all five
+# benchmarks. "All dimensions are millimetres" governs *variable names*; it is not a licence to
+# label a number that is not a length.
+DEFAULT_UNIT = "mm"
+MEASURE_UNITS: dict[str, str] = {
+    "max_overhang_deg": "deg",
+    "unsupported_area": "mm2",
+    "volume": "mm3",
+    "watertight": "",  # boolean
+    "feature_count": "",  # a count
+    "noncircular_count": "",  # a count
+}
+
+
+def unit_for(kind: str) -> str:
+    """The unit a measure kind reports in. Lengths are the default; everything else is declared."""
+    return MEASURE_UNITS.get(kind, DEFAULT_UNIT)
+
+
 MEASURE_KINDS: dict[str, Callable[[FeatureSet, dict[str, Any]], tuple[float, int, str]]] = {
     "cylinder_diameter": _k_cylinder_diameter,
     "cylinder_depth": _k_cylinder_depth,
@@ -446,19 +500,23 @@ class Report:
         for r in self.results:
             mark = {PASS: ok, FAIL: bad, ESTIMATE: est}[r.status]
             value = "     --" if r.value is None else f"{r.value:9.3f}"
+            unit = unit_for(r.assertion.spec.get("kind", ""))
             if r.status == ESTIMATE:
                 tail = f"ESTIMATE (Tier {r.tier} - not dimensionally verified)"
             else:
                 tail = f"expected {r.assertion.expected}"
-            lines.append(f"{mark} {r.name:<{width}} = {value} mm   {tail}   [{r.assertion.source}]")
+            lines.append(
+                f"{mark} {r.name:<{width}} = {value} {unit:<3}  {tail}   [{r.assertion.source}]"
+            )
             if r.reason:
                 lines.append(f"   +- {r.reason}")
         if self.drift:
             lines.append("   -- golden regression (drift only; never a pass/fail signal) --")
             for d in self.drift:
                 mark = ok if d.within else est
+                unit = unit_for(d.name)
                 lines.append(
-                    f"{mark} {d.name:<{width}} = {d.value:9.3f}      golden {d.golden:.3f}"
+                    f"{mark} {d.name:<{width}} = {d.value:9.3f} {unit:<3}  golden {d.golden:.3f}"
                     f"   drift {d.delta_pct:+.2f}%"
                 )
         for c in self.citations:

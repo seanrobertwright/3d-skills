@@ -17,6 +17,10 @@ import { fileURLToPath } from 'node:url'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(HERE, '..', '..')
 const PORT = 5274
+// Matches Vite's own default bind (vite.config.js sets no `host`, so it serves on 127.0.0.1),
+// which is what `location.hostname` in the page will therefore be. Override only if you have
+// deliberately changed Vite's host -- setting this to 0.0.0.0 exposes the paths below to the LAN.
+const HOST = process.env.THREEDP_WATCH_HOST || '127.0.0.1'
 const DEBOUNCE_MS = 250
 const CANDIDATES = ['part.stl', 'part.3mf']
 
@@ -38,7 +42,9 @@ function currentFile() {
   return null
 }
 
-const server = new WebSocketServer({ port: PORT })
+// Loopback only. The viewer is a localhost dev workflow, and the hello frame below carries
+// absolute filesystem paths -- there is no reason for those to be reachable from the LAN.
+const server = new WebSocketServer({ host: HOST, port: PORT })
 const clients = new Set()
 
 server.on('connection', (socket) => {
@@ -84,7 +90,7 @@ watcher.on('all', (event, path) => {
   schedule(path)
 })
 
-console.log(`[watch] ws://localhost:${PORT}  watching ${modelDir}`)
+console.log(`[watch] ws://${HOST}:${PORT}  watching ${modelDir}`)
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {

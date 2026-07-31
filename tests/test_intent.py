@@ -392,6 +392,68 @@ def test_report_renders_without_a_unicode_crash(canonical_step, capsys):
     assert "VERDICT" in out
 
 
+def test_report_labels_each_value_with_its_own_unit(canonical_step):
+    """A measurement that is not a length must not be printed as millimetres.
+
+    The report is the surface a human reads before committing a part to a multi-hour print.
+    Suffixing every value with "mm" printed degrees, areas and booleans as lengths on all five
+    benchmarks -- a units error in a measurement tool, in its primary output.
+    """
+    f = features.extract(canonical_step)
+    spec = canonical_intent()
+    spec["asserts"] += [
+        {
+            "overhang": [0.0, 90.0],
+            "source": "user-confirmed",
+            "measure": {"kind": "max_overhang_deg"},
+        },
+        {"solid": [1, 1], "source": "user-confirmed", "measure": {"kind": "watertight"}},
+        {
+            "size": [0.0, None],
+            "source": "user-confirmed",
+            "measure": {"kind": "volume"},
+        },
+    ]
+    lines = {
+        line.split("=")[0].split()[-1]: line
+        for line in str(intent.check(f, spec)).splitlines()
+        if "=" in line and "drift" not in line
+    }
+
+    assert " deg" in lines["overhang"], lines["overhang"]
+    assert " mm3" in lines["size"], lines["size"]
+    assert " mm " not in lines["overhang"] and " mm3" not in lines["overhang"]
+    # A boolean is not a length and gets no unit at all.
+    assert " mm" not in lines["solid"], lines["solid"]
+    # Lengths still say mm.
+    assert " mm " in lines["bore_diameter"], lines["bore_diameter"]
+
+
+@pytest.mark.parametrize(
+    "golden",
+    [
+        {"bbox": [30.0, 30.0]},  # two entries; check() indexed [2] and raised IndexError
+        {"bbox": [30.0, 30.0, "twenty"]},
+        {"bbox": 30.0},
+        {"volume": "big"},
+        {"volume": True},  # bool is an int subclass; not a volume of 1
+        {"tol_pct": None},
+    ],
+)
+def test_a_malformed_golden_block_is_an_intent_error_not_a_crash(golden):
+    """A malformed intent file must say so, not fail somewhere inside check()."""
+    spec = canonical_intent()
+    spec["golden"] = golden
+    with pytest.raises(IntentError):
+        intent.load(spec)
+
+
+def test_a_well_formed_golden_block_still_loads():
+    spec = canonical_intent()
+    spec["golden"] = {"bbox": [30.0, 30.0, 20.0], "volume": 10455.22, "tol_pct": 1.0}
+    assert intent.load(spec).golden["volume"] == 10455.22
+
+
 def test_report_never_contains_an_impression(canonical_step):
     """Report numbers, never impressions (PRD 6.1 / the report pattern)."""
     f = features.extract(canonical_step)
