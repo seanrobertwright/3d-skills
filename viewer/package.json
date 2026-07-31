@@ -1,0 +1,24 @@
+{
+  "name": "lril3d-viewer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Live browser viewer for threedp models: three.js + WebSocket hot reload",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node server/watch.mjs & vite",
+    "watch": "node server/watch.mjs",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "chokidar": "^4.0.3",
+    "vite": "^7.1.5",
+    "ws": "^8.18.0"
+  }
+}

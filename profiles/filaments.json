@@ -1,0 +1,11 @@
+{
+  "slots": [
+    {"slot": 0, "type": "ams", "bay": 0, "material": "PLA", "brand": "Bambu", "color": "#101010", "calibration": "PLA_generic"},
+    {"slot": 1, "type": "ams", "bay": 1, "material": "PLA", "brand": "Bambu", "color": "#f5f5f5", "calibration": "PLA_generic"},
+    {"slot": 2, "type": "ams", "bay": 2, "material": "PETG", "brand": "Bambu", "color": "#1e6fd9", "calibration": "PETG_generic"},
+    {"slot": 3, "type": "ams", "bay": 3, "material": "ABS", "brand": "Bambu", "color": "#b02020", "calibration": "ABS_generic"},
+    {"slot": 4, "type": "external", "bay": null, "material": "PC", "brand": "generic", "color": "#d8d8d0", "calibration": "PLA_generic",
+     "note": "PC and PA are hygroscopic enough that the AMS is a liability - they run from the external spool holder (PRD 15.7)."}
+  ],
+  "source": "user-inventory"
+}

@@ -1,0 +1,15 @@
+{
+  "BORE":         {"value": 22.0, "role": "hole",    "note": "608 outer race, parts-db:608.od"},
+  "POCKET_DEPTH": {"value": 7.0,  "role": "neutral", "note": "608 width, parts-db:608.width"},
+  "LIP":          {"value": 1.0,  "role": "neutral", "note": "radial retaining lip, user-confirmed"},
+  "BODY_OD":      {"value": 30.0, "role": "outer",   "note": "gives a 4.0mm wall around the bore"},
+  "BOSS_H":       {"value": 14.0, "role": "neutral"},
+  "BASE_X":       {"value": 70.0, "role": "outer"},
+  "BASE_Y":       {"value": 34.0, "role": "outer"},
+  "BASE_T":       {"value": 6.0,  "role": "neutral"},
+  "MOUNT_HOLE_D": {"value": 4.5,  "role": "hole",    "note": "parts-db:M4.clearance"},
+  "MOUNT_X":      {"value": 27.0, "role": "neutral"},
+  "CBORE_D":      {"value": 7.0,  "role": "hole",    "note": "parts-db:M4.head_d"},
+  "CBORE_DEPTH":  {"value": 4.2,  "role": "neutral", "note": "leaves 1.8mm under a 4.0mm M4 head"},
+  "FILLET":       {"value": 0.5,  "role": "neutral", "note": "cosmetic; no assertion depends on it"}
+}

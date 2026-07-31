@@ -1,0 +1,38 @@
+{
+  "holds": "a deliberate 60-degree overhang, to prove printability detection measures what it claims",
+  "asserts": [
+    {
+      "max_overhang_deg": [59.50, 60.50],
+      "source": "user-confirmed",
+      "measure": {"kind": "max_overhang_deg", "threshold_deg": 45},
+      "note": "measured from vertical: 0 is a vertical wall, 90 a horizontal ceiling"
+    },
+    {
+      "unsupported_area": [1300.0, 1380.0],
+      "source": "user-confirmed",
+      "measure": {"kind": "unsupported_area", "threshold_deg": 45},
+      "note": "the flare is pi*(r1+r2)*slant = 1339.6mm2 analytically; the flat base rests on the plate and is not an overhang"
+    },
+    {
+      "stem_diameter": [3.90, 4.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "cylinder_diameter", "at": [0, 0], "rank": "smallest"},
+      "note": "the vertical stem is 0 degrees from vertical - the normal case, and never a defect"
+    },
+    {
+      "flare_width": [38.40, 38.90],
+      "source": "user-confirmed",
+      "measure": {"kind": "bbox_x"}
+    },
+    {
+      "watertight": [1, 1],
+      "source": "user-confirmed",
+      "measure": {"kind": "watertight"}
+    }
+  ],
+  "golden": {
+    "bbox": [38.641, 38.629, 14.0],
+    "volume": 4400.092,
+    "tol_pct": 1.0
+  }
+}

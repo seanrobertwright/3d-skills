@@ -1,0 +1,23 @@
+{
+  "PLA_generic": {
+    "hole_delta_mm": 0.18,
+    "outer_delta_mm": -0.05,
+    "first_layer_squish": 0.12,
+    "measured": null,
+    "source": "published-default"
+  },
+  "PETG_generic": {
+    "hole_delta_mm": 0.25,
+    "outer_delta_mm": -0.08,
+    "first_layer_squish": 0.15,
+    "measured": null,
+    "source": "published-default"
+  },
+  "ABS_generic": {
+    "hole_delta_mm": 0.22,
+    "outer_delta_mm": -0.10,
+    "first_layer_squish": 0.14,
+    "measured": null,
+    "source": "published-default"
+  }
+}
