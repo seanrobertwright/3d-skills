@@ -92,9 +92,16 @@ function setPart(geometry, label) {
   if (first) frame(part)
   applySection()
   const size = bounds.getSize(new THREE.Vector3())
+  // An STL parses to non-indexed geometry, where position.count IS 3x the triangle count. A 3MF
+  // parses to INDEXED geometry, where position.count is the vertex count and dividing it by 3
+  // reports a number that is simply wrong. Renders are a channel rather than a gate, but a
+  // channel that states a wrong number is still stating a wrong number.
+  const triangles = geometry.index
+    ? geometry.index.count / 3
+    : geometry.attributes.position.count / 3
   status.textContent =
     `${label}\n${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)} mm  ` +
-    `(${geometry.attributes.position.count / 3} triangles)\n` +
+    `(${triangles} triangles)\n` +
     `channel, not a gate - verify with lril3d-inspect`
   status.className = ''
 }
@@ -116,6 +123,11 @@ function fsUrl(nativePath) {
   return '/@fs' + (posix.startsWith('/') ? posix : '/' + posix)
 }
 
+// Declared above its only use site. `loadProfile` reads it, and the two are separated only by
+// the call ordering at the bottom of this file -- moving that call up would otherwise throw a
+// temporal-dead-zone ReferenceError rather than failing visibly.
+const PROFILE_PATH = new URL('../../profiles/printer-p1s.json', import.meta.url).pathname
+
 async function loadProfile() {
   try {
     const res = await fetch(fsUrl(PROFILE_PATH))
@@ -132,8 +144,6 @@ async function loadProfile() {
   buildPlate()
 }
 
-const PROFILE_PATH = new URL('../../profiles/printer-p1s.json', import.meta.url).pathname
-
 async function loadModel(file) {
   const url = `${fsUrl(file)}?t=${Date.now()}`
   const res = await fetch(url)
@@ -144,12 +154,18 @@ async function loadModel(file) {
     setPart(new STLLoader().parse(buffer), file.split(/[\\/]/).pop())
   } else if (name.endsWith('.3mf')) {
     const group = new ThreeMFLoader().parse(buffer)
-    let geometry = null
+    const meshes = []
     group.traverse((child) => {
-      if (child.isMesh && !geometry) geometry = child.geometry
+      if (child.isMesh) meshes.push(child)
     })
-    if (!geometry) throw new Error('3MF contained no mesh')
-    setPart(geometry, file.split(/[\\/]/).pop())
+    if (!meshes.length) throw new Error('3MF contained no mesh')
+    // Only the first body is rendered. A viewer that quietly draws part of a model is a worse
+    // signal than one that draws nothing, so the count is stated rather than dropped.
+    const label = file.split(/[\\/]/).pop()
+    setPart(
+      meshes[0].geometry,
+      meshes.length > 1 ? `${label}  (showing 1 of ${meshes.length} bodies)` : label,
+    )
   } else {
     throw new Error(`unsupported file ${file}`)
   }
