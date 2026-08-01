@@ -244,8 +244,16 @@ previewToggle.addEventListener('change', () => {
       controls.update()
       savedView = null
     }
-    if (part) status.textContent = modelStatus
-    status.className = ''
+    // Fall back explicitly when there is no mesh to describe. Leaving the preview's text in
+    // place would have the panel describing something that is no longer drawn, in the colour
+    // that means "nothing to see here".
+    if (part) {
+      status.textContent = modelStatus
+      status.className = ''
+    } else {
+      status.textContent = `watching ${modelDir}\nno part.stl or part.3mf yet - export one`
+      status.className = 'warn'
+    }
   }
 })
 

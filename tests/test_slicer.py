@@ -497,3 +497,51 @@ def test_a_relative_outdir_still_lands_where_the_caller_asked(artifacts_dir, mon
     result = slicer.slice_part("slicer-plate.stl", material="PLA", outdir="relative-out")
     assert result.gcode.is_absolute()
     assert result.gcode.parent == (artifacts_dir / "relative-out").resolve()
+
+
+# --- partial successes are not successes ---------------------------------------------------------
+
+
+def test_a_requested_3mf_that_was_not_written_is_rejected(tmp_path):
+    """A partial success rendered as a success is what this module exists to refuse.
+
+    Returning ``export_3mf=None`` would make a dropped export indistinguishable from one nobody
+    asked for -- ``__str__`` simply omits the line either way.
+    """
+    out = _outdir(tmp_path, _good_result())
+    with pytest.raises(slicer.SliceRejected) as exc:
+        slicer.accept_slice(out, plate=0, export_3mf="sliced.3mf")
+    assert "sliced.3mf" in str(exc.value)
+    assert "3MF export was requested" in str(exc.value)
+
+
+def test_an_empty_3mf_is_rejected_too(tmp_path):
+    out = _outdir(tmp_path, _good_result())
+    (out / "sliced.3mf").write_bytes(b"")
+    with pytest.raises(slicer.SliceRejected):
+        slicer.accept_slice(out, plate=0, export_3mf="sliced.3mf")
+
+
+def test_a_written_3mf_is_carried_on_the_result(tmp_path):
+    out = _outdir(tmp_path, _good_result())
+    (out / "sliced.3mf").write_bytes(b"PK\x03\x04not-really-a-zip")
+    result = slicer.accept_slice(out, plate=0, export_3mf="sliced.3mf")
+    assert result.export_3mf == out / "sliced.3mf"
+    assert "MANUAL transfer" in str(result), "the result must say nothing is sent"
+
+
+def test_a_multi_plate_result_is_refused_rather_than_mismatched(tmp_path):
+    """Mass is summed over every plate; the G-code is one plate. Pairing them would be wrong."""
+    data = _good_result()
+    data["sliced_plates"].append(
+        {
+            "id": 2,
+            "total_predication": 900.0,
+            "filaments": [{"filament_id": "GFA01", "id": 1, "total_used_g": 4.0}],
+        }
+    )
+    with pytest.raises(slicer.SliceRejected) as exc:
+        slicer.accept_slice(_outdir(tmp_path, data), plate=0)
+    message = str(exc.value)
+    assert "2 plates" in message
+    assert "one plate at a time" in message

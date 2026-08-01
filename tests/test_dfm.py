@@ -250,3 +250,43 @@ def test_evaluate_rejects_a_mesh_with_no_faces():
     empty = trimesh.Trimesh(vertices=np.zeros((0, 3)), faces=np.zeros((0, 3), dtype=np.int64))
     with pytest.raises((ValueError, dfm.DfmError)):
         dfm.evaluate(empty, "PLA_generic")
+
+
+# --- bridges ---------------------------------------------------------------------------------
+
+
+def test_a_long_bridge_is_a_warning_not_a_blocker(bridge_mesh):
+    """The rule fires, and it fires at WARNING. A bridge is a quality risk, not a refusal.
+
+    Until this existed ``max_bridge_mm`` had never produced a finding on any part in the
+    repository, so the rule was configuration nothing consumed.
+    """
+    report = dfm.evaluate(bridge_mesh, "PLA_generic", part="bridge")
+    finding = next(f for f in report.findings if f.rule == "max_bridge_mm")
+    assert finding.severity == dfm.WARNING
+    assert finding.measured == pytest.approx(20.0, abs=0.05)
+    assert finding.threshold == 10.0
+    assert "max_bridge_mm" not in {f.rule for f in report.blockers}
+
+    # The same deck is also a 90-degree ceiling, so max_overhang_deg blocks it -- correctly, and
+    # for a different reason. Two rules describing one surface from two angles is the intended
+    # behaviour; what matters is that the span itself is advice rather than a refusal.
+    assert "max_overhang_deg" in {f.rule for f in report.blockers}
+
+
+def test_petg_halves_pla_s_bridge_allowance(bridge_mesh):
+    """PETG sags where PLA snaps taut, and the config says so with a reason."""
+    pla = dfm.load_rules("PLA_generic")["max_bridge_mm"]["value"]
+    petg = dfm.load_rules("PETG_generic")["max_bridge_mm"]["value"]
+    assert petg < pla
+    assert "max_bridge_mm" in {f.rule for f in dfm.evaluate(bridge_mesh, "PETG_generic").findings}
+
+
+def test_a_short_bridge_produces_no_finding():
+    """The false-positive direction: an 8mm span is inside every material's allowance."""
+    from conftest import build_bridge
+
+    from threedp.features import _tessellate
+
+    mesh = _tessellate(build_bridge(span=8.0, depth=8.0))
+    assert "max_bridge_mm" not in {f.rule for f in dfm.evaluate(mesh, "PLA_generic").findings}

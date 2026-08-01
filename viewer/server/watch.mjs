@@ -75,27 +75,31 @@ function broadcast(payload) {
   }
 }
 
-let timer = null
-let lastSize = -1
+// Debounce state is per FILE, not global. With one shared timer, two files changing inside the
+// same window announced only the last one and dropped the other silently -- and the natural slice
+// workflow does exactly that, writing the mesh and then part.preview.json moments later. The
+// dropped announcement leaves the page showing stale geometry with nothing saying so.
+const pending = new Map() // file -> { timer, lastSize }
 
 function announce(file) {
+  const state = pending.get(file)
+  if (!state) return
   const size = existsSync(file) ? statSync(file).size : -1
-  if (size !== lastSize) {
+  if (size !== state.lastSize) {
     // still growing - wait another interval rather than shipping a half-written mesh
-    lastSize = size
-    timer = setTimeout(() => announce(file), DEBOUNCE_MS)
+    state.lastSize = size
+    state.timer = setTimeout(() => announce(file), DEBOUNCE_MS)
     return
   }
-  timer = null
-  lastSize = -1
+  pending.delete(file)
   console.log(`[watch] ${file} (${size} bytes)`)
   broadcast({ type: 'change', file })
 }
 
 function schedule(file) {
-  if (timer) clearTimeout(timer)
-  lastSize = -1
-  timer = setTimeout(() => announce(file), DEBOUNCE_MS)
+  const state = pending.get(file)
+  if (state) clearTimeout(state.timer)
+  pending.set(file, { timer: setTimeout(() => announce(file), DEBOUNCE_MS), lastSize: -1 })
 }
 
 const watcher = chokidar.watch(modelDir, { ignoreInitial: true, depth: 0 })
@@ -109,6 +113,8 @@ console.log(`[watch] ws://${HOST}:${PORT}  watching ${modelDir}  (${WATCHED.join
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
+    for (const { timer } of pending.values()) clearTimeout(timer)
+    pending.clear()
     watcher.close()
     server.close()
     process.exit(0)

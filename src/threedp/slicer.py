@@ -295,7 +295,17 @@ def accept_slice(
     material: str = "PLA",
     export_3mf: str | None = None,
 ) -> SliceResult:
-    """Apply ADR-10's four conditions to a finished run, or raise :class:`SliceRejected`.
+    """Apply ADR-10's conditions to a finished run, or raise :class:`SliceRejected`.
+
+    Four conditions come from ADR-10 and are each a measured failure: the return code, the
+    presence of ``sliced_plates``, a non-empty G-code file, and a mass backed by a real density.
+    Three more were added while building on top of them, each closing the same shape of gap --
+    a number reported next to an artifact it does not describe:
+
+    * **more than one plate** -- every number here is summed across plates and the G-code is one
+      file, so the pairing would be wrong;
+    * **no print time anywhere** -- see :func:`_print_time`;
+    * **a requested 3MF that was not written** -- a partial success is not a success.
 
     Separated from :func:`slice_part` so the gate can be driven against hand-built ``result.json``
     fixtures without a slicer installed. Those fixtures are the highest-value tests in the suite:
@@ -338,6 +348,18 @@ def accept_slice(
             f"exist in this model."
         )
 
+    # Every number below is summed over `sliced_plates`, and the G-code reported beside them is
+    # ONE plate. On a single-plate model those describe the same thing; on a multi-plate model
+    # they do not, and the result would pair plate 1's toolpath with every plate's filament.
+    # Refused rather than silently mismatched -- the same reflex as every other condition here.
+    if len(plates) > 1:
+        raise SliceRejected(
+            f"the slicer produced {len(plates)} plates, and this wrapper reports one G-code file "
+            f"with one mass. Pairing plate {max(int(plate), 1)}'s toolpath with every plate's "
+            f"filament would be a number that does not describe the file beside it. Slice one "
+            f"plate at a time (plate=1, 2, ...) until multi-plate results are modelled properly."
+        )
+
     # 3. the expected G-code exists and is non-empty.
     gcode_path = expected_gcode(outdir, plate)
     if not gcode_path.exists():
@@ -364,6 +386,21 @@ def accept_slice(
 
     time_s = _print_time(data, plates, meta)
 
+    # 5. a 3MF that was ASKED for and not written is a partial success, and a partial success
+    # rendered as a success is what this whole module exists to refuse. `io.py:88` raises on
+    # exactly this shape ("reported success but wrote no file"); returning None here would make a
+    # dropped export indistinguishable from one nobody requested.
+    exported = None
+    if export_3mf:
+        exported = outdir / export_3mf
+        if not exported.exists() or exported.stat().st_size == 0:
+            raise SliceRejected(
+                f"a 3MF export was requested and {exported} was not written (or is empty), "
+                f"while the slice itself succeeded. Measured: --export-3mf with an absolute path "
+                f"returns -13 and writes nothing, so pass a bare filename -- the process already "
+                f"runs with its cwd set to the output directory."
+            )
+
     return SliceResult(
         gcode=gcode_path,
         result_json=result_json,
@@ -375,7 +412,7 @@ def accept_slice(
         changes=int(data.get("filament_change_times", 0) or 0),
         warnings=str(data.get("warning_message", "") or ""),
         material=material,
-        export_3mf=(outdir / export_3mf) if export_3mf and (outdir / export_3mf).exists() else None,
+        export_3mf=exported,
         raw=data,
     )
 
