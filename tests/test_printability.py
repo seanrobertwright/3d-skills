@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from conftest import PLATE, build_overhang_cone
 
-from threedp import printability
+from threedp import features, printability
 
 # --- overhangs ----------------------------------------------------------------------------
 
@@ -239,3 +239,43 @@ def test_footprint_flags_a_slender_part():
     r = printability.footprint(_tessellate(p.part))
     assert r.aspect_ratio == pytest.approx(10.0, rel=0.01)
     assert r.flag, "36 mm2 of contact under a 10:1 part is both risks at once"
+
+
+# --- tilted bores are refused, not reported ------------------------------------------------
+
+
+def test_a_tilted_bore_is_not_reported_as_a_diameter():
+    """CLAUDE.md's named case, from the direction that hides a defect.
+
+    A Ø22 bore tilted 5 deg sections as an ellipse whose residual sits INSIDE the circularity
+    gate, so `fit.is_circular` is True and the cylinder reaches `fs.cylinders` looking measurable.
+    Its fitted diameter is 22.0395mm -- inflated by 0.04mm. Tilt always inflates, so admitting
+    one would let a genuinely undersized bore read as acceptable and slip under `min_hole_d_mm`.
+    """
+    from conftest import build_tilted_bore
+
+    from threedp.features import _tessellate
+
+    mesh = _tessellate(build_tilted_bore(tilt_deg=5.0))
+
+    # The premise: the ruler does hand this cylinder over, circular and confident.
+    found = features.from_mesh(mesh)
+    assert len(found.cylinders) == 1
+    assert found.cylinders[0].fit.is_circular, "the circularity gate does NOT catch tilt"
+    assert not found.cylinders[0].is_axis_aligned
+    assert found.cylinders[0].diameter_unchecked > 22.0, "tilt inflates; that is the danger"
+
+    r = printability.bore_diameters(mesh)
+    assert r.diameters == (), "a tilted bore must not be reported as a measured diameter"
+    assert r.tilted == 1, "...and must not be silently dropped either"
+    assert r.min_mm is None
+    assert not r.flag
+    assert "off Z" in str(r)
+
+
+def test_an_axis_aligned_bore_is_still_reported(plate_mesh):
+    """The false-positive direction: the axis check must not swallow ordinary vertical bores."""
+    r = printability.bore_diameters(plate_mesh)
+    assert r.tilted == 0
+    assert len(r.diameters) == 2
+    assert r.min_mm == pytest.approx(PLATE["hole_d"], abs=0.05)

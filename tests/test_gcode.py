@@ -290,3 +290,42 @@ def test_a_semicolon_inside_the_printing_time_field_ends_the_value(tmp_path):
         encoding="utf-8",
     )
     assert gcode.read_meta(g).time_s == pytest.approx(60.0)
+
+
+def test_an_extruding_move_before_any_marker_is_still_placed(tmp_path):
+    """Layer and feature indices start at -1 and are clamped at the emit site.
+
+    Every real fixture opens with a marker, so the clamp had never run. A file whose first
+    extrusion precedes its first `; CHANGE_LAYER` must land in layer 0, not at index -1.
+    """
+    g = tmp_path / "early.gcode"
+    g.write_text("M83\nG1 X0 Y0 Z0.2\nG1 X10 Y0 E1\n", encoding="utf-8")
+    paths = gcode.toolpaths(g)
+    assert paths["counts"]["extruding"] == 1
+    assert paths["segments"]["layer"] == [0]
+    assert paths["segments"]["feature"] == [0]
+    assert paths["features"] == ["(none)"]
+
+
+def test_a_present_but_unparsable_header_field_is_not_reported_as_zero(tmp_path):
+    """ "The slicer said zero" and "this parser could not read it" are different facts."""
+    g = tmp_path / "garbled.gcode"
+    g.write_text(
+        "; HEADER_BLOCK_START\n"
+        "; BambuStudio 02.07.01.62\n"
+        "; total filament weight [g] : 1.2.3\n"
+        "; total layer number: 250\n"
+        "; HEADER_BLOCK_END\n",
+        encoding="utf-8",
+    )
+    m = gcode.read_meta(g)
+    assert m.weight_g == 0.0
+    assert m.unparsable and "weight_g" in m.unparsable[0]
+    assert "UNPARSABLE" in str(m)
+    # ...and a field that is merely absent is NOT listed as unparsable.
+    assert not any("max_z" in u for u in m.unparsable)
+    assert m.layers == 250, "the readable fields still parse"
+
+
+def test_a_clean_header_reports_nothing_unparsable():
+    assert gcode.read_meta(FIXTURE).unparsable == ()

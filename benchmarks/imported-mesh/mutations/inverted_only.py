@@ -3,7 +3,7 @@
 This is the nastiest shape a broken import takes, because almost nothing notices it. The mesh is
 **watertight**. Its winding is **consistent**. Every bore sections as a perfect circle and
 measures Ø7.999. The plate is 10mm thick and 60mm wide. The only tell is the sign of the
-enclosed volume, measured at **-571.14 mm3** on the spike's l-bracket -- a negative number that
+enclosed volume, which for this part measures **-23065.76 mm3** -- a negative number that
 ``intent.check``'s ``volume`` kind will compare against a range without comment.
 
 So this mutation exists to score exactly one assertion: ``solid_volume``, whose lower bound of

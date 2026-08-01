@@ -222,6 +222,11 @@ class BoreReport:
     the axis is inside solid material, which requires a watertight mesh -- when the mesh is not
     watertight the classification is refused rather than guessed, and ``classified`` says so.
 
+    ``tilted`` counts bores a Z-scan cannot measure dimensionally. It is not a curiosity: tilt
+    *inflates* a fitted diameter, so a bore that is genuinely too small reads larger than it is
+    and slips under a minimum-diameter rule. Counting them separately means "no bore was too
+    small" and "some bores could not be measured" stay different answers.
+
     Every diameter here comes from :mod:`threedp.features`, which is to say from the one ruler.
     """
 
@@ -229,6 +234,7 @@ class BoreReport:
     threshold_mm: float = DEFAULT_MIN_BORE_D_MM
     classified: bool = True
     reason: str = ""
+    tilted: int = 0
 
     @property
     def min_mm(self) -> float | None:
@@ -241,10 +247,13 @@ class BoreReport:
     def __str__(self) -> str:
         if not self.classified:
             return f"bores     not classified: {self.reason}"
+        tail = f"   ({self.tilted} more off Z, not dimensionally measurable)" if self.tilted else ""
         if not self.diameters:
-            return "bores     none measured on this mesh"
+            return f"bores     none measured on this mesh{tail}"
         listed = ", ".join(f"{d:.3f}" for d in sorted(self.diameters))
-        return f"bores     {len(self.diameters)} measured, min {self.min_mm:.3f} mm  [{listed}]"
+        return (
+            f"bores     {len(self.diameters)} measured, min {self.min_mm:.3f} mm  [{listed}]{tail}"
+        )
 
 
 def _face_angles_from_vertical(mesh: trimesh.Trimesh) -> np.ndarray:
@@ -444,6 +453,16 @@ def bore_diameters(
     own axis lies inside solid material. That test needs a watertight mesh; on a broken one the
     classification is refused rather than guessed, because calling a pin a hole points the user
     at the opposite fix.
+
+    **A tilted bore is not a measurement.** A mesh-derived dimension is Tier 1 only if the circle
+    fit passes the circularity gate *and* the axis is within 1 deg of Z -- circularity alone is
+    not enough, because a Z-scan sections a tilted bore into an ellipse that can sit inside the
+    gate while its fitted diameter is inflated. Measured on the 5 deg fixture: a nominal Ø22 bore
+    reports 22.0395 mm, circular and 0.04 mm too large. Since the inflation runs *upward*, letting
+    one through would make a genuinely undersized bore read as acceptable and evade a
+    minimum-diameter BLOCKER -- a false pass on precisely the defect class this project exists to
+    catch. They are counted in ``tilted`` rather than dropped, so the caller can tell "nothing was
+    too small" from "something could not be looked at" (ADR-4).
     """
     from threedp import features
     from threedp.measure import MeasurementError
@@ -471,11 +490,17 @@ def bore_diameters(
     solid_on_axis = np.asarray(mesh.contains(probes), dtype=bool)
 
     diameters: list[float] = []
+    tilted = 0
     for cylinder, is_boss in zip(found.cylinders, solid_on_axis, strict=True):
         if is_boss:
             continue  # material on the axis: this is a pin or a boss, not a hole
+        if not cylinder.is_axis_aligned:
+            # A Z-scan cannot measure this dimensionally, and the error runs upward -- see the
+            # docstring. Counted, never silently dropped and never reported as a diameter.
+            tilted += 1
+            continue
         try:
             diameters.append(float(cylinder.diameter))
         except MeasurementError:
             continue  # the circularity gate refused it; it is not a diameter to report
-    return BoreReport(tuple(diameters), float(threshold_mm))
+    return BoreReport(tuple(diameters), float(threshold_mm), tilted=tilted)

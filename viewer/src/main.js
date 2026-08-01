@@ -266,7 +266,16 @@ layerSlider.addEventListener('input', () => {
 function connect() {
   const socket = new WebSocket(WS_URL)
   socket.addEventListener('message', async (event) => {
-    const message = JSON.parse(event.data)
+    // Every other failure in this file is routed to showError so the panel says what went wrong.
+    // An unguarded JSON.parse at the top of an async listener rejects a promise nobody awaits,
+    // so a malformed frame would go quiet everywhere except devtools.
+    let message
+    try {
+      message = JSON.parse(event.data)
+    } catch (err) {
+      showError(err)
+      return
+    }
     if (message.type === 'hello') {
       modelDir = message.dir
       if (message.preview) await loadPreviewFile(message.preview).catch(showError)

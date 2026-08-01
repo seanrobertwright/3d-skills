@@ -28,7 +28,7 @@ A repair benchmark that asserted only `watertight` would score a bridged bore gr
 failure mode `trimesh.repair.fill_holes` documents on itself — it fills boundary holes "using
 fans, which may result in bad answers if the holes are non-convex" — and a bore breaking a
 surface is exactly a non-convex boundary. `bridged_bore` reproduces it: the mesh comes back
-watertight and the section at (21, 0) comes back at `max_residual = 0.954 mm`, nineteen times the
+watertight and the section at (21, 0) comes back at `max_residual = 0.9019 mm`, eighteen times the
 circularity gate.
 
 So the intent asserts both halves of a repair:
@@ -42,7 +42,7 @@ So the intent asserts both halves of a repair:
 which makes it a claim about **topology, not size**, and keeps it from smuggling in a golden
 volume through the front door. An inside-out mesh is watertight, its winding is consistent, and
 every bore on it sections as a perfect circle and measures Ø7.999. The sign of the enclosed
-volume is the only thing that sees it, and the spike measured exactly that: **−571.14 mm³**, a
+volume is the only thing that sees it, and this mutation measures exactly that: **−23065.76 mm³**, a
 negative number `intent.check`'s `volume` kind would compare against a range without comment.
 Delete this one assertion and `inverted_only` goes from caught to missed while every other line
 of the report stays green.

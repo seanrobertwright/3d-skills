@@ -12,7 +12,7 @@ defect nobody can read in a diff, and it would sit outside that rule. So the dam
   by raw index, so the break stays in the same place when a mutation changes the tessellation or
   the pin. S10: 3 deleted faces -> 7 broken faces, euler -8, not watertight.
 * ``FLIP_FACES`` faces have their winding reversed. S10: 200 reversed -> winding inconsistent and
-  volume **-571.14 mm3**, a negative number ``intent.check``'s ``volume`` kind would happily
+  volume **-934.24 mm3**, a negative number ``intent.check``'s ``volume`` kind would happily
   compare against a range.
 
 Mesh-native, following ``benchmarks/gyroid-vase/model.py``: there is no STEP, because the thing
@@ -50,10 +50,11 @@ from harness import load_json  # noqa: E402
 # BLOCKER; `mild` is inside it and produces a WARNING only, which is what proves a WARNING does
 # not gate a verdict.
 #
-# `cap` is not decoration. A bare flared cone meets its own top face at a knife edge -- measured
-# at 0.006mm of material at the rim -- which is a real and correct min_feature BLOCKER, and it
+# `cap` is not decoration. A bare flared cone meets its own top face at a knife edge -- thousandths
+# of a millimetre of material at the rim -- which is a real and correct min_feature BLOCKER, and it
 # would fire on *both* variants and make the mild one unable to isolate the overhang rule. The
-# collar gives the rim a printable wall so each mutation tests the one thing it names.
+# collar gives the rim a printable wall so each mutation tests the one thing it names. No figure is
+# quoted because the geometry that produced one is not the geometry that ships.
 OVERHANGS = {
     "steep": {"angle_deg": 75.0, "rise": 4.0, "cap": 2.5},
     "mild": {"angle_deg": 40.0, "rise": 6.0, "cap": 2.5},

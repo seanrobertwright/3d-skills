@@ -35,8 +35,9 @@ Report the diagnosis as it comes: watertight, winding consistency, broken faces,
 duplicates, degenerates.
 
 **Inversion is named, never reported as a volume.** An inside-out mesh encloses a *negative*
-volume — measured at −571.14 mm³ on a real part — and a checker comparing that against a range
-fails correctly for entirely the wrong reason. `diagnose` says INVERTED.
+volume — a 60×40×10 plate turned fully inside out measures −23065.76 mm³ — and a checker
+comparing that against a range fails correctly for entirely the wrong reason. `diagnose` says
+INVERTED.
 
 ## 2. Repair, and read the verdict
 

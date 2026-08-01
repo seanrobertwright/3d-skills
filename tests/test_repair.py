@@ -69,16 +69,19 @@ def test_deleted_faces_are_diagnosed_as_broken(plate_mesh):
 
 
 def test_reversed_winding_is_diagnosed_as_inversion_not_as_a_volume(plate_mesh):
-    """Measured in the spike: an inverted mesh reports volume -571.14 mm3.
+    """Reversing 200 of this plate's faces reports volume **-1004.89 mm3**.
 
     A *negative* number that ``intent.check``'s volume kind will happily compare against a
     range -- correctly failing, but for the wrong reason and with a useless message. Inversion is
     named first so the message points at the winding, not at the size.
+
+    The magnitude depends on *which* faces were flipped and on the part, so it is asserted here
+    against this fixture rather than quoted as a general fact. What generalises is the **sign**.
     """
     broken = _flip_windings(plate_mesh, 200)
     d = repair.diagnose(broken)
     assert not d.winding_consistent
-    assert d.volume < 0
+    assert d.volume == pytest.approx(-1004.89, abs=0.01)
     assert d.inverted
     assert "INVERT" in str(d).upper()
 
@@ -294,3 +297,20 @@ def test_verify_uses_the_one_ruler(plate_mesh):
     found = features.from_mesh(plate_mesh)
     ruler = sorted(c.diameter for c in found.cylinders)
     assert sorted(d.before for d in result.dimensions) == pytest.approx(ruler, abs=1e-9)
+
+
+def test_repair_fixes_a_fully_inverted_mesh_end_to_end(plate_mesh):
+    """The default op list must handle every-face-flipped, not just some-faces-flipped.
+
+    `fix_inversion` is deliberately absent from DEFAULT_OPS because `fix_normals` subsumes it
+    (trimesh's fix_normals calls fix_winding then fix_inversion). That is a claim about a third
+    party's implementation, so it is asserted here rather than trusted: if a trimesh upgrade ever
+    changes it, a fully inverted import would come back watertight and inside out.
+    """
+    flipped = _flip_windings(plate_mesh, len(plate_mesh.faces))
+    assert repair.diagnose(flipped).inverted, "the fixture must start inside out"
+
+    result = repair.repair(flipped)
+    assert result.passed, str(result)
+    assert not result.after.inverted
+    assert result.mesh.volume == pytest.approx(plate_mesh.volume, abs=1e-6)

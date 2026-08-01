@@ -104,6 +104,8 @@ class GcodeMeta:
     max_z: float = 0.0
     filaments: int = 0
     source: str = ""
+    # Header fields that were present but could not be read as numbers. Empty is the normal case.
+    unparsable: tuple[str, ...] = ()
 
     @property
     def time_hm(self) -> str:
@@ -122,12 +124,18 @@ class GcodeMeta:
             if self.density_is_usable
             else f"{self.weight_g:.2f} g  <- computed from filament_density 0; not a mass"
         )
-        return (
+        lines = [
             f"gcode    {self.generator or 'unknown generator'}   {self.time_hm}   "
-            f"{self.layers} layers   {weight}\n"
+            f"{self.layers} layers   {weight}",
             f"         filament {self.length_mm:.2f} mm / {self.volume_mm3:.2f} mm3 "
-            f"(the header labels this cm^3; it is mm3)   max z {self.max_z:.2f} mm"
-        )
+            f"(the header labels this cm^3; it is mm3)   max z {self.max_z:.2f} mm",
+        ]
+        if self.unparsable:
+            lines.append(
+                f"         UNPARSABLE header field(s): {', '.join(self.unparsable)} - these read "
+                f"as 0 and are NOT measurements"
+            )
+        return "\n".join(lines)
 
 
 def _seconds(text: str) -> float:
@@ -150,7 +158,15 @@ def _read_lines(path: str | Path):
 
 
 def read_meta(path: str | Path) -> GcodeMeta:
-    """Parse the header block. Missing fields stay at zero rather than being invented."""
+    """Parse the header block.
+
+    A field that is absent stays at zero rather than being invented. A field that is *present but
+    unparsable* also reads zero -- the capture pattern is permissive enough to match a truncated
+    or garbled value -- and those are different facts, so the second case is recorded in
+    ``unparsable`` instead of quietly becoming the first. Bambu's header format is already known
+    to drift (its markers differ from PrusaSlicer's), so this is a live possibility rather than a
+    hypothetical.
+    """
     p, lines = _read_lines(path)
     found: dict[str, str] = {}
     for line in lines:
@@ -164,10 +180,18 @@ def read_meta(path: str | Path) -> GcodeMeta:
                 if match:
                     found[name] = match.group(1).strip()
 
+    unparsable: list[str] = []
+
     def number(name: str) -> float:
+        raw = found.get(name)
+        if raw is None:
+            return 0.0
         try:
-            return float(found.get(name, 0.0))
+            return float(raw)
         except ValueError:
+            # Present but not a number. Recorded, so "the slicer said zero" and "the slicer said
+            # something this parser could not read" do not collapse into the same 0.0.
+            unparsable.append(f"{name}={raw!r}")
             return 0.0
 
     return GcodeMeta(
@@ -182,6 +206,7 @@ def read_meta(path: str | Path) -> GcodeMeta:
         max_z=number("max_z"),
         filaments=int(number("filaments")),
         source=str(p),
+        unparsable=tuple(unparsable),
     )
 
 
@@ -312,7 +337,10 @@ def toolpaths(path: str | Path, max_segments: int = DEFAULT_MAX_SEGMENTS) -> dic
         if "E" in words:
             delta_e = words["E"] if state.relative_e else words["E"] - state.e
             extrudes = delta_e > _EPS_E
-            state.e = words["E"] if not state.relative_e else state.e
+            # Only absolute mode accumulates a cumulative E. In relative mode each word IS the
+            # delta, so there is nothing to carry -- written as an `if` so that asymmetry shows.
+            if not state.relative_e:
+                state.e = words["E"]
 
         travelled = (nx != state.x) or (ny != state.y) or (nz != state.z)
         if extrudes and travelled and state.known:

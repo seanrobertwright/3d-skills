@@ -545,3 +545,42 @@ def test_a_multi_plate_result_is_refused_rather_than_mismatched(tmp_path):
     message = str(exc.value)
     assert "2 plates" in message
     assert "one plate at a time" in message
+
+
+def test_slice_part_refuses_an_export_3mf_that_is_not_a_bare_filename(tmp_path, monkeypatch):
+    """The caller-side guard for S5, which had no coverage at all.
+
+    An absolute --export-3mf path returns -13 while still writing the G-code, so the refusal has
+    to happen before the slicer runs. Monkeypatched so it needs no slicer installed.
+    """
+    part = tmp_path / "part.stl"
+    part.write_text("solid x\nendsolid x\n", encoding="utf-8")
+    monkeypatch.setattr(slicer, "find_slicer", lambda config=None: tmp_path / "fake.exe")
+    monkeypatch.setattr(slicer, "profile_root", lambda config=None: tmp_path)
+
+    for bad in ("sub/dir/out.3mf", "sub\dir\out.3mf", str(tmp_path / "out.3mf")):
+        with pytest.raises(slicer.SlicerError) as exc:
+            slicer.slice_part(part, export_3mf=bad, outdir=tmp_path / "o")
+        assert "bare filename" in str(exc.value), bad
+
+
+def test_slice_part_refuses_a_material_with_no_configured_preset(tmp_path, monkeypatch):
+    part = tmp_path / "part.stl"
+    part.write_text("solid x\nendsolid x\n", encoding="utf-8")
+    monkeypatch.setattr(slicer, "find_slicer", lambda config=None: tmp_path / "fake.exe")
+    monkeypatch.setattr(slicer, "profile_root", lambda config=None: tmp_path)
+
+    with pytest.raises(slicer.SlicerError) as exc:
+        slicer.slice_part(part, material="UNOBTANIUM", outdir=tmp_path / "o")
+    message = str(exc.value)
+    assert "UNOBTANIUM" in message
+    assert "PLA" in message, "the error must list what IS configured"
+
+
+def test_a_malformed_filament_inventory_raises_a_slicer_error(tmp_path):
+    """Every other profile loader converts this; load_inventory alone leaked a bare parse error."""
+    bad = tmp_path / "filaments.json"
+    bad.write_text("{not json", encoding="utf-8")
+    with pytest.raises(slicer.SlicerError) as exc:
+        slicer.load_inventory(bad)
+    assert "not valid JSON" in str(exc.value)

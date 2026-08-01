@@ -5,10 +5,11 @@ it fills boundary holes "using fans, which may result in bad answers if the hole
 non-convex", and a bore breaking a surface is exactly a non-convex boundary. The fan throws a
 flat patch across the mouth of the damage, chord-wise through the bore.
 
-The result is **watertight**, which is what a naive repair reports as success. Measured here: the
-section at (21, 0) comes back with ``max_residual = 0.954mm``, nineteen times the circularity
-gate, so the ruler refuses to report a diameter for it at all -- and refusing is the correct
-answer, because the shape at (21, 0) is no longer a circle and no single diameter describes it.
+The result is **watertight**, which is what a naive repair reports as success. Measured on the
+quadrant this mutation actually removes: the section at (21, 0) comes back with
+``max_residual = 0.9019mm``, eighteen times the circularity gate, so the ruler refuses to report a
+diameter for it at all -- and refusing is the correct answer, because the shape at (21, 0) is no
+longer a circle and no single diameter describes it.
 
 The verifier must catch this on ``right_bore_d`` and ``bore_count``: *dimensional* assertions.
 A run where this fails on ``watertight`` instead would mean the fan never happened and the

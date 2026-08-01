@@ -7,5 +7,5 @@
   "PIN_D":       {"value": 3.0,    "role": "outer",   "note": "NOTHING in intent.json constrains this - only the DFM engine does. See mutations/README.md"},
   "PIN_H":       {"value": 10.0,   "role": "neutral"},
   "BREAK_FACES": {"value": 3.0,    "role": "neutral", "note": "faces deleted from the plate's top surface before repair (spike S10 used 3)"},
-  "FLIP_FACES":  {"value": 200.0,  "role": "neutral", "note": "faces whose winding is reversed before repair (spike S10 used 200 -> volume -571.14)"}
+  "FLIP_FACES":  {"value": 200.0,  "role": "neutral", "note": "faces whose winding is reversed before repair; 200 on this part measures volume -934.24"}
 }

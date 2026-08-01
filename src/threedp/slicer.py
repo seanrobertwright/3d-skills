@@ -14,8 +14,8 @@ following was observed on this machine on 2026-07-31, and each defeats the obvio
   absolute path. So the presence of a plausible output file is not evidence either.
 * ``return_code == 0``, correct printer, correct process, and ``0.00 g`` -- the BBL system presets
   are not self-contained and the CLI does **not** walk ``inherits``. The leaf PLA preset carries
-  23 keys and no ``filament_density``; the value 1.26 lives two files up and
-  ``fdm_filament_common``'s **0** is what ships. See :func:`flatten_preset`.
+  23 keys and no ``filament_density``; 1.26 lives one file up in its immediate parent, 1.24 two up,
+  and ``fdm_filament_common``'s **0** is what ships. See :func:`flatten_preset`.
 * ``return_code == -17`` -- a flattened preset that was *renamed*. A process preset's
   ``compatible_printers`` is a list of printer **names**; rename the machine and the match fails.
 
@@ -111,6 +111,11 @@ def load_inventory(path: str | Path | None = None) -> list[dict[str, Any]]:
         data = json.loads(Path(p).read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
         raise SlicerError(f"no filament inventory at {p}") from exc
+    except json.JSONDecodeError as exc:
+        # Every other profile loader in the package converts this; this one did not, so a
+        # malformed filaments.json escaped as a bare JSONDecodeError that no caller catching
+        # SlicerError would see.
+        raise SlicerError(f"{p} is not valid JSON: {exc}") from exc
     slots = data.get("slots")
     if not isinstance(slots, list) or not slots:
         raise SlicerError(f"{p} has no 'slots' list")
@@ -168,10 +173,15 @@ def profile_root(config: dict[str, Any] | None = None) -> Path:
 def flatten_preset(kind: str, name: str, root: str | Path) -> dict[str, Any]:
     """Resolve a Bambu preset's ``inherits`` chain into one self-contained config.
 
-    Measured 2026-07-31: the CLI does **not** walk ``inherits``. The leaf PLA preset carries 23
-    keys and no ``filament_density``; the value 1.26 lives two files up and
-    ``fdm_filament_common``'s 0 is what ships. Unflattened, the slice succeeds and reports
-    ``; total filament weight [g] : 0.00``.
+    Measured 2026-07-31: the CLI does **not** walk ``inherits``. Verified against the installed
+    tree, the PLA chain is four deep and the density it needs is *not* at the leaf::
+
+        0  Bambu PLA Basic @BBL P1S 0.4 nozzle    23 keys   filament_density absent
+        1  Bambu PLA Basic @base                  20 keys   filament_density 1.26  <- wanted
+        2  fdm_filament_pla                       40 keys   filament_density 1.24
+        3  fdm_filament_common                   136 keys   filament_density 0      <- what ships
+
+    Unflattened, the slice succeeds and reports ``; total filament weight [g] : 0.00``.
 
     The original ``name`` is preserved deliberately (S4). A process preset's
     ``compatible_printers`` is a list of printer *names*, so renaming the machine preset to

@@ -290,3 +290,86 @@ def test_a_short_bridge_produces_no_finding():
 
     mesh = _tessellate(build_bridge(span=8.0, depth=8.0))
     assert "max_bridge_mm" not in {f.rule for f in dfm.evaluate(mesh, "PLA_generic").findings}
+
+
+# --- a tilted bore must not evade the minimum-diameter blocker -------------------------------
+
+
+def test_a_tilted_bore_is_skipped_loudly_rather_than_passing_min_hole_d():
+    """The failure this guards is a FALSE PASS, which is why it is not enough to drop the bore.
+
+    Tilt inflates a fitted diameter, so an undersized bore measured off-axis reads larger than it
+    is and clears `min_hole_d_mm`. Refusing to measure it is correct; refusing *silently* would
+    leave the report saying "no rule was violated", which is a different and untrue claim.
+    """
+    from conftest import build_tilted_bore
+
+    from threedp.features import _tessellate
+
+    report = dfm.evaluate(
+        _tessellate(build_tilted_bore(tilt_deg=5.0)), "PLA_generic", part="tilted-bore"
+    )
+    assert "min_hole_d_mm" not in {f.rule for f in report.findings}
+    reasons = dict(report.skipped)
+    assert "min_hole_d_mm" in reasons, "the rule was neither applied nor reported as unapplied"
+    assert "off Z" in reasons["min_hole_d_mm"]
+    assert "min_hole_d_mm" in str(report)
+
+
+def test_an_undersized_tilted_bore_does_not_read_as_acceptable():
+    """The concrete false pass: a Ø1.8 bore is under the 2.0 minimum, and tilt would hide it."""
+    import math
+
+    from build123d import Box, BuildPart, Cylinder, Mode
+
+    from threedp.features import _tessellate
+
+    with BuildPart() as p:
+        Box(20.0, 20.0, 12.0)
+        Cylinder(radius=0.9, height=40.0, rotation=(5.0, 0, 0), mode=Mode.SUBTRACT)
+    report = dfm.evaluate(_tessellate(p.part), "PLA_generic", part="tilted-pinhole")
+
+    # It must NOT come back as a clean measured bore above the threshold.
+    measured = [f for f in report.findings if f.rule == "min_hole_d_mm"]
+    assert not measured or measured[0].measured < 2.0, (
+        "an undersized bore was reported as measured and above the minimum"
+    )
+    assert "min_hole_d_mm" in dict(report.skipped) or measured, (
+        "the rule silently produced neither a finding nor a skip"
+    )
+    assert math.isclose(0.9 * 2, 1.8), "the fixture is undersized by construction"
+
+
+# --- slenderness -----------------------------------------------------------------------------
+
+
+def test_a_slender_part_produces_an_aspect_ratio_finding_carrying_its_evidence():
+    """The rule fires *through the rules engine*, not just through the measurement beneath it.
+
+    `test_printability.py` already checks `footprint().flag`. That is a different claim: it proves
+    the number is right, not that `dfm.evaluate` ever consults it. Until this existed,
+    `max_aspect_ratio` had never produced a Finding anywhere in the repository -- the same shape
+    of gap as `bridge_spans` before it.
+    """
+    from build123d import Box, BuildPart
+
+    from threedp.features import _tessellate
+
+    with BuildPart() as p:
+        Box(6.0, 6.0, 60.0)  # 60/6 = 10:1, past the 8:1 default
+    report = dfm.evaluate(_tessellate(p.part), "PLA_generic", part="tall-post")
+
+    finding = next(f for f in report.findings if f.rule == "max_aspect_ratio")
+    assert finding.severity == dfm.WARNING
+    assert finding.measured == pytest.approx(10.0, rel=0.01)
+    assert finding.threshold == 8.0
+    assert finding.unit == "", "a ratio has no unit and must not be printed as millimetres"
+    assert "topples" in finding.message
+    assert report.passed, "slenderness is a warning about the print, not a refusal"
+
+
+def test_a_squat_part_produces_no_aspect_ratio_finding(plate_mesh):
+    """The false-positive direction: 10mm over a 40mm footprint is 0.25:1 and unremarkable."""
+    assert "max_aspect_ratio" not in {
+        f.rule for f in dfm.evaluate(plate_mesh, "PLA_generic").findings
+    }

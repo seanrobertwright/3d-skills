@@ -316,9 +316,27 @@ def evaluate(
     if not bores.classified:
         skipped.append(("min_hole_d_mm", bores.reason))
     elif bores.min_mm is None:
-        skipped.append(("min_hole_d_mm", "no bore was measurable on this mesh"))
+        # Three different silences, and they must not read as one. "This part has no bores" is a
+        # clean bill of health; "every bore is off Z" is a refusal to look, on features whose
+        # fitted diameter would have been inflated upward and could have hidden an undersized
+        # bore. Reported either way, never folded into "no violation".
+        why = (
+            f"{bores.tilted} bore(s) are off Z by more than the Tier 1 limit, so a Z-scan cannot "
+            f"measure their diameter; the fit inflates with tilt and would read too large"
+            if bores.tilted
+            else "no bore was measurable on this mesh"
+        )
+        skipped.append(("min_hole_d_mm", why))
     else:
         add("min_hole_d_mm", bores.min_mm)
+        if bores.tilted:
+            skipped.append(
+                (
+                    "min_hole_d_mm",
+                    f"{bores.tilted} further bore(s) are off Z and were not checked against the "
+                    f"minimum; the measured value above covers only the axis-aligned ones",
+                )
+            )
 
     overhangs = printability.overhang_histogram(
         mesh, threshold_deg=float(record["max_overhang_deg"]["value"])
