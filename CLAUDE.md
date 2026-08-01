@@ -2,17 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status: Phase 1 implemented
+## Status: Phase 2 implemented
 
-The `threedp` package, three skills, the viewer, 5 benchmarks and a 19-mutation suite are in
-place. Phase 1 ships **no slicer and no printer**.
+The `threedp` package, six skills, the viewer, 6 benchmarks and a 27-mutation suite are in place.
+Phase 2 ships a **slicer wrapper but still no printer** — no upload path of any kind.
 
 - **`PRD.md` is the source of truth.** Link to its sections; do not copy its text into new docs.
   `PRD.md` is excluded from `ruff format` on purpose — ruff formats fenced Python blocks and
   rewrote its API-specification snippet on first run.
-- **`.agents/plans/phase-1-verification-loop.md`** is the current implementation plan, backed by a
-  spike run on this machine. It contains measured numbers, four PRD corrections, and five ADRs.
-  Read it before implementing anything.
+- **`.agents/plans/phase-1-verification-loop.md`** and
+  **`.agents/plans/phase-2-printability-and-preparation.md`** are the implementation plans, each
+  backed by a spike run on this machine. They contain measured numbers, PRD corrections, and
+  ADRs 1–12. Read the relevant one before implementing anything.
+- **The slicer is Bambu Studio, not OrcaSlicer** (Phase 2 correction C1). `PRD.md` §12 and §7 name
+  OrcaSlicer; it is not installed on this machine and Bambu Studio is, with the complete BBL
+  vendor profile tree. OrcaSlicer is a Bambu Studio fork sharing the CLI surface, so
+  `profiles/slicer.json` holds the executable candidates and a second backend stays config rather
+  than a rewrite.
 
 ## What this project is
 
@@ -50,6 +56,24 @@ Three consequences that are easy to get wrong:
   signs and need not reconcile into a single offset — that is the whole point.
 - **Models are programs.** Changing 40mm to 45mm is an edit, never a regeneration.
 
+### The Phase 2 layers, and where each one refuses
+
+```
+printability.py   measures  ->  dfm.py       compares against profiles/dfm-rules.json (cited)
+repair.py         fixes     ->  verify()     re-measures; a moved dimension is a FAILED repair
+slicer.py         runs it   ->  accept_slice ADR-10's four conditions; a 0.00 g result is refused
+gcode.py          parses    ->  viewer       a channel, never a gate
+```
+
+Three rules that are easy to erode:
+
+- **`dfm.py` performs no measurement and holds no threshold.** New measurements go in
+  `printability.py`; thresholds go in `profiles/dfm-rules.json` **with a `source`**. Separated,
+  tuning a rule is a JSON edit that cannot touch a measurement.
+- **DFM gates only where an `intent.json` asserts `dfm_violation_count`** (ADR-8). DFM is advice
+  about a *process*; intent is a claim about a *part*.
+- **Only BLOCKER gates.** A WARNING is reported with its number and does not fail a part.
+
 ### Verification tiers — by feature type, not representation
 
 | Tier | Features | Guarantee |
@@ -82,8 +106,15 @@ Two classes, both required: **geometry mutations** (a dimension is wrong) and **
   implementations once disagreed by 0.088mm, more than a press-fit tolerance.
 - **A circle fit must never yield a diameter without a circularity check.** A square 20×20 pocket
   fits as a confident "24.4949mm circle". `CircleFit.diameter` raises unless `is_circular`.
-- **Never touch the printer path.** Enforced at the harness layer in `.claude/settings.json`, not
-  by agent discipline.
+- **Never touch the printer path.** Enforced at the harness layer in `.claude/settings.json`, and
+  mechanically by `tests/test_no_printer_path.py` — not by agent discipline.
+- **Every DFM threshold carries a `source`.** `dfm.load_rules` refuses an uncited one, exactly as
+  `parts.get` refuses an unknown key. A threshold in Python or in a `SKILL.md` is a threshold
+  outside the config and outside the tests.
+- **A repair is not complete until it is re-measured.** `repair()` never returns a mesh alone, and
+  "it is watertight now" is not a verdict — a bridged bore is watertight.
+- **A slice result is accepted on four independent conditions or not at all.** Each one alone was
+  measured being satisfied by a failed run.
 - **Absent features FAIL with a reason — never skip.** A missing counterbore *is* the defect.
 - **Renders are a channel, not a gate.** They never contribute to a pass verdict.
 - **All dimensions are millimetres.** Suffix a variable only when it is *not* mm (`angle_deg`).
@@ -129,6 +160,59 @@ These each cost real debugging time. All were verified empirically.
   between two sections), and the crown strip of a bore drilled along Y is exactly flat and exactly
   horizontal without being a face (fixed by rejecting facets with shallow-angle neighbours).
 
+### Phase 2 additions (measured 2026-07-31 / 2026-08-01)
+
+Bambu Studio CLI — each of these was reproduced on this machine:
+
+- **The CLI writes 0 bytes to stdout on every run.** `result.json` is the machine-readable
+  channel and it is written even on failure. Never parse stdout as data.
+- **The BBL system presets are not self-contained and the CLI does not walk `inherits`.** The leaf
+  `Bambu PLA Basic @BBL P1S 0.4 nozzle.json` has 23 keys and no `filament_density`; the value 1.26
+  lives two files up and `fdm_filament_common`'s **0** is what ships. Unflattened, the slice
+  *succeeds* and reports `0.00 g`. `slicer.flatten_preset` resolves the chain, root first.
+- **Flattening must keep the original preset `name`.** A process preset's `compatible_printers` is
+  a list of printer *names*; renaming the machine gives `return_code -17`.
+- **`--export-3mf` needs a relative filename with `cwd` set.** An absolute path returns `-13`
+  *while still writing a perfectly good `plate_1.gcode`* — so never infer success from a file.
+- **`return_code 0, "Success."` on a slice that produced nothing.** `--slice 3` on a single-plate
+  model writes a `result.json` with no `sliced_plates` key and no G-code at all. Hence ADR-10's
+  four independent acceptance conditions.
+- **`total_predication` is not reliably a top-level key.** Slicing a `.3mf` puts it at the top
+  level; slicing a `.stl` puts it only inside each `sliced_plates` entry. Read per-plate first,
+  then top level, then the G-code header — and refuse rather than report `0s`.
+- **The G-code header's volume unit label is wrong**: `; total filament volume [cm^3]` is mm³.
+  3580.16 mm × π(1.75/2)² = 8611 mm³ = 8.611 cm³ × 1.26 = 10.85 g, which is the mass in the same
+  header. The field is named `volume_mm3`; do not "fix" it back.
+- **Bambu's markers are not PrusaSlicer's.** `; FEATURE:`, `; CHANGE_LAYER`, `; Z_HEIGHT:` — with
+  a leading space. A parser written to `;TYPE:`/`;LAYER_CHANGE` finds *zero* of each and produces
+  an empty preview that looks like an empty part. Bambu also uses **relative E** (`M83`).
+- **CLI G-code contains no thumbnail block at all** — one `; thumbnail_size = 50x50` config line
+  and nothing else, so the P1S screen preview is blank (PRD correction C2). Not fixable here.
+
+Repair:
+
+- **`trimesh.repair.fill_holes` fills only tris and quads unless `use_fan=True`.** The fan is the
+  hazard ADR-9 exists for, and declining it would make repair unable to close any real hole; the
+  two passes are separate ops so the report says which one closed the mesh.
+- **Fix inversion only *after* filling holes.** Inversion is detected from the sign of the
+  enclosed volume, and an open surface does not enclose one — trimesh's own note is that
+  `fix_normals` is "really only meaningful on watertight meshes". Run in the intuitive order the
+  pipeline returned a **watertight mesh of −23065.76 mm³**: closed, plausible, and inside out,
+  with every upward face reading as a 90° overhang to the DFM engine downstream.
+- **An inverted mesh passes almost every check.** Watertight, winding-consistent, every bore
+  sections as a perfect circle. Only the sign of the volume sees it, which is why
+  `benchmarks/imported-mesh/intent.json` asserts `solid_volume: [1.0, null]` — a topology claim,
+  open above so it cannot smuggle in a golden volume.
+
+DFM:
+
+- **A flared cone meets its own top face at a knife edge** — measured at 0.006 mm of material —
+  which is a real `min_feature` BLOCKER and will mask whatever else you were testing. Give a test
+  flare a collar.
+- **`min_wall_mm` and `min_feature_mm` share one ray cast**, because a ray cannot tell a thin wall
+  from a thin pin. They stay separate rules because the *fix* differs; expect them to fire
+  together.
+
 ## Commands
 
 ```bash
@@ -144,7 +228,15 @@ uv run pytest -k circular -v              # by keyword
 cross-module import breakage:
 
 ```bash
-uv run python -c "import sys; assert sys.version_info[:2]==(3,13), sys.version; from threedp import measure, features, intent, render, compensate, parts, io, printability; print('OK', sys.version)"
+uv run python -c "import sys; assert sys.version_info[:2]==(3,13), sys.version; from threedp import measure, features, intent, render, compensate, parts, io, printability, dfm, repair, slicer, gcode, coupon; print('OK', sys.version)"
+```
+
+**The slicer layer is a gate, not a formality.** `slicer`-marked tests need Bambu Studio; a green
+suite with them skipped is not evidence the wrapper works:
+
+```bash
+uv run pytest -m slicer -v        # must RUN here: report the count, expect 0 skipped
+uv run pytest -m "not slicer" -q  # green on a machine with no slicer
 ```
 
 **The real gate** — the mutation suite. A green `pytest` with this skipped is *not* evidence the
@@ -156,7 +248,8 @@ uv run python benchmarks/run_mutations.py --part bearing-holder
 uv run python benchmarks/run_mutations.py -v                   # full report on any failure
 ```
 
-Pass signal: `caught 13/13   missed 0   false-positives 0   harness-errors 0` over 19 mutations.
+Pass signal: `caught 19/19   missed 0   false-positives 0   harness-errors 0` over 27 mutations
+across 6 benchmarks.
 **If it reports zero mutations found, that is a FAILURE, not a pass** — a skipped layer wearing a
 green badge. Mutations run against the **mesh** export: a BREP face query never fits a circle, so a
 measurement-method mutation cannot bite there. The harness cross-checks STEP against STL on every
@@ -174,14 +267,22 @@ cd viewer && npm install && npm run dev    # Node >=20; v24.18.0 verified presen
 
 ## Phase boundaries
 
-Phase 1 ships **no slicer and no printer**. When in doubt about scope, check `PRD.md` §12.
+Phase 2 ships **no printer path** — no FTPS, no MQTT, no socket, no upload. `--export-3mf`
+produces a file a human sends by hand, which is PRD Risk 5's documented fallback and the end of
+the line for this phase. `.claude/settings.json` and `.claude/PRINT-GATE.md` are unedited; their
+`deny` → `ask` conversion arrives *with* `lril3d-print` in Phase 3 (ADR-5), and
+`tests/test_no_printer_path.py` makes that mechanical rather than a promise. When in doubt about
+scope, check `PRD.md` §12.
 
-- **Phase 1** — the verification loop: `measure` → `features` → `intent`, 5 benchmarks, ~15 mutations,
-  3 skills, viewer.
-- **Phase 2** — `lril3d-dfm`, `lril3d-repair`, `lril3d-slice` (OrcaSlicer), `coupon.py`.
-  Note `coupon.py` appears in the PRD §6 directory tree but is scheduled in §12 as Phase 2 — **§12 wins**.
+- **Phase 1** *(done)* — the verification loop: `measure` → `features` → `intent`, 5 benchmarks,
+  19 mutations, 3 skills, viewer.
+- **Phase 2** *(done)* — `lril3d-dfm`, `lril3d-repair`, `lril3d-slice` (**Bambu Studio**, not
+  OrcaSlicer — correction C1), `coupon.py`, `gcode.py` + viewer preview, the `imported-mesh`
+  benchmark, 27 mutations. `coupon.py` appears in the PRD §6 directory tree and is scheduled in
+  §12 as Phase 2 — **§12 wins**, and it lives at `src/threedp/coupon.py`.
 - **Phase 3** — printer comms, and replacing `calibration.json`'s published defaults
-  (`"measured": null`) with real measured values.
+  (`"measured": null`) with real measured values using `coupon.fit_gauge`.
+- **Phase 4** — multi-slicer abstraction.
 
 ## Known accepted gaps
 
@@ -193,3 +294,10 @@ Stated plainly rather than papered over — do not "fix" these by weakening a gu
   mutations for it — that scores the verifier against a promise it never made.
 - **Imported meshes have no parametrization** and fall back to uniform geometric offset, where the
   hole/outer asymmetry is real and unresolvable. Press fits on imported meshes are unsupported.
+- **`repair.verify` compares the file it was handed to the file it produced**, so damage that
+  arrived *inside* the import is not repair's to catch — that is `intent.json`'s job. A PASS from
+  `repair` says the repair changed nothing, never that the file is faithful to its designer.
+- **A repair with no Tier 1 feature to compare reports UNVERIFIABLE**, not PASS. Organic geometry
+  therefore never gets a green repair verdict, which is correct and is not a bug to fix.
+- **Bridge spans are derived from face geometry, not from a slice**, and are labelled ESTIMATE. A
+  slicer knows which perimeters actually land over air; this knows which faces point down.

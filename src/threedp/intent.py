@@ -424,6 +424,35 @@ def _k_unsupported_area(fs: FeatureSet, spec: dict[str, Any]):
     return report.unsupported_area, 1, ""
 
 
+def _k_dfm_violation_count(fs: FeatureSet, spec: dict[str, Any]):
+    """How many DFM findings of one severity a part carries, in one material (ADR-8).
+
+    This is what lets an ``intent.json`` say *"zero BLOCKER findings in PLA"* and be scored by
+    the ordinary mutation harness, with the ordinary baseline-must-pass gate, instead of a second
+    verdict channel that would be a second place for the score to be wrong.
+
+    **Tier 1 despite the findings being estimates.** A *count* is exact even when what is counted
+    is sampled; the ESTIMATE labelling lives on the finding's own text, where the number it
+    qualifies actually is.
+
+    A misconfigured rules file or an unknown material becomes a MeasurementError, so it reads as
+    a FAIL naming the problem rather than crashing the report -- the same reflex as an absent
+    feature, and for the same reason: never a skip, never a silent pass.
+    """
+    from threedp import dfm
+
+    material = str(spec.get("material", "PLA_generic"))
+    severity = str(spec.get("severity", dfm.BLOCKER))
+    try:
+        report = dfm.evaluate(_require_mesh(fs), material, part=fs.source)
+        count = report.count(severity)
+    except dfm.DfmError as exc:
+        raise MeasurementError(f"DFM rules could not be applied: {exc}") from exc
+    named = ", ".join(f.rule for f in report.findings if f.severity == severity)
+    note = f"{severity} findings under {material}" + (f": {named}" if named else "")
+    return float(count), 1, note
+
+
 # Not every measurement is a length, and the report is the one surface a human actually reads
 # before committing a part to a multi-hour print. The formatter previously suffixed every value
 # with "mm", which printed degrees, areas, volumes and booleans as millimetres on all five
@@ -437,6 +466,7 @@ MEASURE_UNITS: dict[str, str] = {
     "watertight": "",  # boolean
     "feature_count": "",  # a count
     "noncircular_count": "",  # a count
+    "dfm_violation_count": "",  # a count of findings
 }
 
 
@@ -460,6 +490,7 @@ MEASURE_KINDS: dict[str, Callable[[FeatureSet, dict[str, Any]], tuple[float, int
     "sampled_min_wall": _k_sampled_min_wall,
     "max_overhang_deg": _k_max_overhang_deg,
     "unsupported_area": _k_unsupported_area,
+    "dfm_violation_count": _k_dfm_violation_count,
 }
 
 

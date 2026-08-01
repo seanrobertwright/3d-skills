@@ -23,6 +23,11 @@ const PORT = 5274
 const HOST = process.env.THREEDP_WATCH_HOST || '127.0.0.1'
 const DEBOUNCE_MS = 250
 const CANDIDATES = ['part.stl', 'part.3mf']
+// The g-code preview is watched alongside the mesh, and kept in its OWN list. It is a different
+// load path in the page and a different claim about the part -- the mesh is the current export,
+// the preview is the last slice -- so a re-slice must not be announced as a model change.
+const PREVIEW_CANDIDATES = ['part.preview.json']
+const WATCHED = [...CANDIDATES, ...PREVIEW_CANDIDATES]
 
 function parseArgs(argv) {
   let dir = 'benchmarks/bearing-holder/out'
@@ -34,13 +39,16 @@ function parseArgs(argv) {
 
 const modelDir = parseArgs(process.argv.slice(2))
 
-function currentFile() {
-  for (const name of CANDIDATES) {
+function firstPresent(names) {
+  for (const name of names) {
     const candidate = join(modelDir, name)
     if (existsSync(candidate)) return candidate
   }
   return null
 }
+
+const currentFile = () => firstPresent(CANDIDATES)
+const currentPreview = () => firstPresent(PREVIEW_CANDIDATES)
 
 // Loopback only. The viewer is a localhost dev workflow, and the hello frame below carries
 // absolute filesystem paths -- there is no reason for those to be reachable from the LAN.
@@ -50,7 +58,14 @@ const clients = new Set()
 server.on('connection', (socket) => {
   clients.add(socket)
   socket.on('close', () => clients.delete(socket))
-  socket.send(JSON.stringify({ type: 'hello', dir: modelDir, file: currentFile() }))
+  socket.send(
+    JSON.stringify({
+      type: 'hello',
+      dir: modelDir,
+      file: currentFile(),
+      preview: currentPreview(),
+    }),
+  )
 })
 
 function broadcast(payload) {
@@ -85,12 +100,12 @@ function schedule(file) {
 
 const watcher = chokidar.watch(modelDir, { ignoreInitial: true, depth: 0 })
 watcher.on('all', (event, path) => {
-  if (!CANDIDATES.some((name) => path.endsWith(name))) return
+  if (!WATCHED.some((name) => path.endsWith(name))) return
   if (event === 'unlink') return
   schedule(path)
 })
 
-console.log(`[watch] ws://${HOST}:${PORT}  watching ${modelDir}`)
+console.log(`[watch] ws://${HOST}:${PORT}  watching ${modelDir}  (${WATCHED.join(', ')})`)
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {

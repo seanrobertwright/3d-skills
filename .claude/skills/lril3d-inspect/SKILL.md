@@ -8,6 +8,13 @@ description: Use when a modelled part needs verifying, measuring, or critiquing 
 Thin skill, thick library. **No measurement logic belongs in this file.** Read `PRD.md` §7 and
 §6.2 for the tier rules.
 
+## Before you start: where did this file come from?
+
+If the geometry was **imported** rather than modelled here — a downloaded STL, a scan, a file from
+another tool — hand off to `lril3d-repair` first. Inspecting a broken mesh measures the breakage
+as much as the part, and a repair applied afterwards can move the very dimension you just
+reported. Repair, verify the repair, *then* inspect.
+
 ## The workflow
 
 ### 1. Extract features
@@ -41,7 +48,9 @@ range, and the source citation.
   axis off Z, sampled rather than measured).
 - The golden bbox/volume section is **drift only**. Never present it as evidence of correctness.
 
-### 3. Printability — the thin DFM slice
+### 3. Printability — measurement here, verdict in `lril3d-dfm`
+
+`printability` measures; it reaches no conclusion.
 
 ```python
 from threedp import printability
@@ -51,6 +60,11 @@ printability.overhang_histogram(feats.mesh, threshold_deg=45)
 
 Overhang angles are **measured from vertical**: 0 is a vertical wall and perfectly fine, 90 is a
 horizontal ceiling and the worst case. Do not report low-angle bins as defects.
+
+**Then hand off to `lril3d-dfm` for the verdict.** It compares these numbers against per-material
+thresholds that each carry a cited source, and returns findings graded BLOCKER / WARNING / NOTE.
+Do not compare a number against a threshold of your own here — a threshold in a transcript is a
+threshold outside the config and outside the tests.
 
 ### 4. Render the contact sheet
 

@@ -1,0 +1,57 @@
+{
+  "holds": "a 60x40x10 plate with two 8mm bores, imported broken and repaired - still the same part",
+  "asserts": [
+    {
+      "watertight": [1, 1],
+      "source": "user-confirmed",
+      "measure": {"kind": "watertight"},
+      "note": "the repair must actually close the mesh - necessary, and nowhere near sufficient"
+    },
+    {
+      "solid_volume": [1.0, null],
+      "source": "user-confirmed",
+      "measure": {"kind": "volume"},
+      "note": "a topology claim, not a size: a negative enclosed volume means the surface is inside out. An inverted mesh is watertight, winding-consistent, and measures every bore correctly - this is the only assertion here that sees it. The bound is deliberately open above so it cannot smuggle in a golden volume."
+    },
+    {
+      "left_bore_d": [7.90, 8.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "cylinder_diameter", "at": [-21, 0], "rank": "largest"},
+      "note": "a repair that moves this is a failed repair, however watertight the result is"
+    },
+    {
+      "right_bore_d": [7.90, 8.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "cylinder_diameter", "at": [21, 0], "rank": "largest"},
+      "note": "fill_holes fans a non-convex boundary; a bore breaking a surface is exactly that"
+    },
+    {
+      "bore_count": [2, 2],
+      "source": "user-confirmed",
+      "measure": {"kind": "feature_count", "diameter": [7.90, 8.10]},
+      "note": "a bore the repair consumed is absent, and an absent feature IS the defect"
+    },
+    {
+      "plate_thickness": [9.95, 10.05],
+      "source": "user-confirmed",
+      "measure": {"kind": "plane_gap", "between": [0, 1]},
+      "note": "the gap between the build-plate face and the plate's top face"
+    },
+    {
+      "plate_width": [59.90, 60.10],
+      "source": "user-confirmed",
+      "measure": {"kind": "bbox_x"}
+    },
+    {
+      "dfm_blockers": [0, 0],
+      "source": "user-confirmed",
+      "measure": {"kind": "dfm_violation_count", "severity": "BLOCKER", "material": "PLA_generic"},
+      "note": "ADR-8: this part is asserted to be printable in PLA, so a BLOCKER finding is a FAIL here. A WARNING deliberately is not."
+    }
+  ],
+  "golden": {
+    "bbox": [60.0, 40.0, 20.0],
+    "volume": 23065.76,
+    "tol_pct": 1.0
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "_meta": {
+    "source": "0.4mm nozzle, profiles/printer-p1s.json; conventional FDM practice",
+    "note": "Every threshold carries its own `source`, exactly as parts.py does. An uncited threshold is an invented number wearing a lab coat, and dfm.load_rules refuses to load one. Keys are unit-suffixed (_mm, _deg, _mm2) because JSON cannot carry the convention that a bare number is millimetres. `compare` says which side of the value is a violation: `min` means the measured number must be at least the value, `max` means at most.",
+    "severities": "BLOCKER stops a print; WARNING is worth reading before committing six hours; NOTE is informational. Only BLOCKER is intended to gate, and only where an intent.json asserts on it (ADR-8)."
+  },
+
+  "_defaults": {
+    "min_wall_mm": {
+      "value": 0.8,
+      "unit": "mm",
+      "compare": "min",
+      "severity": "BLOCKER",
+      "source": "two perimeters of a 0.4mm nozzle"
+    },
+    "min_feature_mm": {
+      "value": 0.8,
+      "unit": "mm",
+      "compare": "min",
+      "severity": "BLOCKER",
+      "source": "a feature thinner than one bead does not print"
+    },
+    "min_hole_d_mm": {
+      "value": 2.0,
+      "unit": "mm",
+      "compare": "min",
+      "severity": "BLOCKER",
+      "source": "FDM bores below 2mm close up from arc faceting and flow"
+    },
+    "max_overhang_deg": {
+      "value": 45.0,
+      "unit": "deg",
+      "compare": "max",
+      "severity": "BLOCKER",
+      "source": "conventional FDM support threshold, measured from vertical"
+    },
+    "max_bridge_mm": {
+      "value": 10.0,
+      "unit": "mm",
+      "compare": "max",
+      "severity": "WARNING",
+      "source": "unsupported bridge span before sag"
+    },
+    "min_footprint_mm2": {
+      "value": 100.0,
+      "unit": "mm2",
+      "compare": "min",
+      "severity": "WARNING",
+      "source": "bed adhesion / tipping risk on a tall part"
+    },
+    "max_aspect_ratio": {
+      "value": 8.0,
+      "unit": "",
+      "compare": "max",
+      "severity": "WARNING",
+      "source": "height divided by the smaller footprint dimension"
+    },
+    "warn_unsupported_mm2": {
+      "value": 50.0,
+      "unit": "mm2",
+      "compare": "max",
+      "severity": "WARNING",
+      "at_angle_deg": 30.0,
+      "source": "unsupported area worth reporting"
+    }
+  },
+
+  "PLA_generic": {
+    "_note": "PLA is the permissive case; it holds the defaults verbatim so the comparison against the other two materials is explicit rather than implied by absence.",
+    "max_overhang_deg": {
+      "value": 45.0,
+      "unit": "deg",
+      "compare": "max",
+      "severity": "BLOCKER",
+      "note": "PLA solidifies fast enough to hold the conventional threshold",
+      "source": "conventional FDM support threshold, measured from vertical"
+    },
+    "max_bridge_mm": {
+      "value": 10.0,
+      "unit": "mm",
+      "compare": "max",
+      "severity": "WARNING",
+      "source": "unsupported bridge span before sag"
+    }
+  },
+
+  "PETG_generic": {
+    "_note": "PETG stays soft longer than PLA and strings; overhangs droop and long bridges sag before they set.",
+    "max_overhang_deg": {
+      "value": 40.0,
+      "unit": "deg",
+      "compare": "max",
+      "severity": "BLOCKER",
+      "note": "PETG's longer melt tail droops where PLA would hold",
+      "source": "conventional FDM support threshold, tightened 5 deg for PETG"
+    },
+    "max_bridge_mm": {
+      "value": 5.0,
+      "unit": "mm",
+      "compare": "max",
+      "severity": "WARNING",
+      "note": "half the PLA span; PETG bridges sag rather than snapping taut",
+      "source": "unsupported bridge span before sag, halved for PETG"
+    }
+  },
+
+  "ABS_generic": {
+    "_note": "ABS shrinks on cooling. The overhang and bridge numbers tighten for the same reason PETG's do, and the footprint minimum rises because warping lifts a small footprint off the plate.",
+    "max_overhang_deg": {
+      "value": 40.0,
+      "unit": "deg",
+      "compare": "max",
+      "severity": "BLOCKER",
+      "note": "cooling shrinkage curls an unsupported edge upward into the nozzle",
+      "source": "conventional FDM support threshold, tightened 5 deg for ABS"
+    },
+    "max_bridge_mm": {
+      "value": 6.0,
+      "unit": "mm",
+      "compare": "max",
+      "severity": "WARNING",
+      "source": "unsupported bridge span before sag, tightened for ABS"
+    },
+    "min_footprint_mm2": {
+      "value": 400.0,
+      "unit": "mm2",
+      "compare": "min",
+      "severity": "WARNING",
+      "note": "ABS warps; a small footprint lifts a corner and the print detaches",
+      "source": "bed adhesion / tipping risk, raised for a shrinking material"
+    }
+  }
+}

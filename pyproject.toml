@@ -39,6 +39,8 @@ addopts = "-q"
 markers = [
   "brep: exercises the BREP (STEP) extraction path",
   "mesh: exercises the mesh (STL/3MF) probing path",
+  "slicer: requires a slicer executable (Bambu Studio) to be installed",
+  "slow: takes more than a few seconds",
 ]
 
 [tool.ruff]

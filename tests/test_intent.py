@@ -477,3 +477,125 @@ def test_report_lines_carry_a_number_or_an_explicit_estimate_label(canonical_ste
         assert x.value is not None or x.status == FAIL
         if x.status == ESTIMATE:
             assert x.tier == 2
+
+
+# --- dfm_violation_count (ADR-8) ----------------------------------------------------------
+
+
+def test_dfm_violation_count_declares_its_unit():
+    """A count printed as millimetres is the bug commit bb283b6 fixed. The entry is not optional."""
+    assert intent.unit_for("dfm_violation_count") == ""
+
+
+def test_every_measure_kind_declares_a_unit_or_is_a_length():
+    """Guard the omission itself: a new kind must be a considered length, not a forgotten one."""
+    lengths = {
+        "cylinder_diameter",
+        "cylinder_depth",
+        "coaxial_step_radial",
+        "plane_gap",
+        "bbox_x",
+        "bbox_y",
+        "bbox_z",
+        "sampled_min_wall",
+    }
+    for kind in intent.MEASURE_KINDS:
+        if kind in lengths:
+            assert intent.unit_for(kind) == "mm", kind
+        else:
+            assert kind in intent.MEASURE_UNITS, (
+                f"{kind} silently inherits 'mm'; declare its unit in MEASURE_UNITS"
+            )
+
+
+def test_dfm_violation_count_is_zero_on_a_printable_part(plate_mesh):
+    f = features.from_mesh(plate_mesh, source="plate")
+    spec = {
+        "holds": "a printable plate",
+        "asserts": [
+            {
+                "dfm_blockers": [0, 0],
+                "source": "user-confirmed",
+                "measure": {
+                    "kind": "dfm_violation_count",
+                    "severity": "BLOCKER",
+                    "material": "PLA_generic",
+                },
+            }
+        ],
+    }
+    report = intent.check(f, spec)
+    assert report.passed, str(report)
+    assert report.results[0].value == 0.0
+    assert report.results[0].tier == 1
+
+
+def test_dfm_violation_count_fails_on_an_unprintable_part(overhang_mesh):
+    f = features.from_mesh(overhang_mesh, source="overhang-cone")
+    spec = {
+        "holds": "a 60 degree flare",
+        "asserts": [
+            {
+                "dfm_blockers": [0, 0],
+                "source": "user-confirmed",
+                "measure": {"kind": "dfm_violation_count", "severity": "BLOCKER"},
+            }
+        ],
+    }
+    report = intent.check(f, spec)
+    assert not report.passed
+    assert report.results[0].value >= 1.0
+
+
+def test_dfm_violation_count_counts_warnings_separately(overhang_mesh):
+    f = features.from_mesh(overhang_mesh, source="overhang-cone")
+    spec = {
+        "holds": "a 60 degree flare",
+        "asserts": [
+            {
+                "dfm_warnings": [0, None],
+                "source": "user-confirmed",
+                "measure": {"kind": "dfm_violation_count", "severity": "WARNING"},
+            }
+        ],
+    }
+    assert intent.check(f, spec).results[0].value >= 1.0
+
+
+def test_an_unknown_dfm_material_fails_with_the_valid_list_rather_than_crashing(plate_mesh):
+    """A misconfigured rule set must never be a skip, and never take the report down with it."""
+    f = features.from_mesh(plate_mesh, source="plate")
+    spec = {
+        "holds": "a plate",
+        "asserts": [
+            {
+                "dfm_blockers": [0, 0],
+                "source": "user-confirmed",
+                "measure": {"kind": "dfm_violation_count", "material": "PLA_unobtanium"},
+            }
+        ],
+    }
+    report = intent.check(f, spec)
+    assert not report.passed
+    assert report.results[0].status == FAIL
+    assert "PLA_generic" in report.results[0].reason
+
+
+def test_dfm_violation_count_needs_a_mesh(canonical_step):
+    """A BREP FeatureSet carries a tessellation, so this works -- a mesh-less one must not."""
+    f = features.extract(canonical_step)
+    assert f.mesh is not None
+    f.mesh = None
+    spec = {
+        "holds": "no mesh",
+        "asserts": [
+            {
+                "dfm_blockers": [0, 0],
+                "source": "user-confirmed",
+                "measure": {"kind": "dfm_violation_count"},
+            }
+        ],
+    }
+    report = intent.check(f, spec)
+    assert report.results[0].status == FAIL
+    assert "mesh" in report.results[0].reason

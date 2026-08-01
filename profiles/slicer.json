@@ -1,0 +1,24 @@
+{
+  "backend": "bambu-studio",
+  "executable_candidates": [
+    "C:/Program Files/Bambu Studio/bambu-studio.exe",
+    "C:/Program Files/OrcaSlicer/orca-slicer.exe"
+  ],
+  "profile_root": "C:/Program Files/Bambu Studio/resources/profiles/BBL",
+  "presets": {
+    "machine": "Bambu Lab P1S 0.4 nozzle",
+    "process": "0.20mm Standard @BBL X1C",
+    "filament": {
+      "PLA": "Bambu PLA Basic @BBL P1S 0.4 nozzle",
+      "PETG": "Bambu PETG HF @BBL P1S 0.4 nozzle",
+      "ABS": "Bambu ABS @BBL P1S 0.4 nozzle"
+    }
+  },
+  "timeout_s": 300,
+  "notes": {
+    "process_name": "The process preset really is named '@BBL X1C' for a P1S. The P1S machine profile's own default_print_profile says so, and the process's compatible_printers lists 'Bambu Lab P1S 0.4 nozzle'. Do not 'fix' it to '@BBL P1S' - that file does not exist and the slice fails with return_code -17.",
+    "env_overrides": "THREEDP_SLICER overrides the executable; THREEDP_SLICER_PROFILES overrides profile_root. Both raise when set to something that is not there, rather than falling back.",
+    "orcaslicer": "OrcaSlicer is a Bambu Studio fork and shares the CLI surface and the '; FEATURE:' G-code markers, so it sits in the candidate list. It is NOT installed on this machine and has not been exercised."
+  },
+  "source": "measured on this machine 2026-07-31; Bambu Studio 02.07.01.62"
+}
