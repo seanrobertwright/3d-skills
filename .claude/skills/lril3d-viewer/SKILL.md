@@ -16,12 +16,14 @@ in the viewer" as verification. Use `lril3d-inspect` for that.
 
 ```bash
 cd viewer && npm install          # first run only; Node >= 20
-npm run dev -- --model ../models/<name>/out
+npm run dev -- --model models/<name>/out
 ```
 
-`--model` points at a directory containing `part.stl` or `part.3mf`. It defaults to
-`benchmarks/bearing-holder/out`. The dev server prints a local URL; give that to the user rather
-than trying to open a browser yourself.
+`--model` points at a directory containing `part.stl` or `part.3mf`, and it is **relative to the
+repository root, not to `viewer/`** — the watcher resolves it against the repo root and
+`vite.config.js` only serves files under it, so a `../`-prefixed path silently watches somewhere
+outside the repo and then 403s. It defaults to `benchmarks/bearing-holder/out`. The dev server
+prints a local URL; give that to the user rather than trying to open a browser yourself.
 
 The watcher and the page run together under `npm run dev`. To run only the file watcher (for
 example when the page is already open), use `npm run watch`.
@@ -37,6 +39,33 @@ user it is up.
 - wireframe toggle
 - a cross-section slider on Z
 - a build-plate grid read from `profiles/printer-p1s.json` — the plate size is **not** hardcoded
+- a **g-code preview** toggle with a layer slider
+
+## The g-code preview
+
+Write one next to the mesh and the watcher hot-reloads it:
+
+```python
+from threedp import gcode
+gcode.write_preview(result.gcode, "models/<name>/out/part.preview.json")
+```
+
+The toggle is disabled until such a file exists. Turning it on hides the mesh and draws the
+toolpaths coloured by feature type; the layer slider scrubs from the first layer up to the one
+selected.
+
+**The preview reflects the last slice, not the current model.** Those are two different claims
+about the part, and the page keeps them separate on purpose: re-exporting the mesh does not
+re-slice it, so with the preview up a fresh export leaves the panel showing the older slice. If
+the two have diverged, re-slice — do not read the preview as if it were the new geometry.
+
+Two things the status line will tell you, and both must be passed on rather than glossed:
+
+- **TRUNCATED** — the toolpath was cut off at the segment cap and this is not all of it.
+- **no `; FEATURE:` markers found** — the file was not written by Bambu Studio or OrcaSlicer, so
+  the feature colours mean nothing for it.
+
+Like the model view, the preview is a **channel, not a gate**.
 
 ## When it does not reload
 

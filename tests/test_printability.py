@@ -1,10 +1,12 @@
 """Printability, validated against geometry whose overhang and wall thickness are known exactly."""
 
+import math
+
 import numpy as np
 import pytest
 from conftest import PLATE, build_overhang_cone
 
-from threedp import printability
+from threedp import features, printability
 
 # --- overhangs ----------------------------------------------------------------------------
 
@@ -136,3 +138,144 @@ def test_cone_geometry_is_actually_60_degrees():
     run = 10.0 * math.tan(math.radians(60.0))
     assert math.degrees(math.atan(run / 10.0)) == pytest.approx(60.0, abs=1e-9)
     assert build_overhang_cone() is not None
+
+
+# --- bridges ------------------------------------------------------------------------------
+
+
+def test_a_known_bridge_measures_its_shorter_span(bridge_mesh):
+    """A 24mm-wide slot through a 20mm-deep block: the deck bridges 20mm, not 24mm.
+
+    A bridge is thrown across the *narrow* direction of the patch it spans. Reporting the longer
+    extent would understate every long narrow ceiling as harder than it is, and overstate every
+    short wide one -- and the two errors would hide each other in aggregate.
+    """
+    r = printability.bridge_spans(bridge_mesh)
+    assert r.count == 1, f"expected one bridged patch, got {r.count}"
+    assert r.max_span_mm == pytest.approx(20.0, abs=0.01)
+    assert r.spans[0].long_mm == pytest.approx(24.0, abs=0.01)
+    assert r.spans[0].area == pytest.approx(24.0 * 20.0, rel=0.01)
+    assert r.spans[0].z == pytest.approx(20.0, abs=0.01)
+
+
+def test_a_bridge_report_is_labelled_an_estimate(bridge_mesh):
+    """It is derived from face geometry, not from a slice, and every line says so."""
+    assert "ESTIMATE" in str(printability.bridge_spans(bridge_mesh))
+
+
+def test_a_bridge_flags_against_its_threshold(bridge_mesh):
+    assert printability.bridge_spans(bridge_mesh, threshold_mm=10.0).flag
+    assert not printability.bridge_spans(bridge_mesh, threshold_mm=30.0).flag
+
+
+def test_a_part_with_no_ceiling_reports_no_bridges(plate_mesh):
+    """The false-positive direction, and the reason the build-plate exclusion is in this path too:
+    a flat bottom is resting on something, not spanning air."""
+    r = printability.bridge_spans(plate_mesh)
+    assert r.count == 0
+    assert r.max_span_mm == 0.0
+    assert not r.flag
+
+
+def test_a_steep_overhang_is_not_counted_as_a_bridge(overhang_mesh):
+    """60 degrees from vertical is an overhang and not a bridge; the two need different advice."""
+    assert printability.bridge_spans(overhang_mesh).count == 0
+
+
+def test_two_separate_ceilings_are_two_spans():
+    """Connected components, not one bounding box over everything downward-facing."""
+    from build123d import Align, Box, BuildPart, Locations, Mode
+
+    from threedp.features import _tessellate
+
+    bottom = (Align.CENTER, Align.CENTER, Align.MIN)
+    with BuildPart() as p:
+        Box(80.0, 20.0, 28.0, align=bottom)
+        with Locations((-22.0, 0, 0), (22.0, 0, 0)):
+            Box(16.0, 40.0, 20.0, align=bottom, mode=Mode.SUBTRACT)
+    r = printability.bridge_spans(_tessellate(p.part))
+    assert r.count == 2, f"two slots must be two patches, got {r.count}"
+    assert r.max_span_mm == pytest.approx(16.0, abs=0.01)
+    assert r.total_area == pytest.approx(2 * 16.0 * 20.0, rel=0.01)
+
+
+def test_bridge_spans_rejects_an_empty_mesh():
+    import trimesh
+
+    empty = trimesh.Trimesh(vertices=np.zeros((0, 3)), faces=np.zeros((0, 3), dtype=np.int64))
+    with pytest.raises(ValueError):
+        printability.bridge_spans(empty)
+
+
+# --- footprint ----------------------------------------------------------------------------
+
+
+def test_footprint_measures_plate_contact_and_slenderness(plate_mesh):
+    """Contact area is summed from the faces that touch the plate, not from the bounding box.
+
+    The distinction is the assertion: the plate is 60x40 = 2400 mm2 in plan, and its two Ø8 holes
+    take 2*pi*4^2 = 100.5 mm2 of that away, so the material actually touching the bed is 2299.5.
+    A bounding-footprint answer would say 2400 and be wrong by exactly the holes.
+    """
+    r = printability.footprint(plate_mesh)
+    bounding = PLATE["size_x"] * PLATE["size_y"]
+    holes = 2 * math.pi * (PLATE["hole_d"] / 2) ** 2
+    assert r.contact_area == pytest.approx(bounding - holes, rel=0.01)
+    assert r.contact_area < bounding
+    assert r.size_x == pytest.approx(PLATE["size_x"], abs=0.01)
+    assert r.height == pytest.approx(PLATE["thick"], abs=0.01)
+    # height over the SMALLER footprint extent -- the axis a part topples about
+    assert r.aspect_ratio == pytest.approx(PLATE["thick"] / PLATE["size_y"], rel=0.01)
+    assert not r.flag
+
+
+def test_footprint_flags_a_slender_part():
+    from build123d import Box, BuildPart
+
+    from threedp.features import _tessellate
+
+    with BuildPart() as p:
+        Box(6.0, 6.0, 60.0)
+    r = printability.footprint(_tessellate(p.part))
+    assert r.aspect_ratio == pytest.approx(10.0, rel=0.01)
+    assert r.flag, "36 mm2 of contact under a 10:1 part is both risks at once"
+
+
+# --- tilted bores are refused, not reported ------------------------------------------------
+
+
+def test_a_tilted_bore_is_not_reported_as_a_diameter():
+    """CLAUDE.md's named case, from the direction that hides a defect.
+
+    A Ø22 bore tilted 5 deg sections as an ellipse whose residual sits INSIDE the circularity
+    gate, so `fit.is_circular` is True and the cylinder reaches `fs.cylinders` looking measurable.
+    Its fitted diameter is 22.0395mm -- inflated by 0.04mm. Tilt always inflates, so admitting
+    one would let a genuinely undersized bore read as acceptable and slip under `min_hole_d_mm`.
+    """
+    from conftest import build_tilted_bore
+
+    from threedp.features import _tessellate
+
+    mesh = _tessellate(build_tilted_bore(tilt_deg=5.0))
+
+    # The premise: the ruler does hand this cylinder over, circular and confident.
+    found = features.from_mesh(mesh)
+    assert len(found.cylinders) == 1
+    assert found.cylinders[0].fit.is_circular, "the circularity gate does NOT catch tilt"
+    assert not found.cylinders[0].is_axis_aligned
+    assert found.cylinders[0].diameter_unchecked > 22.0, "tilt inflates; that is the danger"
+
+    r = printability.bore_diameters(mesh)
+    assert r.diameters == (), "a tilted bore must not be reported as a measured diameter"
+    assert r.tilted == 1, "...and must not be silently dropped either"
+    assert r.min_mm is None
+    assert not r.flag
+    assert "off Z" in str(r)
+
+
+def test_an_axis_aligned_bore_is_still_reported(plate_mesh):
+    """The false-positive direction: the axis check must not swallow ordinary vertical bores."""
+    r = printability.bore_diameters(plate_mesh)
+    assert r.tilted == 0
+    assert len(r.diameters) == 2
+    assert r.min_mm == pytest.approx(PLATE["hole_d"], abs=0.05)

@@ -23,6 +23,11 @@ const PORT = 5274
 const HOST = process.env.THREEDP_WATCH_HOST || '127.0.0.1'
 const DEBOUNCE_MS = 250
 const CANDIDATES = ['part.stl', 'part.3mf']
+// The g-code preview is watched alongside the mesh, and kept in its OWN list. It is a different
+// load path in the page and a different claim about the part -- the mesh is the current export,
+// the preview is the last slice -- so a re-slice must not be announced as a model change.
+const PREVIEW_CANDIDATES = ['part.preview.json']
+const WATCHED = [...CANDIDATES, ...PREVIEW_CANDIDATES]
 
 function parseArgs(argv) {
   let dir = 'benchmarks/bearing-holder/out'
@@ -34,13 +39,16 @@ function parseArgs(argv) {
 
 const modelDir = parseArgs(process.argv.slice(2))
 
-function currentFile() {
-  for (const name of CANDIDATES) {
+function firstPresent(names) {
+  for (const name of names) {
     const candidate = join(modelDir, name)
     if (existsSync(candidate)) return candidate
   }
   return null
 }
+
+const currentFile = () => firstPresent(CANDIDATES)
+const currentPreview = () => firstPresent(PREVIEW_CANDIDATES)
 
 // Loopback only. The viewer is a localhost dev workflow, and the hello frame below carries
 // absolute filesystem paths -- there is no reason for those to be reachable from the LAN.
@@ -50,7 +58,14 @@ const clients = new Set()
 server.on('connection', (socket) => {
   clients.add(socket)
   socket.on('close', () => clients.delete(socket))
-  socket.send(JSON.stringify({ type: 'hello', dir: modelDir, file: currentFile() }))
+  socket.send(
+    JSON.stringify({
+      type: 'hello',
+      dir: modelDir,
+      file: currentFile(),
+      preview: currentPreview(),
+    }),
+  )
 })
 
 function broadcast(payload) {
@@ -60,40 +75,46 @@ function broadcast(payload) {
   }
 }
 
-let timer = null
-let lastSize = -1
+// Debounce state is per FILE, not global. With one shared timer, two files changing inside the
+// same window announced only the last one and dropped the other silently -- and the natural slice
+// workflow does exactly that, writing the mesh and then part.preview.json moments later. The
+// dropped announcement leaves the page showing stale geometry with nothing saying so.
+const pending = new Map() // file -> { timer, lastSize }
 
 function announce(file) {
+  const state = pending.get(file)
+  if (!state) return
   const size = existsSync(file) ? statSync(file).size : -1
-  if (size !== lastSize) {
+  if (size !== state.lastSize) {
     // still growing - wait another interval rather than shipping a half-written mesh
-    lastSize = size
-    timer = setTimeout(() => announce(file), DEBOUNCE_MS)
+    state.lastSize = size
+    state.timer = setTimeout(() => announce(file), DEBOUNCE_MS)
     return
   }
-  timer = null
-  lastSize = -1
+  pending.delete(file)
   console.log(`[watch] ${file} (${size} bytes)`)
   broadcast({ type: 'change', file })
 }
 
 function schedule(file) {
-  if (timer) clearTimeout(timer)
-  lastSize = -1
-  timer = setTimeout(() => announce(file), DEBOUNCE_MS)
+  const state = pending.get(file)
+  if (state) clearTimeout(state.timer)
+  pending.set(file, { timer: setTimeout(() => announce(file), DEBOUNCE_MS), lastSize: -1 })
 }
 
 const watcher = chokidar.watch(modelDir, { ignoreInitial: true, depth: 0 })
 watcher.on('all', (event, path) => {
-  if (!CANDIDATES.some((name) => path.endsWith(name))) return
+  if (!WATCHED.some((name) => path.endsWith(name))) return
   if (event === 'unlink') return
   schedule(path)
 })
 
-console.log(`[watch] ws://${HOST}:${PORT}  watching ${modelDir}`)
+console.log(`[watch] ws://${HOST}:${PORT}  watching ${modelDir}  (${WATCHED.join(', ')})`)
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
+    for (const { timer } of pending.values()) clearTimeout(timer)
+    pending.clear()
     watcher.close()
     server.close()
     process.exit(0)

@@ -219,3 +219,27 @@ def overhang_mesh():
     from threedp.features import _tessellate
 
     return _tessellate(build_overhang_cone())
+
+
+def build_bridge(span: float = 24.0, depth: float = 20.0, height: float = 20.0, deck: float = 8.0):
+    """Two legs with a deck across them, so the deck's underside spans air.
+
+    The unsupported patch is exactly ``span`` x ``depth``, and a bridge is thrown across the
+    *shorter* of the two -- a long narrow ceiling bridges its width, not its length. With the
+    defaults that is 20.0mm across a 24mm opening, which is the number the tests assert.
+    """
+    from build123d import Align, Box, BuildPart, Locations, Mode
+
+    bottom = (Align.CENTER, Align.CENTER, Align.MIN)
+    with BuildPart() as p:
+        Box(span + 16.0, depth, height + deck, align=bottom)
+        with Locations((0, 0, 0)):
+            Box(span, depth * 2, height, align=bottom, mode=Mode.SUBTRACT)
+    return p.part
+
+
+@pytest.fixture(scope="session")
+def bridge_mesh():
+    from threedp.features import _tessellate
+
+    return _tessellate(build_bridge())

@@ -287,14 +287,16 @@ def from_shape(shape, source: str = "<shape>") -> FeatureSet:
     )
 
 
-def _tessellate(shape) -> trimesh.Trimesh:
+def _tessellate(shape, tolerance: float = _TESSELLATION_TOL) -> trimesh.Trimesh:
     """Tessellate a BREP shape so statistical queries (wall sampling, overhangs) work on it too.
 
-    Tessellation tolerance is fixed: the spike measured identical fit accuracy at 0.1, 0.01 and
-    0.001, so tightening it is never the fix for a measurement disagreement -- the method
-    dominates, not the mesh (PRD 15.5).
+    Tessellation tolerance defaults to :data:`_TESSELLATION_TOL` and is not a tuning knob: the
+    spike measured identical fit accuracy at 0.1, 0.01 and 0.001, so tightening it is never the
+    fix for a measurement disagreement -- the method dominates, not the mesh (PRD 15.5). The
+    parameter exists so a benchmark can *prove* that, by re-tessellating the same geometry
+    finer and asserting the verdict does not move.
     """
-    verts, tris = shape.tessellate(_TESSELLATION_TOL)
+    verts, tris = shape.tessellate(tolerance)
     v = np.array([(p.X, p.Y, p.Z) for p in verts], dtype=float)
     return trimesh.Trimesh(vertices=v, faces=np.asarray(tris, dtype=np.int64), process=True)
 

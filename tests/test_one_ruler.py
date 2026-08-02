@@ -106,11 +106,31 @@ def python_files_under_the_rule() -> list[Path]:
 
 
 def test_the_scan_actually_covers_something():
-    """A scanner that walks nothing passes everything. This is the skipped-layer guard."""
+    """A scanner that walks nothing passes everything. This is the skipped-layer guard.
+
+    The walk itself picks new modules up automatically. This assertion catches the *opposite*
+    failure: a module that was never created, or was created in the wrong directory, while the
+    ruler test still reports green over the modules that do exist.
+    """
     files = python_files_under_the_rule()
     assert len(files) >= 10, f"only {len(files)} files scanned; the walk is broken"
     names = {p.name for p in files}
-    for expected in ("features.py", "intent.py", "printability.py", "io.py", "run_mutations.py"):
+    expected_names = (
+        "features.py",
+        "intent.py",
+        "printability.py",
+        "io.py",
+        "run_mutations.py",
+        "dfm.py",
+        "repair.py",
+        "coupon.py",
+        "slicer.py",
+        "gcode.py",
+    )
+    # Whoever grows this list next: add a name here in the same change that creates the module,
+    # never ahead of it. A name listed before its file exists turns this guard into a known-red
+    # test, and a known-red test is one nobody reads.
+    for expected in expected_names:
         assert expected in names, f"{expected} was not scanned"
 
 
@@ -218,9 +238,28 @@ def test_unparseable_file_is_scanned_rather_than_skipped(tmp_path):
 # --- thin skills, thick library -----------------------------------------------------------
 
 
-@pytest.mark.parametrize("skill", ["lril3d-model", "lril3d-inspect", "lril3d-viewer"])
+SKILLS = [
+    "lril3d-model",
+    "lril3d-inspect",
+    "lril3d-viewer",
+    "lril3d-dfm",
+    "lril3d-repair",
+    "lril3d-slice",
+]
+
+
+@pytest.mark.parametrize("skill", SKILLS)
 def test_skills_contain_no_measurement_logic(skill):
     """SKILL.md handles intent and narration. Geometry and measurement live in the package."""
     text = (REPO / ".claude" / "skills" / skill / "SKILL.md").read_text(encoding="utf-8")
     for banned in ("lstsq", "def fit_circle", ".ptp(", "marching_cubes"):
         assert banned not in text, f"{skill}/SKILL.md contains measurement logic: {banned}"
+
+
+def test_every_installed_skill_is_covered_by_the_scan():
+    """The skipped-layer guard for the skills themselves: a new SKILL.md must not go unscanned."""
+    installed = sorted(p.name for p in (REPO / ".claude" / "skills").iterdir() if p.is_dir())
+    assert installed, "no skills found; the path is wrong"
+    assert sorted(SKILLS) == installed, (
+        f"SKILLS is {sorted(SKILLS)} but {installed} are installed; add the new one to the list"
+    )

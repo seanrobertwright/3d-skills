@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { ThreeMFLoader } from 'three/examples/jsm/loaders/3MFLoader.js'
+import { loadPreview, describe as describePreview } from './gcode-preview.js'
 
 const WS_URL = `ws://${location.hostname}:5274`
 const status = document.getElementById('status')
@@ -10,6 +11,17 @@ const canvas = document.getElementById('canvas')
 let plate = { width: 256, depth: 256 }
 let modelDir = 'benchmarks/bearing-holder/out'
 let part = null
+let modelStatus = ''
+// Declared up here with the other module state rather than beside the preview code below: the
+// `const` DOM handles down there are in their temporal dead zone until this file finishes
+// evaluating, and `setPart` must be safe to call at any point. `previewIsShowing` is a function
+// declaration for the same reason -- those hoist.
+let preview = null
+let previewLabel = ''
+
+function previewIsShowing() {
+  return preview !== null && document.getElementById('preview').checked
+}
 let clipPlane = new THREE.Plane(new THREE.Vector3(0, 0, -1), Infinity)
 
 const scene = new THREE.Scene()
@@ -99,11 +111,17 @@ function setPart(geometry, label) {
   const triangles = geometry.index
     ? geometry.index.count / 3
     : geometry.attributes.position.count / 3
-  status.textContent =
+  modelStatus =
     `${label}\n${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)} mm  ` +
     `(${triangles} triangles)\n` +
     `channel, not a gate - verify with lril3d-inspect`
-  status.className = ''
+  // The preview describes the last slice and the mesh describes the current export. When the
+  // preview is up it keeps the panel, so a re-export cannot make a stale preview look current.
+  if (!previewIsShowing()) {
+    status.textContent = modelStatus
+    status.className = ''
+  }
+  part.visible = !previewIsShowing()
 }
 
 function applySection() {
@@ -171,20 +189,105 @@ async function loadModel(file) {
   }
 }
 
+// --- g-code preview -----------------------------------------------------------------------
+//
+// A second load path alongside loadModel, deliberately kept separate: the preview describes the
+// LAST SLICE, and the model describes the CURRENT export. When the two have diverged, saying so
+// is the whole value; merging them into one status line would hide it.
+
+const previewToggle = document.getElementById('preview')
+const layerRow = document.getElementById('layer-row')
+const layerSlider = document.getElementById('layer')
+const layerReadout = document.getElementById('layer-n')
+
+async function loadPreviewFile(file) {
+  const fresh = await loadPreview(fsUrl(file))
+  if (preview) preview.dispose(scene)
+  preview = fresh
+  previewLabel = file.split(/[\\/]/).pop()
+  scene.add(preview.object)
+  preview.object.visible = previewToggle.checked
+  layerSlider.max = String(Math.max(preview.layerCount - 1, 0))
+  layerSlider.value = layerSlider.max
+  layerReadout.textContent = layerSlider.max
+  previewToggle.disabled = false
+  if (previewToggle.checked) showPreviewStatus()
+}
+
+function showPreviewStatus() {
+  status.textContent = describePreview(preview, previewLabel)
+  // A truncated preview is not a complete one, and the panel says so in the colour that means
+  // "read this" rather than only in the text.
+  status.className = preview.truncated || !preview.markersFound ? 'warn' : ''
+}
+
+// The camera is preserved across model *reloads* on purpose -- the user is iterating on a
+// dimension. Switching between the mesh and the preview is not a reload: the mesh is modelled
+// about the origin and the slicer places the part on the plate, so the two live 128mm apart and
+// keeping the camera would show empty space. The view is therefore framed on whichever is being
+// shown, and the mesh's view is restored on the way back rather than re-derived.
+let savedView = null
+
+previewToggle.addEventListener('change', () => {
+  const on = previewToggle.checked && preview !== null
+  if (preview) preview.object.visible = on
+  if (part) part.visible = !on
+  layerRow.hidden = !on
+  if (on) {
+    savedView = { position: camera.position.clone(), target: controls.target.clone() }
+    frame(preview.object)
+    showPreviewStatus()
+  } else {
+    if (savedView) {
+      camera.position.copy(savedView.position)
+      controls.target.copy(savedView.target)
+      controls.update()
+      savedView = null
+    }
+    // Fall back explicitly when there is no mesh to describe. Leaving the preview's text in
+    // place would have the panel describing something that is no longer drawn, in the colour
+    // that means "nothing to see here".
+    if (part) {
+      status.textContent = modelStatus
+      status.className = ''
+    } else {
+      status.textContent = `watching ${modelDir}\nno part.stl or part.3mf yet - export one`
+      status.className = 'warn'
+    }
+  }
+})
+
+layerSlider.addEventListener('input', () => {
+  if (!preview) return
+  layerReadout.textContent = layerSlider.value
+  preview.showUpTo(Number(layerSlider.value))
+})
+
 function connect() {
   const socket = new WebSocket(WS_URL)
   socket.addEventListener('message', async (event) => {
-    const message = JSON.parse(event.data)
+    // Every other failure in this file is routed to showError so the panel says what went wrong.
+    // An unguarded JSON.parse at the top of an async listener rejects a promise nobody awaits,
+    // so a malformed frame would go quiet everywhere except devtools.
+    let message
+    try {
+      message = JSON.parse(event.data)
+    } catch (err) {
+      showError(err)
+      return
+    }
     if (message.type === 'hello') {
       modelDir = message.dir
+      if (message.preview) await loadPreviewFile(message.preview).catch(showError)
       if (message.file) await loadModel(message.file).catch(showError)
-      else {
+      else if (!message.preview) {
         status.textContent = `watching ${modelDir}\nno part.stl or part.3mf yet - export one`
         status.className = 'warn'
       }
     } else if (message.type === 'change') {
       console.log('[lril3d] reloading', message.file)
-      await loadModel(message.file).catch(showError)
+      const loader = message.file.endsWith('.preview.json') ? loadPreviewFile : loadModel
+      await loader(message.file).catch(showError)
     }
   })
   socket.addEventListener('close', () => {
