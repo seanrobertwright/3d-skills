@@ -1,11 +1,16 @@
 {
   "slots": [
-    {"slot": 0, "type": "ams", "bay": 0, "material": "PLA", "brand": "Bambu", "color": "#101010", "calibration": "PLA_generic"},
-    {"slot": 1, "type": "ams", "bay": 1, "material": "PLA", "brand": "Bambu", "color": "#f5f5f5", "calibration": "PLA_generic"},
-    {"slot": 2, "type": "ams", "bay": 2, "material": "PETG", "brand": "Bambu", "color": "#1e6fd9", "calibration": "PETG_generic"},
-    {"slot": 3, "type": "ams", "bay": 3, "material": "ABS", "brand": "Bambu", "color": "#b02020", "calibration": "ABS_generic"},
-    {"slot": 4, "type": "external", "bay": null, "material": "PC", "brand": "generic", "color": "#d8d8d0", "calibration": "PLA_generic",
-     "note": "PC and PA are hygroscopic enough that the AMS is a liability - they run from the external spool holder (PRD 15.7)."}
+    {"slot": 0, "type": "ams", "bay": 0, "material": "PLA", "brand": "Bambu", "color": "#FFF144", "calibration": "PLA_generic"},
+    {"slot": 1, "type": "ams", "bay": 1, "material": "PLA-CF", "brand": "Bambu", "color": "#951E23", "calibration": "PLA_generic",
+     "note": "Carbon-fibre filled and ABRASIVE. This printer's nozzle is stainless steel (profiles/printer-p1s.json, read from telemetry), which PLA-CF wears. A DFM rule pairing abrasive filament against nozzle material is a Phase 4 candidate; until it exists this note is the warning."},
+    {"slot": 2, "type": "ams", "bay": 2, "material": "PLA", "brand": "Bambu", "color": "#A03CF7", "calibration": "PLA_generic"},
+    {"slot": 3, "type": "ams", "bay": 3, "material": "PETG", "brand": "Bambu", "color": "#057748", "calibration": "PETG_generic"},
+    {"slot": 4, "type": "external", "bay": null, "material": "PLA", "brand": "generic", "color": "#0D6284", "calibration": "PLA_generic",
+     "note": "The external spool holder. PC and PA are hygroscopic enough that the AMS is a liability and they run from here (PRD 15.7); what is physically on it right now is a generic PLA (tray_info_idx GFL99). An external spool has no AMS slot and mapping to one raises - it is fed by hand, and it is not 'slot 4'."}
   ],
-  "source": "user-inventory"
+  "notes": {
+    "this_file_is_a_claim": "It is checked against the printer before every dispatch by printer.reconcile_ams (ADR-16), and a material mismatch in a slot the print uses is a BLOCKER. It shipped through two phases disagreeing with the AMS in four of five slots, and nothing noticed, because nothing had ever asked the printer. tests/fixtures/filaments_drifted_s16.json is that version, frozen as a regression.",
+    "no_abs_is_loaded": "ABS is not in the AMS. slicer.ams_mapping(['ABS']) now raises 'not loaded', which is correct and is why profiles/calibration.json's ABS_generic stays a published default with \"measured\": null."
+  },
+  "source": "read from this printer's own push_status telemetry on 2026-08-02 and reconciled against it by tests/test_printer_live.py; superseded a hand-maintained inventory that had drifted (spike S16)"
 }

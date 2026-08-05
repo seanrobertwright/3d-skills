@@ -8,9 +8,10 @@ description: Use when a verified part needs turning into machine instructions �
 Thin skill, thick library. **No preset names or thresholds belong in this file** — they live in
 `profiles/slicer.json`. Read `PRD.md` §12 and §9.
 
-**Nothing here sends anything to a printer.** There is no upload path, no FTPS, no MQTT. The
-`--export-3mf` output is a file a human transfers by hand, and that is the end of the line for
-this phase. Do not offer to send it.
+**This skill does not send anything to a printer.** `--export-3mf` produces a file; putting it on
+the printer is `lril3d-print`'s job, behind its approval gate. Hand off to that skill rather than
+uploading anything here, and never as an unprompted next step — sending is a decision the user
+makes, not a convenience you add.
 
 ## Slice
 
@@ -45,7 +46,9 @@ and do not present a rejected slice as a small part.
 slice    plate 0   25m 08s (1528 s)   10.85 g of PLA (density 1.26 g/cm3, filament_id GFA00)
 ```
 
-`filament_id` is not cosmetic: `use_ams` is silently ignored in Phase 3 unless it is set.
+`filament_id` is not cosmetic: `use_ams` is silently ignored unless it is set, which prints
+successfully from whatever happens to be loaded. `printer.assert_3mf_is_dispatchable` checks it on
+the actual file before any send.
 
 ## AMS mapping and purge
 
@@ -54,8 +57,16 @@ slicer.ams_mapping(["PETG", "PLA"])          # -> [2, 0]
 slicer.purge_waste(matrix, [0, 1, 0], multiplier=1.0, density=1.26)   # -> (mm3, grams)
 ```
 
-The mapping is **reverse-indexed**: array *position* is the filament index inside the 3MF, array
-*value* is the AMS slot. Backwards, it prints in the wrong colours and looks like a slicing bug.
+The mapping is **forward-indexed** (correction C5): array *position* is the filament index inside
+the 3MF, array *value* is the AMS slot. Backwards, it prints in the wrong colours and looks like a
+slicing bug. Values are not capped at 0–3 — a second AMS unit occupies 4–7 — and the external
+spool is 254.
+
+**`ams_mapping` maps the inventory faithfully, including when the inventory is wrong.** It knows
+nothing about the printer, on purpose. Before a print goes anywhere near the machine,
+`lril3d-print` reconciles `profiles/filaments.json` against live telemetry and refuses on a
+mismatch; if you are reporting a slot to a user outside that flow, say it is what the inventory
+claims, not what is loaded.
 
 An external spool has no AMS slot and mapping to one raises — it is fed by hand, and it is not
 "slot 4". Purge with no density returns grams of `None`, never `0.0`; report the volume and say
@@ -80,9 +91,11 @@ toolpath.
    preset was renamed. A process preset's `compatible_printers` is a list of printer *names*.
 3. **`preset ... not found`** — a Bambu Studio update renamed something in the profile tree. The
    error names the path it looked in; fix `profiles/slicer.json`.
-4. **The print starts and the P1S screen preview is blank.** Expected, and not fixable here: the
-   CLI writes no thumbnail block at all — one `thumbnail_size` config line and nothing else. Tell
-   the user rather than letting them wonder.
+4. **A blank preview on the P1S screen means the G-code was sent, not the 3MF.** The CLI's
+   *G-code* carries no thumbnail block at all — one `thumbnail_size` config line and nothing else,
+   which is what Phase 2 measured. The **3MF** does: `Metadata/plate_1.png` at 512×512, a real
+   render (correction C7). `lril3d-print` sends the 3MF, so the screen preview works. If it is
+   blank, the wrong artefact went across.
 5. **Timeout** — a comparable part slices in about a second on this machine, so a timeout is a
    hang rather than a slow model. Do not raise `timeout_s` to make it pass.
 

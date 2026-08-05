@@ -453,6 +453,46 @@ def _k_dfm_violation_count(fs: FeatureSet, spec: dict[str, Any]):
     return float(count), 1, note
 
 
+def _k_ams_mismatch_count(fs: FeatureSet, spec: dict[str, Any]):
+    """How many AMS findings of one severity a dispatch would carry (ADR-16).
+
+    The same move as :func:`_k_dfm_violation_count`, one layer further out. ``dfm_violation_count``
+    lets an ``intent.json`` say "zero blockers in PLA" about a *process*; this lets it say "the
+    filament this part will actually be printed in is the filament the inventory claims" about a
+    *dispatch* -- and be scored by the ordinary mutation harness rather than by a second verdict
+    channel that would be a second place for the score to be wrong.
+
+    It reads nothing from ``fs``: what is being checked is the printer, not the part. Both the
+    live telemetry and the inventory are named as file paths in the spec, so the assertion is
+    reproducible on a machine with no printer and a mutation can swap either one.
+    """
+    from threedp import printer, slicer
+
+    live_path = spec.get("live")
+    if not live_path:
+        raise MeasurementError(
+            "ams_mismatch_count needs a 'live' path to captured push_status telemetry; there is "
+            "no printer to ask during a benchmark run"
+        )
+    try:
+        telemetry = json.loads(Path(live_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise MeasurementError(f"could not read AMS telemetry from {live_path}: {exc}") from exc
+    section = telemetry.get("print", telemetry)
+
+    try:
+        inventory = slicer.load_inventory(spec["inventory"]) if spec.get("inventory") else None
+        materials = [str(m) for m in spec.get("materials", [])]
+        mapping = slicer.ams_mapping(materials, inventory) if materials else []
+        report = printer.reconcile_ams(section, inventory, used_slots=mapping)
+        count = report.count(str(spec.get("severity", "BLOCKER")))
+    except (slicer.SlicerError, printer.PrinterError) as exc:
+        raise MeasurementError(f"AMS reconciliation could not be applied: {exc}") from exc
+    named = "; ".join(f"slot {f.slot} {f.expected}->{f.actual}" for f in report.blockers)
+    note = f"materials {materials} map to slots {mapping}" + (f"; {named}" if named else "")
+    return float(count), 1, note
+
+
 # Not every measurement is a length, and the report is the one surface a human actually reads
 # before committing a part to a multi-hour print. The formatter previously suffixed every value
 # with "mm", which printed degrees, areas, volumes and booleans as millimetres on all five
@@ -467,6 +507,7 @@ MEASURE_UNITS: dict[str, str] = {
     "feature_count": "",  # a count
     "noncircular_count": "",  # a count
     "dfm_violation_count": "",  # a count of findings
+    "ams_mismatch_count": "",  # a count of findings
 }
 
 
@@ -491,6 +532,7 @@ MEASURE_KINDS: dict[str, Callable[[FeatureSet, dict[str, Any]], tuple[float, int
     "max_overhang_deg": _k_max_overhang_deg,
     "unsupported_area": _k_unsupported_area,
     "dfm_violation_count": _k_dfm_violation_count,
+    "ams_mismatch_count": _k_ams_mismatch_count,
 }
 
 

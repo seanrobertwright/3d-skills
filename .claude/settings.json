@@ -2,7 +2,9 @@
   "permissions": {
     "deny": [
       "Read(.env)",
-      "Read(.env.*)",
+      "Read(.env.*)"
+    ],
+    "ask": [
       "Bash(uv run lril3d-send*)",
       "Bash(python*send_to_printer*)",
       "Bash(python*lril3d_print*)",
