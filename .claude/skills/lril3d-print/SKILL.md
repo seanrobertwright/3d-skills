@@ -98,10 +98,12 @@ stop it at the machine.
 or returned to idle having printed nothing. Report the outcome, not the dispatch. If `watch` says
 nothing was printed, say exactly that — do not soften it into "it may still be starting".
 
-**`RUNNING` at 0% is normal for about nine minutes.** The printer levels the bed and wipes the
-nozzle before it heats to printing temperature, so the layer counter and the percentage sit at
-zero for a long time on a healthy print. Do not report that as a stall, and do not offer to
-restart it.
+**`RUNNING` at 0% is normal for a long time — many minutes.** The printer levels the bed and wipes
+the nozzle before it heats to printing temperature, so the layer counter and the percentage sit at
+zero through all of it on a healthy print. Do not report that as a stall, and do not offer to
+restart it. The measured duration for this machine is recorded in `CLAUDE.md` beside the run it
+came from; this file does not carry the number, for the same reason it carries no ports and no
+timeouts.
 
 A **stopped** job reports as failed with a cancellation code and an empty fault list. That is
 someone changing their mind, not a defect; say so rather than reporting a failure.
