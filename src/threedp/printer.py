@@ -510,6 +510,11 @@ def upload(
             conn.close()
         response = session.voidresp()  # (c) -- dropping this truncates the file silently
         elapsed_s = time.monotonic() - started
+        # Hashed from `payload`, the bytes that were actually put on the wire, rather than by
+        # re-reading `source` afterwards. Re-reading would describe whatever is on disk *now*,
+        # which is a different claim from "this is what the printer received" -- and that claim
+        # is the only reason the digest is computed at all.
+        sent_md5 = hashlib.md5(payload, usedforsecurity=False).hexdigest()
         sizes = remote_sizes(session, directory)
         if verify_md5 is None:
             verify_md5 = bool(config.get("ftps", {}).get("verify_md5", True))
@@ -536,7 +541,7 @@ def upload(
         size_bytes=len(payload),
         remote_size_bytes=sizes.get(source.name),
         response=str(response),
-        md5=_md5(source),
+        md5=sent_md5,
         elapsed_s=elapsed_s,
         remote_md5=remote_md5,
     )

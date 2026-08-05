@@ -67,7 +67,12 @@ CREDENTIAL_DENY = ("Read(.env)", "Read(.env.*)")
 
 
 def package_files() -> list[Path]:
-    return sorted(PACKAGE.glob("*.py"))
+    # rglob, not glob. The exemption is granted to one *file*, so the scan has to reach every file
+    # that could take it -- and `src/threedp/net/client.py` would import `socket`, reach a printer,
+    # and never be looked at by a non-recursive walk. The package is flat today, so this returns
+    # the same list; it stops being the same list on the day somebody adds a subpackage, which is
+    # the day the guarantee would otherwise have gone quiet.
+    return sorted(PACKAGE.rglob("*.py"))
 
 
 def test_the_scan_actually_covers_something():
@@ -77,6 +82,13 @@ def test_the_scan_actually_covers_something():
     names = {p.name for p in files}
     for expected in ("slicer.py", "gcode.py", "io.py", "render.py", "printer.py", "calibrate.py"):
         assert expected in names, f"{expected} was not scanned"
+
+    # ...and counted independently, because the named-file check above stays true no matter how
+    # many modules the walk misses. This is the assertion that fails if the glob ever stops being
+    # recursive again.
+    every = {p for p in PACKAGE.rglob("*.py") if "__pycache__" not in p.parts}
+    missed = sorted(str(p.relative_to(REPO)) for p in every - set(files))
+    assert not missed, f"the walk skipped {missed}; a module outside it is a module outside the ban"
 
 
 def _imported_names(source: str) -> set[str]:

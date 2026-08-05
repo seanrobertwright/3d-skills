@@ -316,8 +316,8 @@ def test_dispatch_end_to_end_and_stop(creds, config, tmp_path):
     os.environ.get(APPROVAL_ENV) != "yes",
     reason=(
         f"starts a REAL print. Set {APPROVAL_ENV}=yes, stand at the printer, and read the "
-        f"pre-flight gate in the Phase 3 plan first. This is the only skip in this file and it "
-        f"guards a physical action, not a missing dependency."
+        f"pre-flight gate in the Phase 3 plan first. This is one of the two skips in this file, "
+        f"and both guard a physical action rather than a missing dependency."
     ),
 )
 def test_the_url_scheme_matrix(creds, config, tmp_path):

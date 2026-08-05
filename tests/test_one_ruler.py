@@ -99,9 +99,13 @@ def scan(path: Path) -> list[tuple[int, str, str]]:
 
 
 def python_files_under_the_rule() -> list[Path]:
-    files = [p for p in (REPO / "src" / "threedp").glob("*.py") if p != RULER]
+    # rglob, not glob: the rule is "exactly one ruler in this repository", and a scan that stops at
+    # the top of the package would let `src/threedp/<anything>/measure2.py` fit a circle without
+    # ever failing the suite. The package is flat today, so this is provably the same file list --
+    # which is exactly when it is cheapest to make it recursive.
+    files = [p for p in (REPO / "src" / "threedp").rglob("*.py") if p != RULER]
     files += [p for p in (REPO / "benchmarks").rglob("*.py") if not METHOD_MUTATION.search(str(p))]
-    files += [p for p in (REPO / "tests").glob("*.py") if p.name != Path(__file__).name]
+    files += [p for p in (REPO / "tests").rglob("*.py") if p.name != Path(__file__).name]
     return sorted(files)
 
 

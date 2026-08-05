@@ -418,12 +418,13 @@ uv run pytest -m "not slicer" -q  # green on a machine with no slicer
 ```
 
 **The printer layer is the same kind of gate**, and it needs the P1S on the LAN with `.env`
-filled in. It has exactly one legitimate skip: `test_the_url_scheme_matrix` **starts a real
-print** and is gated behind `THREEDP_APPROVE_A_REAL_PRINT=yes`. That skip guards a physical
-action, not a missing dependency; every other test in the file must run.
+filled in. It has exactly **two** legitimate skips, and both **start a real print**, so both are
+gated behind `THREEDP_APPROVE_A_REAL_PRINT=yes`: `test_the_url_scheme_matrix` and the full
+dispatch round-trip. Those skips guard a physical action, not a missing dependency; every other
+test in the file must run.
 
 ```bash
-uv run pytest -m printer -v        # must RUN here; 9 pass, 1 skip (the physical-print gate)
+uv run pytest -m printer -v        # must RUN here; 10 pass, 2 skip (both physical-print gates)
 uv run pytest -m "not printer" -q  # green on a machine with no printer
 ```
 
