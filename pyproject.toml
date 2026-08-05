@@ -18,6 +18,7 @@ dependencies = [
   "lxml>=6.1.1",                                    # REQUIRED to read 3MF (spike 8)
   "bpy>=5.2.0",
   "sdf",
+  "paho-mqtt>=2.1",                                 # Phase 3 printer link (ADR-13, S24)
 ]
 
 [project.optional-dependencies]
@@ -40,6 +41,7 @@ markers = [
   "brep: exercises the BREP (STEP) extraction path",
   "mesh: exercises the mesh (STL/3MF) probing path",
   "slicer: requires a slicer executable (Bambu Studio) to be installed",
+  "printer: requires the real P1S on the LAN, with .env credentials and Developer Mode",
   "slow: takes more than a few seconds",
 ]
 

@@ -2,18 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status: Phase 2 implemented
+## Status: Phase 3A done; Phase 3B is machinery-only until two coupons are printed
 
-The `threedp` package, six skills, the viewer, 6 benchmarks and a 27-mutation suite are in place.
-Phase 2 ships a **slicer wrapper but still no printer** — no upload path of any kind.
+The `threedp` package, eight skills, the viewer, 6 benchmarks and a 30-mutation suite are in place.
+
+**Phase 3A ships the send path, end to end, verified on the real printer.** `printer.py` (implicit
+FTPS + MQTT), `lril3d-print`, AMS reconciliation, and ADR-5's `deny` → `ask` conversion in
+`.claude/settings.json`. Measured 2026-08-02 with LAN Developer Mode on: a 135,820-byte 3MF
+uploaded and byte-count-verified, `project_file` published as `ftp:///{name}`, the echo captured,
+and `gcode_state` left `IDLE` for `PREPARE` in **5.8 s** — all four ADR-14 conditions satisfied —
+then stopped before the first layer.
+
+**Phase 3B ships the calibration machinery and none of the calibration.** `calibrate.py` is
+complete and tested; all three records in `profiles/calibration.json` are still published defaults
+with `"measured": null`, because replacing them requires printing two coupons and measuring them
+with a caliper. `calibrate.stale_materials()` lists what is still owed. `ABS_generic` is not
+merely outstanding — **no ABS is loaded**, so it cannot be measured here at all.
 
 - **`PRD.md` is the source of truth.** Link to its sections; do not copy its text into new docs.
   `PRD.md` is excluded from `ruff format` on purpose — ruff formats fenced Python blocks and
   rewrote its API-specification snippet on first run.
-- **`.agents/plans/phase-1-verification-loop.md`** and
-  **`.agents/plans/phase-2-printability-and-preparation.md`** are the implementation plans, each
-  backed by a spike run on this machine. They contain measured numbers, PRD corrections, and
-  ADRs 1–12. Read the relevant one before implementing anything.
+- **`.agents/plans/phase-1-verification-loop.md`**,
+  **`.agents/plans/phase-2-printability-and-preparation.md`** and
+  **`.agents/plans/phase-3-printer-and-calibration.md`** are the implementation plans, each backed
+  by a spike run on this machine. They contain measured numbers, PRD corrections, and ADRs 1–18.
+  Read the relevant one before implementing anything.
 - **The slicer is Bambu Studio, not OrcaSlicer** (Phase 2 correction C1). `PRD.md` §12 and §7 name
   OrcaSlicer; it is not installed on this machine and Bambu Studio is, with the complete BBL
   vendor profile tree. OrcaSlicer is a Bambu Studio fork sharing the CLI surface, so
@@ -74,6 +87,30 @@ Three rules that are easy to erode:
   about a *process*; intent is a claim about a *part*.
 - **Only BLOCKER gates.** A WARNING is reported with its number and does not fail a part.
 
+### The Phase 3 layers, and where each one refuses
+
+```
+printer.upload        transfers ->  226 AND a byte count read back off the printer
+printer.reconcile_ams compares  ->  profiles/filaments.json vs live AMS telemetry (ADR-16)
+printer.PrinterLink   listens   ->  the whole echo, never a whitelist of ack field names
+printer.accept_dispatch judges  ->  ADR-14's four conditions; a still-IDLE printer is refused
+calibrate.fit_deltas  fits      ->  ONE offset per role, or a refusal naming the spread
+```
+
+Four rules that are easy to erode:
+
+- **`reconcile_ams` performs no I/O and `ams_mapping` knows nothing about the printer.** The claim
+  and the check are separate on purpose; mixing them would put I/O inside a pure function and give
+  the mutation suite nothing clean to bite on.
+- **UNKNOWN is never IDLE.** Telemetry arrives as one full push and then deltas — the smallest
+  real delta captured here carries four keys and none of them is `gcode_state`. `PrinterState`
+  raises until a full push lands rather than defaulting.
+- **A refusal arrives as an echo of your own command, not as an ack.** Never filter the reply
+  channel by field name. This one is not hypothetical: it produced two consecutive wrong readings
+  during the spike, and a control probe appeared to confirm both.
+- **Hole and outer deltas are fitted separately and never pooled.** One formula
+  (`nominal - measured`) produces both, with opposite signs, which is the point.
+
 ### Verification tiers — by feature type, not representation
 
 | Tier | Features | Guarantee |
@@ -106,8 +143,20 @@ Two classes, both required: **geometry mutations** (a dimension is wrong) and **
   implementations once disagreed by 0.088mm, more than a press-fit tolerance.
 - **A circle fit must never yield a diameter without a circularity check.** A square 20×20 pocket
   fits as a confident "24.4949mm circle". `CircleFit.diameter` raises unless `is_circular`.
-- **Never touch the printer path.** Enforced at the harness layer in `.claude/settings.json`, and
-  mechanically by `tests/test_no_printer_path.py` — not by agent discipline.
+- **There is exactly one way out to a printer, and it is `printer.py`.** The Phase 1–2 rule was
+  "no module reaches a printer"; Phase 3 narrows it rather than lifting it (ADR-15). Every other
+  module is still banned from importing a network module, a *second* send path anywhere fails the
+  suite, and the one `subprocess` call is still the discovered slicer — all of it mechanical, in
+  `tests/test_printer_path_is_narrow.py`, not agent discipline.
+- **A print needs a human yes, in the conversation, for that part.** `.claude/settings.json`'s
+  `ask` rules are the weaker half of the gate: they catch a shell command routing around the
+  library and cannot see a Python call. `lril3d-print`'s pre-send summary is the half that matters.
+- **The inventory is a claim and it is checked against the printer before every dispatch**
+  (ADR-16). It shipped through two phases disagreeing with the AMS in four of five slots, green
+  the whole way, because nothing had ever asked the printer.
+- **A calibration record carries a date, not a boolean.** `"measured": true` satisfies the
+  staleness check and discards the date, the nozzle and the gauge — the whole content of the
+  claim — so `compensate.load_calibration` refuses it (ADR-18).
 - **Every DFM threshold carries a `source`.** `dfm.load_rules` refuses an uncited one, exactly as
   `parts.get` refuses an unknown key. A threshold in Python or in a `SKILL.md` is a threshold
   outside the config and outside the tests.
@@ -187,7 +236,10 @@ Bambu Studio CLI — each of these was reproduced on this machine:
   a leading space. A parser written to `;TYPE:`/`;LAYER_CHANGE` finds *zero* of each and produces
   an empty preview that looks like an empty part. Bambu also uses **relative E** (`M83`).
 - **CLI G-code contains no thumbnail block at all** — one `; thumbnail_size = 50x50` config line
-  and nothing else, so the P1S screen preview is blank (PRD correction C2). Not fixable here.
+  and nothing else (PRD correction C2). Still true, and **narrower than it was written**: the
+  *3MF* from the same run carries `Metadata/plate_1.png` at 512×512 with 116 distinct byte values
+  and std 55.87 — a real render, not a flat fill. Phase 3 sends the 3MF, so the screen preview is
+  not blank (correction C7). A blank preview means the wrong artefact went across.
 
 Repair:
 
@@ -213,6 +265,132 @@ DFM:
   from a thin pin. They stay separate rules because the *fix* differs; expect them to fire
   together.
 
+### Phase 3 additions (measured 2026-08-02 against the real P1S)
+
+- **The refusal channel is an echo, not an ack.** `project_file` is answered by the whole command
+  echoed back with an **`err_code`** field appended — no `result`, no `reason`, no `errno`. A
+  listener that whitelists ack field names sees nothing and reports a timeout. This produced two
+  consecutive wrong readings ("accepted in silence"), and a deliberately malformed control command
+  appeared to confirm them, because that too produced no *matching* field. **Capture every
+  non-status reply whole.**
+- **`err_code 84033543` is `0x05024007` = `0502-4007`, the LAN authorization refusal.** Bambu
+  document HMS `0500-0500-0001-0007` for this and **this machine never emits it**; do not key on
+  the documented code. The refusal arrives in about a second, so a dispatch failure is detectable
+  without waiting out a timeout.
+- **The rejection happens before the url is parsed.** Eight `project_file` variants — including
+  `file:///mnt/sdcard/...`, which does not exist, and a bare filename — returned *identical*
+  `0502-4007`. A file-or-path error cannot be invariant across those.
+- **The access code changes when you toggle Developer Mode.** A code that worked before the toggle
+  is not evidence it is current.
+- **`ftplib`'s `storbinary` calls `conn.unwrap()` and this firmware often never answers
+  `close_notify`**, so the call hangs forever. Drop the unwrap; **keep the `voidresp()`** — without
+  it the transfer truncates silently and the printer answers `0500-C010` on a file that is perfect
+  locally. Data-channel TLS **session reuse** is also required (`require_ssl_reuse`), and `ftplib`
+  has never supported it (cpython#63699), so `ntransfercmd` must be overridden.
+- **The FTPS welcome banner does not contain `vsFTPd`.** Do not fingerprint on it.
+- **Telemetry is one full push (`msg == 0`) and then deltas.** Measured: 1 full push and 10 deltas
+  in 45 s, and the smallest delta carries **four keys** — `bed_temper`, `command`, `msg`,
+  `sequence_id`. Nothing that identifies state. Code that defaults its missing fields reports a
+  confident `IDLE` about a printer it knows nothing about.
+- **A silent telemetry channel is not a broken one.** Deltas are emitted *when something changes*.
+  A thermally settled idle printer sends **nothing at all** — measured 2026-08-04: 0 deltas in
+  30 s, where the same test saw a steady stream an hour earlier while the bed was still cooling.
+  A test that asserts "a delta arrives within N seconds" is inventing a cadence the protocol never
+  promises, and one here did exactly that and failed. What *is* guaranteed, and what ADR-17 rests
+  on, is that the full state arrives **once** and is never re-sent unprompted.
+- **`mc_remaining_time` is in MINUTES** (correction C10) — **settled on hardware 2026-08-03**, not
+  from source. On a part the slicer estimated at 8m46s the printer reported `8` and counted down
+  `8 → 7 → … → 0` across the print. As seconds it would have read ~526. Reading it as seconds is a
+  silent 60× error; pybambu's `timedelta(minutes=...)` agrees. An **absent** field is UNKNOWN,
+  never `0`.
+- **`task_id` / `project_id` / `subtask_id` are the string `"0"`** (correction C6). Firmware
+  `01.10.00.00` clamps task-identity fields to 2³¹−1, so an epoch-ms id collides and the printer
+  treats a new dispatch as a continuation of the previous FAILED job.
+- **`bed_leveling`, one `l`.** OpenBambuAPI's `bed_levelling` is wrong; Bambu Studio's
+  `bambu_networking.hpp` uses one — and a misspelled key is ignored, not rejected.
+- **A `project_file` ack can exceed 15 s, and reconnecting while you wait induces `0500-4003` on
+  the printer.** Wait generously; never tear the link down mid-dispatch.
+- **`pushall` is rate-limited.** Bambu warn against polling the P1 under five minutes.
+- **AMS slot numbers are `ams_id * 4 + tray_id`**, so a second unit occupies 4–7; the external
+  spool is `vt_tray` at **254** and is not an AMS slot (correction C5). `ams_mapping` is
+  **forward**-indexed — array *position* is the 3MF filament index, array *value* is the slot —
+  and PRD §9 and the old docstring both called it "reverse-indexed" while describing forward
+  indexing in the next clause. Bambu Studio's `DevMapping.cpp` settles it.
+- **`.gitignore`'s `.env.*` swallows `.env.example`** (correction C9). It needs an explicit
+  `!.env.example` **after** the pattern. Note that `git check-ignore -v` exits 0 on a negation
+  match; use `git check-ignore -q`, which exits **1** for a file that is not ignored.
+- **The CLI slices for the *Cool* plate unless told otherwise** (S23). `default_bed_type` lives in
+  the printer-*model* json, which `--load-settings` does not walk, so `curr_bed_type` defaults to
+  `Cool Plate` and a 35 °C first layer is baked into the G-code for a machine with a textured PEI
+  plate. `profiles/slicer.json`'s `preset_overrides` fixes it; verified as `M190 S55`.
+  **`bed_type: "auto"` over MQTT does not help** — the temperature is set at slice time.
+- **Our own 3MF does carry filament ids** (correction C8): `filament_ids: ['GFA00']` in
+  `project_settings.config` and a populated `tray_info_idx` in `slice_info.config`. The trap PRD §9
+  records traces to *OrcaSlicer's* CLI, which this repo does not use — but `slice_info.config`'s
+  `filament id` is **1-based** while `ams_mapping` is **0-based**, and that seam is real. Convert
+  once, in `printer.assert_3mf_is_dispatchable`.
+- **`chamber_temper` reads 5 beside `bed_temper` 19.375 in the same push.** Unexplained and not
+  believed to be °C. Nothing surfaces a chamber temperature until it is understood.
+
+Measured *after* Developer Mode was enabled, on 2026-08-02:
+
+- **An echo with no `err_code` is not a started job.** `project_file` for a filename that is **not**
+  on the SD card is echoed back with no `err_code` at all, sets `subtask_name` on the printer, and
+  leaves `gcode_state` at `IDLE`. ADR-14 conditions 1 and 2 satisfied, no print. This is the case
+  condition 3 exists for, and it is now a live regression test.
+- **`print_error` is non-zero after a normal stop** — `83902467` = `0500-8003`. It is the record of
+  the cancellation, not a fault, so nothing in `accept_dispatch` keys on `print_error`.
+- **"not RUNNING" is not "stopped".** A job cancelled during `PREPARE` was never `RUNNING`, so a
+  predicate waiting for `gcode_state != "RUNNING"` is satisfied instantly and returns while the
+  machine is still heating. Wait for the *idle set* (`IDLE`/`FINISH`/`FAILED`). A stopped job
+  reports `FAILED`.
+- **A byte count is not the bytes.** ADR-14 condition 1 originally checked the `226` and the size
+  the printer's `LIST` reported. That is the filesystem's *claim* about a file's length; on a card
+  that is failing it and the contents diverge. The upload now downloads the file again and hashes
+  it (`ftps.verify_md5`), and a file that cannot be read back counts as a mismatch rather than as
+  "unverified". Measured 2026-08-04 on this machine's actual card: 62 files downloaded and hashed,
+  every one at exactly its claimed size, **zero read failures** — so the FTPS read path was clean
+  even while the printer was reporting an SD card error. That is the point: the check is cheap,
+  and "it read back fine over FTP" does not clear a card either.
+- **⚠⚠ THE PRINTER REPORTS `FINISH` AT 100% FOR A PART THAT DOES NOT EXIST.** Measured
+  2026-08-03, and it is the most important thing in this phase. A job ran **30 of 30 layers**,
+  `mc_percent 100`, `gcode_state FINISH`, `print_error 0`, `hms` empty — and produced nothing,
+  because no filament was ever loaded. `hw_switch_state` (the toolhead's own filament sensor,
+  pybambu's `extruder_filament_state`) stayed **0**, and `ams.tray_now` / `tray_tar` stayed
+  **255**, for the entire run. The AMS never targeted a tray and the machine traced the toolpath
+  through air for nine minutes.
+
+  **Not one field the printer publishes dissents.** Return code, percentage, layer counter, error
+  field, fault list — all agree the print succeeded. This is the repository's founding failure
+  arriving at the last possible layer, and no amount of protocol correctness makes a machine's
+  self-report into evidence about an object. So `PrintOutcome.finished` requires `FINISH` **and**
+  filament seen at the extruder, and `watch()` says "NO PART" in as many words.
+
+  **The root cause is open.** `ams_mapping2` was missing from the `project_file` payload —
+  Bambu Studio sends it, `bambu_networking.hpp` declares it beside `ams_mapping`, and the
+  firmware needs it to turn a global tray number into `{ams_id, slot_id}`. It has been added.
+  **A re-run with it present still resolved no tray and still loaded nothing**, so it was *a*
+  defect and is not *the* defect. Recorded as open rather than closed: a plausible cause standing
+  in for a measured one is exactly what this project exists to refuse, and that does not change
+  when the subject is our own code. Next step is the physical AMS path, not more payload fields.
+- **⚠ `RUNNING` at 0% and layer 0 is normal for about nine minutes.** Measured on a completed
+  print: `PREPARE → RUNNING` at t+6 s, then bed levelling and a 75 °C nozzle wipe, heat to 205 °C
+  at t+520 s, and the **first extrusion at t+558 s**. So `mc_percent` and `layer_num` sit at zero
+  for over nine minutes *while the printer is RUNNING and working correctly*. Anything that reads
+  "0% after five minutes" as a stall is wrong, and a watcher whose timeout is shorter than the prep
+  gives up on a healthy print.
+- **`bed_target_temper` reaches 55 °C**, confirming the S23 textured-plate fix on hardware — the
+  cool-plate default would have baked in 35 °C.
+- **⚠ All four ADR-14 conditions can be satisfied by a job that prints nothing.** Measured: a
+  dispatch was accepted — upload byte-verified, echo clean, `gcode_state` left `IDLE` for
+  `PREPARE`, `subtask_name` ours — and the printer then returned to `IDLE` having laid **0 of 30
+  layers**, `print_error 0500-8003`, `hms` empty. `PREPARE` is transient: the machine is heating,
+  homing and levelling, and the job can be abandoned there or stopped by a human at the panel. So
+  `accept_dispatch` claims only that *a dispatch landed*; `printer.watch()` is what reports whether
+  a part exists, and `PrintJob.__str__` says so on its own second line. **This is the founding
+  failure mode of the repository arriving in the newest layer** — a confident, plausible, wrong
+  report of a successful print — and it was caught by watching the machine rather than the code.
+
 ## Commands
 
 ```bash
@@ -228,7 +406,7 @@ uv run pytest -k circular -v              # by keyword
 cross-module import breakage:
 
 ```bash
-uv run python -c "import sys; assert sys.version_info[:2]==(3,13), sys.version; from threedp import measure, features, intent, render, compensate, parts, io, printability, dfm, repair, slicer, gcode, coupon; print('OK', sys.version)"
+uv run python -c "import sys; assert sys.version_info[:2]==(3,13), sys.version; from threedp import measure, features, intent, render, compensate, parts, io, printability, dfm, repair, slicer, gcode, coupon, printer, calibrate; print('OK', sys.version)"
 ```
 
 **The slicer layer is a gate, not a formality.** `slicer`-marked tests need Bambu Studio; a green
@@ -237,6 +415,17 @@ suite with them skipped is not evidence the wrapper works:
 ```bash
 uv run pytest -m slicer -v        # must RUN here: report the count, expect 0 skipped
 uv run pytest -m "not slicer" -q  # green on a machine with no slicer
+```
+
+**The printer layer is the same kind of gate**, and it needs the P1S on the LAN with `.env`
+filled in. It has exactly **two** legitimate skips, and both **start a real print**, so both are
+gated behind `THREEDP_APPROVE_A_REAL_PRINT=yes`: `test_the_url_scheme_matrix` and the full
+dispatch round-trip. Those skips guard a physical action, not a missing dependency; every other
+test in the file must run.
+
+```bash
+uv run pytest -m printer -v        # must RUN here; 10 pass, 2 skip (both physical-print gates)
+uv run pytest -m "not printer" -q  # green on a machine with no printer
 ```
 
 **The real gate** — the mutation suite. A green `pytest` with this skipped is *not* evidence the
@@ -248,8 +437,9 @@ uv run python benchmarks/run_mutations.py --part bearing-holder
 uv run python benchmarks/run_mutations.py -v                   # full report on any failure
 ```
 
-Pass signal: `caught 19/19   missed 0   false-positives 0   harness-errors 0` over 27 mutations
-across 6 benchmarks.
+Pass signal: `caught 20/20   missed 0   false-positives 0   harness-errors 0` over **30**
+mutations across 6 benchmarks. (Earlier revisions of this file said 27; the harness has reported
+28 since `dfm_slender_pin` was added, and Phase 3 brought it to 30.)
 **If it reports zero mutations found, that is a FAILURE, not a pass** — a skipped layer wearing a
 green badge. Mutations run against the **mesh** export: a BREP face query never fits a circle, so a
 measurement-method mutation cannot bite there. The harness cross-checks STEP against STL on every
@@ -267,22 +457,48 @@ cd viewer && npm install && npm run dev    # Node >=20; v24.18.0 verified presen
 
 ## Phase boundaries
 
-Phase 2 ships **no printer path** — no FTPS, no MQTT, no socket, no upload. `--export-3mf`
-produces a file a human sends by hand, which is PRD Risk 5's documented fallback and the end of
-the line for this phase. `.claude/settings.json` and `.claude/PRINT-GATE.md` are unedited; their
-`deny` → `ask` conversion arrives *with* `lril3d-print` in Phase 3 (ADR-5), and
-`tests/test_no_printer_path.py` makes that mechanical rather than a promise. When in doubt about
-scope, check `PRD.md` §12.
+Phase 3 ships the printer path, and **that is the whole of what it opens.** No cloud, no remote
+monitoring, no camera stream (port 6000 is open and stays unused), no print queue, no
+multi-printer. `bed_type` stays `"auto"`. The abrasive-nozzle DFM rule that PLA-CF in slot 1
+suggests is Phase 4, noted here so it is not lost. When in doubt about scope, check `PRD.md` §12.
 
 - **Phase 1** *(done)* — the verification loop: `measure` → `features` → `intent`, 5 benchmarks,
   19 mutations, 3 skills, viewer.
 - **Phase 2** *(done)* — `lril3d-dfm`, `lril3d-repair`, `lril3d-slice` (**Bambu Studio**, not
   OrcaSlicer — correction C1), `coupon.py`, `gcode.py` + viewer preview, the `imported-mesh`
-  benchmark, 27 mutations. `coupon.py` appears in the PRD §6 directory tree and is scheduled in
+  benchmark, 28 mutations. `coupon.py` appears in the PRD §6 directory tree and is scheduled in
   §12 as Phase 2 — **§12 wins**, and it lives at `src/threedp/coupon.py`.
-- **Phase 3** — printer comms, and replacing `calibration.json`'s published defaults
-  (`"measured": null`) with real measured values using `coupon.fit_gauge`.
-- **Phase 4** — multi-slicer abstraction.
+- **Phase 3A** *(done)* — `printer.py`, `lril3d-print`, `profiles/printer-conn.json`, AMS
+  reconciliation, the ADR-5 `deny` → `ask` conversion, 30 mutations. **Except the url scheme**,
+  which is measured, not chosen — see below.
+- **Phase 3B** *(machinery done, measurements outstanding)* — `calibrate.py`,
+  `lril3d-calibrate`, and `compensate`'s rejection of `"measured": true`. The three calibration
+  records are still published defaults; replacing them needs two printed coupons and a caliper.
+- **Phase 4** — multi-slicer abstraction, and the abrasive-filament/nozzle DFM rule.
+
+### The pre-flight gate, closed — and why the shape of the answer matters
+
+`dispatch.url_scheme` is **`ftp:///{name}`**, uploading to `/`, measured 2026-08-02 with Developer
+Mode on. It won on the first attempt.
+
+The part worth keeping is what came *before* that. With Developer Mode **off**, all seven
+candidates returned an identical `err_code 0502-4007` — including `file:///mnt/sdcard/...`, a path
+that does not exist, and a bare filename. A file-or-path error cannot be invariant across those,
+which is what proves the rejection happened **before the url was parsed** — and therefore that no
+amount of permuting url forms could ever have found the answer. Two hours of candidate-shuffling
+would have looked like progress and produced nothing.
+
+So the losers stay in `profiles/printer-conn.json` marked **untried**, not rejected: they were
+never actually disproved, only refused for a different reason. And `resolve_url_scheme` still
+raises `PreFlightGateOpen` on a `null` scheme, so pointing this at a printer whose accepted form
+has not been measured says so instead of reaching for the one that worked here.
+
+Both live-print tests are behind `THREEDP_APPROVE_A_REAL_PRINT=yes`:
+
+```bash
+THREEDP_APPROVE_A_REAL_PRINT=yes uv run pytest -m printer -k url_scheme -v -s
+THREEDP_APPROVE_A_REAL_PRINT=yes uv run pytest -m printer -k end_to_end -v -s
+```
 
 ## Known accepted gaps
 
@@ -301,3 +517,22 @@ Stated plainly rather than papered over — do not "fix" these by weakening a gu
   therefore never gets a green repair verdict, which is correct and is not a bug to fix.
 - **Bridge spans are derived from face geometry, not from a slice**, and are labelled ESTIMATE. A
   slicer knows which perimeters actually land over air; this knows which faces point down.
+- **The AMS has never successfully fed a print through this code path.** Three dispatches were
+  accepted and none loaded filament; `tray_tar` never left 255. Until that is solved, `lril3d-print`
+  can send a job and watch it, and cannot produce a part. **`watch()` will say so** rather than
+  reporting the printer's own `FINISH`.
+- **A dispatch is not a print, and nothing here can tell you a part is on the plate.** `watch`
+  distinguishes finished / failed / returned-to-idle / finished-with-no-filament, but even
+  "`FINISH` and filament was seen" is a claim about a machine, not a measurement of an object.
+  Verifying the part is `lril3d-inspect`'s job, on something someone has taken off the plate.
+- **Only one url form has been tried since Developer Mode was enabled.** `ftp:///{name}` won on
+  the first attempt and the matrix stops as soon as one does, so the other six are *untried*
+  rather than known-bad. If this ever needs re-measuring on different firmware, re-run the matrix
+  rather than assuming the recorded winner generalises.
+- **`ABS_generic` has no measured calibration and will not get one from this repository** until an
+  ABS spool is loaded. It stays a published default with `"measured": null` and every compensated
+  export against it warns. Do not "complete" the file.
+- **`reconcile_ams` compares material *names* from AMS RFID.** A non-Bambu spool reports
+  `tray_info_idx` poorly or not at all, so reconciliation degrades to "unknown material in this
+  slot" — a BLOCKER when that slot is used, never a silent pass. Every spool on this machine is
+  Bambu, so **the degraded path is untested against real hardware**.

@@ -89,6 +89,28 @@ def profiles_dir() -> Path:
     )
 
 
+def _check_measured(record: Any, where: str) -> Any:
+    """``measured`` is an ISO date or ``null``. **A boolean is refused** (ADR-18).
+
+    ``true`` is the shape someone reaches for when cutting a corner: it satisfies the staleness
+    check below and throws away the date, the nozzle and the gauge -- everything that would let
+    anyone notice the calibration had gone stale. PRD Risk 7 is exactly that failure, so the
+    corner is closed here rather than documented, the same way ``dfm.load_rules`` refuses an
+    uncited threshold instead of warning about one.
+    """
+    if not isinstance(record, dict):
+        return record
+    if isinstance(record.get("measured"), bool):
+        raise CompensationError(
+            f'{where} has "measured": {str(record["measured"]).lower()}. It must be an ISO date '
+            f'("2026-08-09") when the calibration was measured, or null when it has not been. A '
+            f"boolean satisfies the staleness check while discarding when it was measured, on "
+            f"what nozzle and with which gauge -- which is the whole content of the claim. See "
+            f"threedp.calibrate.build_record for the shape."
+        )
+    return record
+
+
 def load_calibration(material: str | None = None, path: str | Path | None = None) -> dict[str, Any]:
     """Load ``profiles/calibration.json``, or one material record from it."""
     p = Path(path) if path is not None else profiles_dir() / "calibration.json"
@@ -99,12 +121,16 @@ def load_calibration(material: str | None = None, path: str | Path | None = None
     except json.JSONDecodeError as exc:
         raise CompensationError(f"{p} is not valid JSON: {exc}") from exc
     if material is None:
+        # Every record, not only the one asked for: a corner cut in ABS_generic is worth failing
+        # on before it is the record somebody exports against.
+        for key, record in data.items():
+            _check_measured(record, f"{p}: {key}")
         return data
     if material not in data:
         raise CompensationError(
             f"unknown calibration material {material!r}; available: {sorted(data)}"
         )
-    return data[material]
+    return _check_measured(data[material], f"{p}: {material}")
 
 
 def _as_record(calibration: Any) -> tuple[dict[str, Any], str | None]:
@@ -113,6 +139,10 @@ def _as_record(calibration: Any) -> tuple[dict[str, Any], str | None]:
         return load_calibration(calibration), calibration
     if isinstance(calibration, dict):
         if "hole_delta_mm" in calibration:
+            # Checked here too, not only in load_calibration: a record handed straight to
+            # resolve() never passes through the loader, and that is the shortest path from a
+            # hand-edited `"measured": true` to a silently un-warned export.
+            _check_measured(calibration, "the calibration record passed to resolve()")
             return calibration, calibration.get("material")
         raise CompensationError(
             "calibration dict has no 'hole_delta_mm'; pass one material record, not the whole "

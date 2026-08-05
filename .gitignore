@@ -1,6 +1,10 @@
 # Printer credentials — PRD §9: never committed.
 .env
 .env.*
+# ...but the template IS committed. Measured (correction C9): `.env.*` matches `.env.example`,
+# so without this negation the file is invisible to every clone. The negation must come AFTER
+# the pattern it undoes; before it, it does nothing.
+!.env.example
 
 # Python
 .venv/

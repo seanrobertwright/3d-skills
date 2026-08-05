@@ -1,0 +1,10 @@
+{
+  "slots": [
+    {"slot": 0, "type": "ams", "bay": 0, "material": "PLA", "brand": "Bambu", "color": "#101010", "calibration": "PLA_generic"},
+    {"slot": 1, "type": "ams", "bay": 1, "material": "PLA", "brand": "Bambu", "color": "#f5f5f5", "calibration": "PLA_generic"},
+    {"slot": 2, "type": "ams", "bay": 2, "material": "PETG", "brand": "Bambu", "color": "#1e6fd9", "calibration": "PETG_generic"},
+    {"slot": 3, "type": "ams", "bay": 3, "material": "ABS", "brand": "Bambu", "color": "#b02020", "calibration": "ABS_generic"},
+    {"slot": 4, "type": "external", "bay": null, "material": "PC", "brand": "generic", "color": "#d8d8d0", "calibration": "PLA_generic"}
+  ],
+  "source": "FROZEN REGRESSION FIXTURE - profiles/filaments.json exactly as it shipped through Phases 1 and 2, before the printer was ever asked what it was holding. Four of these five slots disagreed with the AMS on 2026-08-02 (spike S16) and slicer.ams_mapping converted that into a confidently wrong slot with no error: PETG resolved to slot 2, which held purple PLA, and ABS to slot 3, which held green PETG. It is frozen deliberately - the live file has been corrected, and pointing the regression at the live file would mean this drift stops being tested the moment somebody fixes it."
+}

@@ -14,11 +14,17 @@
       "ABS": "Bambu ABS @BBL P1S 0.4 nozzle"
     }
   },
+  "preset_overrides": {
+    "process": {
+      "curr_bed_type": "Textured PEI Plate"
+    }
+  },
   "timeout_s": 300,
   "notes": {
     "process_name": "The process preset really is named '@BBL X1C' for a P1S. The P1S machine profile's own default_print_profile says so, and the process's compatible_printers lists 'Bambu Lab P1S 0.4 nozzle'. Do not 'fix' it to '@BBL P1S' - that file does not exist and the slice fails with return_code -17.",
     "env_overrides": "THREEDP_SLICER overrides the executable; THREEDP_SLICER_PROFILES overrides profile_root. Both raise when set to something that is not there, rather than falling back.",
-    "orcaslicer": "OrcaSlicer is a Bambu Studio fork and shares the CLI surface and the '; FEATURE:' G-code markers, so it sits in the candidate list. It is NOT installed on this machine and has not been exercised."
+    "orcaslicer": "OrcaSlicer is a Bambu Studio fork and shares the CLI surface and the '; FEATURE:' G-code markers, so it sits in the candidate list. It is NOT installed on this machine and has not been exercised.",
+    "bed_type": "The CLI writes `; curr_bed_type = Cool Plate` unless told otherwise, because default_bed_type lives in the printer-MODEL json (Bambu Lab P1S.json) and not in the machine-PRESET chain --load-settings walks. The P1S ships a textured PEI plate, so the sliced first-layer bed temperature was the cool-plate one (35 C) instead of the textured one (55 C). Measured 2026-08-02 (S23). bed_type:'auto' over MQTT does NOT fix this - the temperature is baked into the G-code long before MQTT sees it."
   },
-  "source": "measured on this machine 2026-07-31; Bambu Studio 02.07.01.62"
+  "source": "measured on this machine 2026-07-31; Bambu Studio 02.07.01.62. preset_overrides.curr_bed_type measured 2026-08-02 (S23)"
 }

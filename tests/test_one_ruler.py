@@ -99,9 +99,13 @@ def scan(path: Path) -> list[tuple[int, str, str]]:
 
 
 def python_files_under_the_rule() -> list[Path]:
-    files = [p for p in (REPO / "src" / "threedp").glob("*.py") if p != RULER]
+    # rglob, not glob: the rule is "exactly one ruler in this repository", and a scan that stops at
+    # the top of the package would let `src/threedp/<anything>/measure2.py` fit a circle without
+    # ever failing the suite. The package is flat today, so this is provably the same file list --
+    # which is exactly when it is cheapest to make it recursive.
+    files = [p for p in (REPO / "src" / "threedp").rglob("*.py") if p != RULER]
     files += [p for p in (REPO / "benchmarks").rglob("*.py") if not METHOD_MUTATION.search(str(p))]
-    files += [p for p in (REPO / "tests").glob("*.py") if p.name != Path(__file__).name]
+    files += [p for p in (REPO / "tests").rglob("*.py") if p.name != Path(__file__).name]
     return sorted(files)
 
 
@@ -150,20 +154,36 @@ def test_the_ruler_itself_is_allowed_to_fit_circles():
 
 
 def test_method_mutations_are_the_only_exemption():
-    """The exemption is one filename pattern, and it is load-bearing that it stays that way."""
+    """The exemption is one filename pattern, and it is load-bearing that it stays that way.
+
+    A ``method_*`` mutation replaces part of the *apparatus* rather than moving a dimension, so
+    two things have to hold and they are not the same thing:
+
+    * it installs a patch at all -- a file that changes nothing is exempt for nothing;
+    * and it only gets the one-ruler exemption if it is actually substituting the ruler. A
+      ``method_*`` file that patches something else and *also* contains a banned primitive would
+      be using the filename as a loophole, which is precisely what this test exists to prevent.
+
+    Not every apparatus is the ruler. ``method_ams_drift`` substitutes a claim about the AMS and
+    ``method_stale_calibration`` exercises the staleness channel; neither goes near ``measure.py``
+    and neither contains a banned primitive, so neither needs the exemption -- and this asserts
+    that, rather than waving them through on the strength of their filename.
+    """
     exempt = [p for p in (REPO / "benchmarks").rglob("*.py") if METHOD_MUTATION.search(str(p))]
     assert exempt, "no method mutations found; the highest-value tests in the suite are missing"
     for path in exempt:
         assert path.parent.name == "mutations"
         assert path.name.startswith("method_")
         source = path.read_text(encoding="utf-8")
-        # Each one must actually substitute part of the ruler, or it is exempt for nothing. Note
-        # that not every method mutation contains a *banned primitive*: disabling the
-        # circularity gate corrupts the ruler's verdict rather than its arithmetic.
         assert "def method_patch" in source, f"{path.name} installs no method patch"
-        assert "threedp.measure" in source or "threedp import measure" in source, (
-            f"{path.name} is exempt from the one-ruler rule but never touches the ruler"
-        )
+        patches_the_ruler = "threedp.measure" in source or "threedp import measure" in source
+        if not patches_the_ruler:
+            assert not scan(path), (
+                f"{path.name} contains a banned measurement primitive but never patches "
+                f"measure.py. The method_* filename is an exemption from the one-ruler rule for "
+                f"mutations that deliberately install a wrong ruler; it is not a place to put a "
+                f"second ruler."
+            )
 
 
 def test_at_least_one_method_mutation_substitutes_the_arithmetic():
@@ -245,6 +265,8 @@ SKILLS = [
     "lril3d-dfm",
     "lril3d-repair",
     "lril3d-slice",
+    "lril3d-print",
+    "lril3d-calibrate",
 ]
 
 

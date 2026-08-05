@@ -1,0 +1,10 @@
+{
+  "slots": [
+    {"slot": 0, "type": "ams", "bay": 0, "material": "PLA", "brand": "Bambu", "color": "#FFF144", "calibration": "PLA_generic"},
+    {"slot": 1, "type": "ams", "bay": 1, "material": "PLA-CF", "brand": "Bambu", "color": "#951E23", "calibration": "PLA_generic"},
+    {"slot": 2, "type": "ams", "bay": 2, "material": "PLA", "brand": "Bambu", "color": "#A03CF7", "calibration": "PLA_generic"},
+    {"slot": 3, "type": "ams", "bay": 3, "material": "PETG", "brand": "Bambu", "color": "#057748", "calibration": "PETG_generic"},
+    {"slot": 4, "type": "external", "bay": null, "material": "PLA", "brand": "generic", "color": "#0D6284", "calibration": "PLA_generic"}
+  ],
+  "source": "transcribed from push_status_full.json - this is what the AMS actually held on 2026-08-02, and it is a TEST FIXTURE, not the live inventory. profiles/filaments.json is the live one and it had drifted in four of five slots; the difference between the two files is spike S16."
+}

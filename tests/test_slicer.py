@@ -259,30 +259,50 @@ def test_the_result_renders_its_numbers(tmp_path):
         assert banned not in text.lower()
 
 
-# --- AMS mapping (PRD 9, correction C4) ----------------------------------------------------------
+# --- AMS mapping (PRD 9, corrections C4 and C5) --------------------------------------------------
+#
+# These pass an EXPLICIT inventory rather than reading profiles/filaments.json. That file describes
+# whatever spools are physically in the machine today, and pinning behavioural tests to it is the
+# mistake spike S16 exposed from the other direction: the tests were green precisely because they
+# only ever checked that the mapping was faithful to the claim, never that the claim was true. The
+# claim is now checked against the printer by printer.reconcile_ams; the mapping is checked here,
+# against an inventory that cannot change under it.
+
+INVENTORY = [
+    {"slot": 0, "type": "ams", "bay": 0, "material": "PLA", "color": "#101010"},
+    {"slot": 1, "type": "ams", "bay": 1, "material": "PLA", "color": "#f5f5f5"},
+    {"slot": 2, "type": "ams", "bay": 2, "material": "PETG", "color": "#1e6fd9"},
+    {"slot": 3, "type": "ams", "bay": 3, "material": "ABS", "color": "#b02020"},
+    {"slot": 4, "type": "external", "bay": None, "material": "PC", "color": "#d8d8d0"},
+]
 
 
-def test_ams_mapping_is_reverse_indexed():
-    """Array POSITION is the 3MF filament index; array VALUE is the AMS slot. Not the other way."""
-    mapping = slicer.ams_mapping(["PETG", "PLA"])
-    assert mapping == [2, 0], "PETG lives in slot 2 and PLA in slot 0 in profiles/filaments.json"
+def test_ams_mapping_is_forward_indexed():
+    """Array POSITION is the 3MF filament index; array VALUE is the AMS slot. Not the other way.
+
+    Correction C5: PRD 9 and this function's own docstring used to call it "reverse-indexed" and
+    then describe forward indexing in the next clause. Bambu Studio's DevMapping.cpp settles it --
+    ``result[picked_src_idx].tray_id`` -- and the behaviour was always this. Only the word moved.
+    """
+    mapping = slicer.ams_mapping(["PETG", "PLA"], INVENTORY)
+    assert mapping == [2, 0], "PETG is slot 2 and PLA is slot 0 in this inventory"
 
 
 def test_ams_mapping_assigns_distinct_slots_to_repeated_materials():
     """Two PLA filaments in one print are two spools, not one spool used twice."""
-    assert slicer.ams_mapping(["PLA", "PLA"]) == [0, 1]
+    assert slicer.ams_mapping(["PLA", "PLA"], INVENTORY) == [0, 1]
 
 
 def test_ams_mapping_runs_out_of_slots_loudly():
     with pytest.raises(slicer.SlicerError) as exc:
-        slicer.ams_mapping(["PLA", "PLA", "PLA"])
+        slicer.ams_mapping(["PLA", "PLA", "PLA"], INVENTORY)
     assert "PLA" in str(exc.value)
 
 
 def test_ams_mapping_to_an_external_spool_raises():
     """Slot 4 is {"type": "external", "bay": null}. It is not AMS slot 4, and it is not null."""
     with pytest.raises(slicer.SlicerError) as exc:
-        slicer.ams_mapping(["PC"])
+        slicer.ams_mapping(["PC"], INVENTORY)
     message = str(exc.value)
     assert "external" in message.lower()
     assert "PC" in message
@@ -290,16 +310,40 @@ def test_ams_mapping_to_an_external_spool_raises():
 
 def test_ams_mapping_rejects_an_unknown_material():
     with pytest.raises(slicer.SlicerError) as exc:
-        slicer.ams_mapping(["UNOBTANIUM"])
+        slicer.ams_mapping(["UNOBTANIUM"], INVENTORY)
     assert "PLA" in str(exc.value) and "PETG" in str(exc.value)
 
 
+def test_a_second_ams_unit_would_map_above_slot_three():
+    """Values are NOT capped at 0-3: the wire value is ams_id * 4 + tray_id (correction C5)."""
+    two_units = [
+        *INVENTORY[:4],
+        {"slot": 4, "type": "ams", "bay": 0, "material": "TPU", "color": "#222222"},
+    ]
+    assert slicer.ams_mapping(["TPU"], two_units) == [4]
+
+
 def test_slot_is_not_bay():
-    """profiles/filaments.json has five slots and the fifth has bay=null. slot != bay."""
+    """The shipped inventory's external entry has bay=null. slot != bay."""
     inventory = slicer.load_inventory()
-    assert len(inventory) == 5
-    assert inventory[4]["type"] == "external"
-    assert inventory[4]["bay"] is None
+    external = [s for s in inventory if s["type"] == "external"]
+    assert external, "the shipped inventory no longer describes the external spool holder"
+    assert all(s["bay"] is None for s in external)
+    assert all(isinstance(s["slot"], int) for s in inventory)
+
+
+def test_the_shipped_inventory_carries_the_source_that_makes_it_checkable():
+    """It is a claim about hardware, so it names where it came from -- and it is not the old one."""
+    import json as _json
+
+    from threedp.compensate import profiles_dir
+
+    data = _json.loads((profiles_dir() / "filaments.json").read_text(encoding="utf-8"))
+    assert data["source"].strip()
+    assert data["source"] != "user-inventory", (
+        "the inventory still claims to be hand-maintained. It is reconciled against the printer "
+        "now (ADR-16); the source must name that measurement."
+    )
 
 
 # --- purge waste (S8) ----------------------------------------------------------------------------
@@ -558,7 +602,7 @@ def test_slice_part_refuses_an_export_3mf_that_is_not_a_bare_filename(tmp_path, 
     monkeypatch.setattr(slicer, "find_slicer", lambda config=None: tmp_path / "fake.exe")
     monkeypatch.setattr(slicer, "profile_root", lambda config=None: tmp_path)
 
-    for bad in ("sub/dir/out.3mf", "sub\dir\out.3mf", str(tmp_path / "out.3mf")):
+    for bad in ("sub/dir/out.3mf", r"sub\dir\out.3mf", str(tmp_path / "out.3mf")):
         with pytest.raises(slicer.SlicerError) as exc:
             slicer.slice_part(part, export_3mf=bad, outdir=tmp_path / "o")
         assert "bare filename" in str(exc.value), bad

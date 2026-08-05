@@ -27,8 +27,10 @@ stdout is never parsed; and timeouts are enforced Python-side with ``subprocess.
 rather than the community-documented ``--mstpp``, which is not in the official wiki and was not
 exercised in the spike.
 
-**Nothing here sends anything to a printer.** ``--export-3mf`` produces a file a human transfers
-by hand; that is PRD Risk 5's documented fallback and it is the end of the line for this phase.
+**Nothing here sends anything to a printer.** ``--export-3mf`` produces a file, and putting that
+file on the printer is ``printer.py``'s job in Phase 3, behind ``lril3d-print``'s approval gate.
+This module still has no socket in it and that boundary is enforced mechanically by
+``tests/test_printer_path_is_narrow.py``.
 
 Masses are grams and suffixed ``_g``; times are seconds and suffixed ``_s``; volumes are mm3 and
 suffixed ``_mm3``.
@@ -444,10 +446,30 @@ def _write_presets(
         "process": config["presets"]["process"],
         "filament": filaments[material],
     }
+    overrides = config.get("preset_overrides", {}) or {}
+    unknown = sorted(set(overrides) - set(wanted))
+    if unknown:
+        # A typo'd override kind would apply to nothing, silently, and the value it was meant
+        # to correct would stay wrong -- which for `curr_bed_type` means a first-layer bed
+        # temperature baked into the G-code for a plate that is not on the machine.
+        raise SlicerError(
+            f"profiles/{CONFIG_FILE}: preset_overrides names {unknown}; "
+            f"valid preset kinds are {sorted(wanted)}"
+        )
+
     written: dict[str, Path] = {}
     for kind, name in wanted.items():
+        merged = flatten_preset(kind, name, root)
+        for key, value in (overrides.get(kind) or {}).items():
+            if key == "name":
+                raise SlicerError(
+                    "preset_overrides must never set 'name': a process preset's "
+                    "compatible_printers is a list of printer names, and renaming fails the "
+                    "match with return_code -17 (S4)"
+                )
+            merged[key] = value
         path = into / f"{kind}.json"
-        path.write_text(json.dumps(flatten_preset(kind, name, root)), encoding="utf-8")
+        path.write_text(json.dumps(merged), encoding="utf-8")
         written[kind] = path
     return written
 
@@ -539,14 +561,29 @@ def slice_part(
 def ams_mapping(used_filaments, inventory: list[dict[str, Any]] | None = None) -> list[int]:
     """Map the filaments a print uses onto AMS slots.
 
-    Bambu's ``ams_mapping`` is **reverse-indexed** (PRD 9): array *position* is the filament index
-    inside the 3MF, array *value* is the AMS slot. Getting it backwards prints in the wrong
-    colours and looks like a slicing bug rather than a mapping one, which is why it is built and
-    tested here in Phase 2 even though publishing it over MQTT is Phase 3.
+    Bambu's ``ams_mapping`` is **forward-indexed** (correction C5): array *position* is the
+    filament index inside the 3MF, array *value* is the AMS slot. Getting it backwards prints in
+    the wrong colours and looks like a slicing bug rather than a mapping one, which is why it is
+    built and tested here in Phase 2 even though publishing it over MQTT is Phase 3.
+
+    PRD 9 and this docstring both used to say "reverse-indexed" and then correctly describe
+    forward indexing in the next clause. Bambu Studio's own ``DevMapping.cpp`` settles it: the
+    result vector is indexed by filament source index (``result[picked_src_idx].tray_id``) and
+    unmapped entries are ``-1``. **Only the word was wrong; the behaviour was always this.**
+
+    Two further facts PRD 9 omits. Slot values are **not** capped at 0-3: the wire value is
+    ``ams_id * 4 + tray_id``, so a second AMS unit occupies 4-7. And the external spool is
+    ``254``/``255`` -- observed as ``vt_tray.id == "254"`` on this machine -- which is why an
+    external spool raises below rather than mapping to "slot 4".
 
     ``used_filaments`` is the materials the print uses, **in 3MF order** -- either names
     (``["PETG", "PLA"]``) or records carrying a ``material`` key. Two entries of the same material
     are two spools and get two slots.
+
+    **This function knows nothing about the printer, and that is deliberate** (ADR-16). It maps
+    the inventory it is given, faithfully, including when the inventory is wrong -- measured:
+    asked for ABS it answered slot 3, and slot 3 held green PETG. Checking the inventory against
+    live telemetry is :func:`threedp.printer.reconcile_ams`, a separate gate that runs first.
     """
     slots = load_inventory() if inventory is None else inventory
     wanted: list[str] = []

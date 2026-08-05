@@ -1,0 +1,119 @@
+{
+  "ftps": {
+    "port": 990,
+    "user": "bblp",
+    "timeout_s": 20,
+    "upload_dir": "/",
+    "upload_dir_candidates": [
+      "/",
+      "/cache"
+    ],
+    "minimum_tls_version": "TLSv1_2",
+    "verify_md5": true
+  },
+  "mqtt": {
+    "port": 8883,
+    "keepalive_s": 30,
+    "connect_timeout_s": 20,
+    "request_topic": "device/{serial}/request",
+    "report_topic": "device/{serial}/report",
+    "pushall_min_interval_s": 300,
+    "full_push_timeout_s": 20
+  },
+  "dispatch": {
+    "echo_timeout_s": 30,
+    "settle_s": 45,
+    "poll_interval_s": 0.25,
+    "url_scheme": "ftp:///{name}",
+    "url_scheme_candidates": [
+      {
+        "template": "ftp:///{name}",
+        "upload_dir": "/",
+        "status": "measured-winner",
+        "measured": "S19 2026-08-02 with Developer Mode OFF: err_code 0502-4007, same as every other form. Re-run 2026-08-02 with Developer Mode ON: no err_code, and gcode_state left IDLE for PREPARE within seconds. This is the only form that was tried after the authorization gate opened, because it won on the first attempt and the matrix stops the print the moment one does."
+      },
+      {
+        "template": "ftp://{name}",
+        "upload_dir": "/",
+        "status": "untried-since-developer-mode",
+        "measured": "S19 2026-08-02: err_code 0502-4007. Not retried after Developer Mode was enabled: the first form won."
+      },
+      {
+        "template": "file:///sdcard/{name}",
+        "upload_dir": "/",
+        "status": "untried-since-developer-mode",
+        "measured": "S19 2026-08-02: err_code 0502-4007 (the pybambu P1S form). Not retried after Developer Mode was enabled: the first form won."
+      },
+      {
+        "template": "file:///mnt/sdcard/{name}",
+        "upload_dir": "/",
+        "status": "rejected",
+        "measured": "S19 2026-08-02: err_code 0502-4007 on a path that does not exist, which is what proves the rejection happens before the url is parsed"
+      },
+      {
+        "template": "ftp:///cache/{name}",
+        "upload_dir": "/cache",
+        "status": "untried-since-developer-mode",
+        "measured": "S19 2026-08-02: err_code 0502-4007 with the file genuinely present in /cache. Not retried after Developer Mode was enabled: the first form won."
+      },
+      {
+        "template": "file:///sdcard/cache/{name}",
+        "upload_dir": "/cache",
+        "status": "untried-since-developer-mode",
+        "measured": "S19 2026-08-02: err_code 0502-4007. Not retried after Developer Mode was enabled: the first form won."
+      },
+      {
+        "template": "{name}",
+        "upload_dir": "/",
+        "status": "untried-since-developer-mode",
+        "measured": "S19 2026-08-02: err_code 0502-4007 on a bare filename. Not retried after Developer Mode was enabled: the first form won."
+      }
+    ],
+    "project_file_defaults": {
+      "param": "Metadata/plate_1.gcode",
+      "project_id": "0",
+      "profile_id": "0",
+      "task_id": "0",
+      "subtask_id": "0",
+      "file": "",
+      "md5": "",
+      "timelapse": false,
+      "bed_type": "auto",
+      "bed_leveling": false,
+      "flow_cali": false,
+      "vibration_cali": false,
+      "layer_inspect": false
+    },
+    "idle_states": [
+      "IDLE",
+      "FINISH",
+      "FAILED"
+    ],
+    "started_states": [
+      "PREPARE",
+      "RUNNING",
+      "SLICING",
+      "PAUSE"
+    ]
+  },
+  "err_codes": {
+    "84033543": {
+      "code": "0502-4007",
+      "meaning": "the printer refused this: LAN Developer Mode is not enabled",
+      "action": "On the printer: Settings -> WLAN -> LAN Only Mode -> Yes, power-cycle, then Developer Mode -> Enable. The access code CHANGES when you toggle it; update .env before retrying.",
+      "source": "S19 2026-08-02: eight project_file url forms, identical err_code on all eight, including a path that does not exist and a bare filename"
+    }
+  },
+  "notes": {
+    "bed_leveling": "One 'l'. OpenBambuAPI's mqtt.md spells it 'bed_levelling'; Bambu Studio's own bambu_networking.hpp uses one, and a misspelled key is silently ignored rather than rejected.",
+    "task_id_is_a_string_zero": "task_id/project_id/subtask_id are the STRING \"0\", not an epoch. Correction C6: firmware 01.10.00.00 clamps task-identity fields to 2^31-1, so a raw epoch-ms id collides and the printer treats a new dispatch as a continuation of the previous FAILED job. Do not 'improve' this to a timestamp.",
+    "url_scheme_is_unresolved": "RESOLVED 2026-08-02. Kept because the shape of the answer is the point: with Developer Mode OFF every candidate returned an identical 0502-4007 -- including a path that does not exist and a bare filename -- which is what proves the rejection happens BEFORE the url is parsed, and therefore that permuting url forms could never have found the answer. The losers stay listed as untried rather than rejected, because they were never actually disproved.",
+    "bed_type_auto": "Documented as always-auto for local prints, so the printer picks. This does NOT fix a wrong plate type in the G-code: the first-layer temperature is baked in at slice time (S23), which is profiles/slicer.json's job.",
+    "pushall_min_interval_s": "Bambu warn against polling the P1 faster than 5 minutes. A fast poll to 'make it reliable' degrades the printer; deltas are the normal channel and ADR-17's merge is what makes them usable.",
+    "no_reconnect_while_waiting": "S25: a client that reconnects mid-dispatch on a timeout induces a 0500-4003 parse error on the printer, and an ack can exceed 15 s. settle_s is deliberately generous and the link is never torn down while waiting.",
+    "camera": "Port 6000 is open and stays unused. Phase 3 ships no camera stream.",
+    "an_echo_without_err_code_is_not_a_started_job": "Measured 2026-08-02 with Developer Mode on: publishing project_file for a filename that is NOT on the SD card produces an echo with no err_code at all, sets subtask_name on the printer, and leaves gcode_state at IDLE. Conditions 1 and 2 of ADR-14 satisfied, no job. This is exactly why condition 3 exists and why it is not redundant.",
+    "verify_md5": "After the STOR and the LIST readback, the file is downloaded again and hashed against what was sent. Added 2026-08-04 after this printer developed an SD card error: a directory entry is the filesystem's CLAIM about a file's length, not the file, and on a card that is going bad the two diverge. Costs about a second on a 135 kB 3MF, which is nothing against a multi-hour print. A file that cannot be read back at all counts as a mismatch, not as 'unverified' -- the printer that cannot serve it probably cannot print it either."
+  },
+  "source": "measured on this machine 2026-08-02 against the real P1S (spikes S13, S14, S15, S18, S19, S25) and re-measured the same day with LAN Developer Mode enabled to resolve dispatch.url_scheme; firmware ota 01.10.00.00"
+}

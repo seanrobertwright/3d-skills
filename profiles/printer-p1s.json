@@ -2,7 +2,7 @@
   "name": "Bambu Lab P1S",
   "model": "P1S",
   "nozzle_diameter": 0.4,
-  "nozzle_material": "hardened-steel",
+  "nozzle_material": "stainless-steel",
   "build_volume": {
     "x": 256,
     "y": 256,
@@ -11,12 +11,17 @@
   "plate": {
     "width": 256,
     "depth": 256,
-    "origin": "center"
+    "origin": "center",
+    "type": "Textured PEI Plate"
   },
   "enclosed": true,
   "ams": {
     "present": true,
     "bays": 4
   },
-  "source": "vendor-spec"
+  "notes": {
+    "nozzle_material": "Was 'hardened-steel', sourced from the vendor spec sheet. The printer itself reports nozzle_type 'stainless_steel' in push_status (S17, 2026-08-02), which is the stock P1S nozzle. The spec sheet describes an option; the telemetry describes this machine. Tray 1 currently holds PLA-CF, which is abrasive and wears a stainless nozzle -- a DFM rule pairing abrasive filament against nozzle material is a Phase 4 candidate and is deliberately not in scope here.",
+    "plate_type": "The printer-model json declares default_bed_type 'Textured PEI Plate', but that file is not in the machine-preset chain the CLI walks, so a slice defaults to 'Cool Plate' and bakes a 35 C first layer into the G-code. profiles/slicer.json corrects it via preset_overrides (S23)."
+  },
+  "source": "build volume and plate geometry from the vendor spec; nozzle_diameter, nozzle_material and plate type measured from this printer's own push_status telemetry on 2026-08-02 (S17), firmware ota 01.10.00.00"
 }
