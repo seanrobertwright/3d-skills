@@ -451,14 +451,23 @@ the same place as no verifier at all.
 
 **CI runs the three hardware-free lanes and nothing else** — `.github/workflows/verify.yml`, on
 every push to `master` and every pull request: ruff, the interpreter/root-import gate,
-`pytest -m "not printer and not slicer"`, and the mutation suite. It runs on **windows-latest**
-because `test_render.py` is in the hardware-free lane and VTK offscreen is measured working on
-Windows with no OSMesa and no EGL; a Linux runner would need a headless GL stack nobody here has
-measured. `-m slicer` and `-m printer` stay local and permanently so — **and CI asserts they were
-*deselected*, not skipped.** A hardware test that skips itself for want of hardware produces a
-green check over nothing, which is the same failure as no check at all wearing a better badge.
-The workflow itself is asserted by `tests/test_ci_runs_the_gates.py`, for the reason
-`.claude/settings.json` is: a guardrail that lives only in config is one edit from being gone.
+`pytest -m "not printer and not slicer"`, and the mutation suite. `-m slicer` and `-m printer` stay
+local and permanently so — **and CI asserts they were *deselected*, not skipped.** A hardware test
+that skips itself for want of hardware produces a green check over nothing, which is the same
+failure as no check at all wearing a better badge. The workflow itself is asserted by
+`tests/test_ci_runs_the_gates.py`, for the reason `.claude/settings.json` is: a guardrail that
+lives only in config is one edit from being gone.
+
+- **CI runs on ubuntu-latest under `xvfb-run`, and the reason is not portability.** `render.py`
+  records VTK offscreen working natively on Windows with no OSMesa and no EGL, so the first
+  workflow used `windows-latest` expecting to need no graphics setup at all. **That measurement
+  came from a workstation with a discrete GPU and does not transfer**: on a hosted Windows runner
+  the same code segfaulted — `Windows fatal exception: access violation` in `render.py:316`
+  `_render_view`, an interpreter crash 76% of the way through the suite, not a test failure. The
+  constraint was never the OS but whether a working **OpenGL implementation** exists, and no
+  standard hosted runner has one on either OS. Xvfb + Mesa llvmpipe gives VTK's OpenGL2 backend a
+  real GLX context on the CPU, which is why the apt step and the `xvfb-run` prefix are load-bearing
+  rather than boilerplate. Deleting either turns the suite red with a segfault, not a message.
 
 Viewer:
 

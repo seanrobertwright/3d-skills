@@ -29,8 +29,8 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       # The version comes out of `uv.lock`, never out of this file. `pyproject.toml` says
@@ -54,21 +54,42 @@ jobs:
         run: uvx ruff@${{ steps.ruff.outputs.version }} format --check .
 
   verify:
-    # windows-latest, deliberately. `test_render.py` runs in the hardware-free lane and renders
-    # through VTK offscreen, which `render.py` records as working natively on Windows with no
-    # OSMesa and no EGL. On a Linux runner that path needs a headless GL stack nobody here has
-    # measured, and an unmeasured graphics stack is exactly the kind of thing that turns into a
-    # flaky gate people learn to ignore. This also keeps CI on the same OS as every number in
-    # `CLAUDE.md`. Actions minutes are free on a public repository, so the cost is wall-clock only.
-    name: verify (windows)
-    runs-on: windows-latest
+    # ubuntu-latest under a virtual framebuffer.
+    #
+    # This started as windows-latest on the reasoning that `render.py` records VTK offscreen as
+    # working natively on Windows with no OSMesa and no EGL, so the Windows runner should need no
+    # graphics setup. **That was measured on a workstation with a discrete GPU, and it does not
+    # transfer.** A hosted runner has no GPU and no usable OpenGL driver, and the first CI run
+    # segfaulted on it: `Windows fatal exception: access violation` in `render.py:316`
+    # `_render_view`, reached from `test_render.py` -- a hard crash of the interpreter, 76% of the
+    # way through the suite, not a test failure.
+    #
+    # The constraint was never the operating system. It is whether a *working GL implementation*
+    # exists, and no standard hosted runner has one on either OS. Linux is where the software
+    # answer is well-trodden: Xvfb plus Mesa's llvmpipe gives VTK's OpenGL2 backend a real GLX
+    # context on the CPU. Hence `xvfb-run` below, and hence the apt step.
+    #
+    # Renders are a channel and never a gate (PRD Principle 1), so it would have been defensible
+    # to mark `test_render.py` and deselect it here. That is the *second* choice, not the first:
+    # untested rendering code is how a contact sheet silently becomes a white part on a white
+    # background, which is the exact failure `render.py` was written against.
+    name: verify (linux)
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+
+      # Xvfb and the Mesa runtime VTK links against. `libgl1` and `libglx-mesa0` are the software
+      # GL; the X libs are what a VTK render window opens even when rendering offscreen.
+      - name: install a software GL stack
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb libgl1 libglx-mesa0 libglu1-mesa libxrender1 libxext6 libsm6 libxt6
 
       - name: uv sync
         run: uv sync --extra dev
@@ -84,11 +105,12 @@ jobs:
           printability, dfm, repair, slicer, gcode, coupon, printer, calibrate;
           print('OK', sys.version)"
 
+      # `xvfb-run -a` picks a free display number rather than assuming :99 is unused.
       - name: pytest (hardware-free lanes)
         shell: bash
         run: |
           set -o pipefail
-          uv run pytest -m "not printer and not slicer" | tee pytest-lane.txt
+          xvfb-run -a uv run pytest -m "not printer and not slicer" | tee pytest-lane.txt
 
       # The assertion issue #5 exists for. Two failure modes are being refused, and they are not
       # the same one:
@@ -130,4 +152,4 @@ jobs:
       # `run_mutations.py` returns 1 on zero mutations found -- verified 2026-08-06 -- so a
       # harness that silently stops discovering them fails this step rather than passing it.
       - name: mutation suite
-        run: uv run python benchmarks/run_mutations.py
+        run: xvfb-run -a uv run python benchmarks/run_mutations.py
