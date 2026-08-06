@@ -1,0 +1,165 @@
+# The three hardware-free validation lanes, run on every push and pull request.
+#
+# `CLAUDE.md` describes four levels of validation. Three of them need nothing but an interpreter,
+# and those three are what runs here. The other two -- `-m slicer` (needs Bambu Studio installed)
+# and `-m printer` (needs the physical P1S on the LAN with credentials and Developer Mode on) --
+# stay local, and this workflow is written to make their absence *loud* rather than invisible.
+#
+# The rule that shapes the whole file: a green badge over a skipped gate is worse than no badge,
+# because it looks like coverage. So the hardware markers are **deselected by an explicit marker
+# expression**, and the run then asserts that the deselection actually happened and that nothing
+# skipped itself quietly. See `assert the hardware lanes were excluded on purpose` below.
+
+name: verify
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# A superseded run tells you about code nobody is looking at any more.
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    # Ruff needs no project dependencies, so this lane is seconds rather than minutes and reports
+    # a formatting slip long before the heavy job finishes installing.
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      # The version comes out of `uv.lock`, never out of this file. `pyproject.toml` says
+      # `ruff>=0.6` and the lock resolves 0.16.0; a hardcoded version here would agree with the
+      # developer's ruff on the day it was written and quietly stop agreeing later, which for a
+      # formatter means CI red on code that formats clean locally. Reading the lock also means
+      # ruff leaving the lock fails this step loudly instead of falling back to `latest`.
+      - name: resolve ruff from the lock
+        id: ruff
+        run: |
+          version=$(grep -A1 '^name = "ruff"$' uv.lock | sed -n 's/^version = "\(.*\)"$/\1/p')
+          if [ -z "$version" ]; then
+            echo "::error::ruff is not in uv.lock; run 'uv sync --extra dev' and commit the lock"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "using ruff $version"
+      - name: ruff check
+        run: uvx ruff@${{ steps.ruff.outputs.version }} check .
+      - name: ruff format --check
+        run: uvx ruff@${{ steps.ruff.outputs.version }} format --check .
+
+  verify:
+    # ubuntu-latest under a virtual framebuffer.
+    #
+    # This started as windows-latest on the reasoning that `render.py` records VTK offscreen as
+    # working natively on Windows with no OSMesa and no EGL, so the Windows runner should need no
+    # graphics setup. **That was measured on a workstation with a discrete GPU, and it does not
+    # transfer.** A hosted runner has no GPU and no usable OpenGL driver, and the first CI run
+    # segfaulted on it: `Windows fatal exception: access violation` in `render.py:316`
+    # `_render_view`, reached from `test_render.py` -- a hard crash of the interpreter, 76% of the
+    # way through the suite, not a test failure.
+    #
+    # The constraint was never the operating system. It is whether a *working GL implementation*
+    # exists, and no standard hosted runner has one on either OS. Linux is where the software
+    # answer is well-trodden: Xvfb plus Mesa's llvmpipe gives VTK's OpenGL2 backend a real GLX
+    # context on the CPU. Hence `xvfb-run` below, and hence the apt step.
+    #
+    # Renders are a channel and never a gate (PRD Principle 1), so it would have been defensible
+    # to mark `test_render.py` and deselect it here. That is the *second* choice, not the first:
+    # untested rendering code is how a contact sheet silently becomes a white part on a white
+    # background, which is the exact failure `render.py` was written against.
+    name: verify (linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      # Xvfb and the Mesa runtime VTK links against. `libgl1` and `libglx-mesa0` are the software
+      # GL; the X libs are what a VTK render window opens even when rendering offscreen.
+      - name: install a software GL stack
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb libgl1 libglx-mesa0 libglu1-mesa libxrender1 libxext6 libsm6 libxt6
+
+      - name: uv sync
+        run: uv sync --extra dev
+
+      # The single check that catches a wrong interpreter and any cross-module import breakage.
+      # The 3.13 assertion is load-bearing: `bpy` ships cp313 wheels only, and a resolver that
+      # wandered onto 3.14 fails here with the version printed rather than somewhere obscure.
+      - name: root import + interpreter gate
+        shell: bash
+        run: >
+          uv run python -c "import sys; assert sys.version_info[:2]==(3,13), sys.version;
+          from threedp import measure, features, intent, render, compensate, parts, io,
+          printability, dfm, repair, slicer, gcode, coupon, printer, calibrate;
+          print('OK', sys.version)"
+
+      # `xvfb-run -a` picks a free display number rather than assuming :99 is unused.
+      #
+      # `-rs` is not noise: the step below fails the build on any skip, and a failure that says "a
+      # test skipped" without naming it sends the next person to run the suite locally, where the
+      # skip does not reproduce -- that is the whole reason it reached CI. `-rs` prints the test id
+      # and its reason, so the log contains the answer rather than the question.
+      - name: pytest (hardware-free lanes)
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a uv run pytest -rs -m "not printer and not slicer" | tee pytest-lane.txt
+
+      # The assertion issue #5 exists for. Two failure modes are being refused, and they are not
+      # the same one:
+      #
+      #   * the markers were *deleted*, so the hardware tests ran (or vanished) instead of being
+      #     excluded -- caught by requiring a non-zero `deselected` count;
+      #   * a test skipped *itself* because its dependency was missing -- caught by requiring no
+      #     `skipped` in the summary. Measured 2026-08-06 on this repository: the hardware-free
+      #     lane is `470 passed, 19 deselected` with zero skips, so a skip appearing here is a
+      #     real change and not a tolerance to widen. This is not hypothetical -- the check's
+      #     first green-field run found `test_the_real_profile_tree_flattens_to_the_measured_
+      #     density` needing Bambu Studio without carrying the `slicer` marker, invisible on any
+      #     machine that has Bambu Studio installed.
+      #
+      # Both anchor to the same summary line on purpose. If pytest's summary format ever moves,
+      # the `deselected` check stops matching and this job goes red -- so the format changing
+      # cannot quietly disarm the skip check beside it.
+      - name: assert the hardware lanes were excluded on purpose
+        shell: bash
+        run: |
+          summary="$(grep -E '[0-9]+ (passed|failed|error)' pytest-lane.txt | tail -1)"
+          echo "summary line: ${summary:-<not found>}"
+          if [ -z "$summary" ]; then
+            echo "::error::could not find pytest's summary line; the assertions below are blind"
+            exit 1
+          fi
+          if ! echo "$summary" | grep -qE '[0-9]+ deselected'; then
+            echo "::error::nothing was deselected. The 'printer' and 'slicer' markers are how the"
+            echo "::error::hardware gates stay out of CI; if they collect zero, the gates are gone"
+            echo "::error::rather than excluded, and this job is green over nothing."
+            exit 1
+          fi
+          if echo "$summary" | grep -q 'skipped'; then
+            echo "::error::a test SKIPPED in the hardware-free lane. A skip here is a gate wearing"
+            echo "::error::a green badge -- either a dependency is missing on the runner, or a"
+            echo "::error::hardware test lost its marker and is now skipping itself instead."
+            echo "the -rs report names it:"
+            sed -n '/short test summary info/,$p' pytest-lane.txt | grep -i '^SKIPPED' || true
+            exit 1
+          fi
+
+      # The real gate. A green pytest with this skipped is not evidence the verifier works:
+      # benchmarks passing proves nothing about a verifier only ever shown correct parts.
+      # `run_mutations.py` returns 1 on zero mutations found -- verified 2026-08-06 -- so a
+      # harness that silently stops discovering them fails this step rather than passing it.
+      - name: mutation suite
+        run: xvfb-run -a uv run python benchmarks/run_mutations.py

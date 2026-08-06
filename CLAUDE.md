@@ -449,6 +449,35 @@ Not every mutation expects FAIL. `cosmetic_*` mutations expect **PASS** and are 
 detectors — a verifier that fails them cries wolf on every real part, which is a slower route to
 the same place as no verifier at all.
 
+**CI runs the three hardware-free lanes and nothing else** — `.github/workflows/verify.yml`, on
+every push to `master` and every pull request: ruff, the interpreter/root-import gate,
+`pytest -m "not printer and not slicer"`, and the mutation suite. `-m slicer` and `-m printer` stay
+local and permanently so — **and CI asserts they were *deselected*, not skipped.** A hardware test
+that skips itself for want of hardware produces a green check over nothing, which is the same
+failure as no check at all wearing a better badge. The workflow itself is asserted by
+`tests/test_ci_runs_the_gates.py`, for the reason `.claude/settings.json` is: a guardrail that
+lives only in config is one edit from being gone.
+
+- **A test needing the slicer escaped the `slicer` marker for two phases, and only a machine
+  without Bambu Studio could see it.** `test_the_real_profile_tree_flattens_to_the_measured_density`
+  reads the installed BBL profile tree and skips itself when it is absent — but carried no marker,
+  so it lived in `-m "not slicer"`, the lane documented as *green on a machine with no slicer*.
+  Every machine this repo had run on had Bambu Studio installed, so it passed everywhere and its
+  conditionality was invisible. CI found it on the first clean runner. **A self-skipping test
+  outside its marker is a gate that reports green for being absent**, which is why the workflow
+  fails on any skip rather than printing one.
+
+- **CI runs on ubuntu-latest under `xvfb-run`, and the reason is not portability.** `render.py`
+  records VTK offscreen working natively on Windows with no OSMesa and no EGL, so the first
+  workflow used `windows-latest` expecting to need no graphics setup at all. **That measurement
+  came from a workstation with a discrete GPU and does not transfer**: on a hosted Windows runner
+  the same code segfaulted — `Windows fatal exception: access violation` in `render.py:316`
+  `_render_view`, an interpreter crash 76% of the way through the suite, not a test failure. The
+  constraint was never the OS but whether a working **OpenGL implementation** exists, and no
+  standard hosted runner has one on either OS. Xvfb + Mesa llvmpipe gives VTK's OpenGL2 backend a
+  real GLX context on the CPU, which is why the apt step and the `xvfb-run` prefix are load-bearing
+  rather than boilerplate. Deleting either turns the suite red with a segfault, not a message.
+
 Viewer:
 
 ```bash
