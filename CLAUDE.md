@@ -458,6 +458,15 @@ failure as no check at all wearing a better badge. The workflow itself is assert
 `tests/test_ci_runs_the_gates.py`, for the reason `.claude/settings.json` is: a guardrail that
 lives only in config is one edit from being gone.
 
+- **A test needing the slicer escaped the `slicer` marker for two phases, and only a machine
+  without Bambu Studio could see it.** `test_the_real_profile_tree_flattens_to_the_measured_density`
+  reads the installed BBL profile tree and skips itself when it is absent — but carried no marker,
+  so it lived in `-m "not slicer"`, the lane documented as *green on a machine with no slicer*.
+  Every machine this repo had run on had Bambu Studio installed, so it passed everywhere and its
+  conditionality was invisible. CI found it on the first clean runner. **A self-skipping test
+  outside its marker is a gate that reports green for being absent**, which is why the workflow
+  fails on any skip rather than printing one.
+
 - **CI runs on ubuntu-latest under `xvfb-run`, and the reason is not portability.** `render.py`
   records VTK offscreen working natively on Windows with no OSMesa and no EGL, so the first
   workflow used `windows-latest` expecting to need no graphics setup at all. **That measurement

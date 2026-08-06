@@ -87,11 +87,17 @@ def test_ci_never_invokes_a_hardware_lane():
 
 
 def test_ci_refuses_a_silent_skip():
-    """Measured 2026-08-06: the hardware-free lane is 471 passed, 18 deselected, zero skipped.
+    """Measured 2026-08-06: the hardware-free lane is 470 passed, 19 deselected, zero skipped.
 
     A skip appearing there means a dependency is missing on the runner or a hardware test lost its
     marker and is now skipping itself. Both are the same failure -- something did not run and
     nothing said so -- so the workflow has to assert on it rather than print it.
+
+    It earned itself immediately. The first run on a machine without Bambu Studio reported one
+    skip: `test_the_real_profile_tree_flattens_to_the_measured_density` needed the installed
+    profile tree but carried no `slicer` marker, so it sat in the lane documented as green
+    *without* a slicer and opted out there. Every machine this repo had ever run on had Bambu
+    Studio installed, so it passed, and nothing anywhere reported that it was conditional.
     """
     text = workflow_text()
     assert "skipped" in text, (

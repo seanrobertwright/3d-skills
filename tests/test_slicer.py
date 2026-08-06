@@ -156,8 +156,16 @@ def test_a_missing_preset_raises_naming_the_path_it_looked_in(tmp_path):
     assert "filament" in str(exc.value)
 
 
+@pytest.mark.slicer
 def test_the_real_profile_tree_flattens_to_the_measured_density():
-    """Against the installed Bambu Studio profile tree, if it is present."""
+    """Against the installed Bambu Studio profile tree.
+
+    Marked `slicer` because it *needs* Bambu Studio, which is what that marker means. Without the
+    mark it landed in `-m "not slicer"` -- the lane documented as green on a machine with no
+    slicer -- and skipped itself there, which is the one outcome that lane is designed to make
+    impossible. It went unnoticed on this machine for two phases because Bambu Studio is installed
+    here, so the test ran and passed; the first clean runner it met reported the skip.
+    """
     cfg = slicer.load_config()
     root = Path(cfg["profile_root"])
     if not root.is_dir():

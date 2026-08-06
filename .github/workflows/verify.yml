@@ -124,8 +124,11 @@ jobs:
       #     excluded -- caught by requiring a non-zero `deselected` count;
       #   * a test skipped *itself* because its dependency was missing -- caught by requiring no
       #     `skipped` in the summary. Measured 2026-08-06 on this repository: the hardware-free
-      #     lane is `471 passed, 18 deselected` with zero skips, so a skip appearing here is a
-      #     real change and not a tolerance to widen.
+      #     lane is `470 passed, 19 deselected` with zero skips, so a skip appearing here is a
+      #     real change and not a tolerance to widen. This is not hypothetical -- the check's
+      #     first green-field run found `test_the_real_profile_tree_flattens_to_the_measured_
+      #     density` needing Bambu Studio without carrying the `slicer` marker, invisible on any
+      #     machine that has Bambu Studio installed.
       #
       # Both anchor to the same summary line on purpose. If pytest's summary format ever moves,
       # the `deselected` check stops matching and this job goes red -- so the format changing
