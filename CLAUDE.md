@@ -449,6 +449,17 @@ Not every mutation expects FAIL. `cosmetic_*` mutations expect **PASS** and are 
 detectors — a verifier that fails them cries wolf on every real part, which is a slower route to
 the same place as no verifier at all.
 
+**CI runs the three hardware-free lanes and nothing else** — `.github/workflows/verify.yml`, on
+every push to `master` and every pull request: ruff, the interpreter/root-import gate,
+`pytest -m "not printer and not slicer"`, and the mutation suite. It runs on **windows-latest**
+because `test_render.py` is in the hardware-free lane and VTK offscreen is measured working on
+Windows with no OSMesa and no EGL; a Linux runner would need a headless GL stack nobody here has
+measured. `-m slicer` and `-m printer` stay local and permanently so — **and CI asserts they were
+*deselected*, not skipped.** A hardware test that skips itself for want of hardware produces a
+green check over nothing, which is the same failure as no check at all wearing a better badge.
+The workflow itself is asserted by `tests/test_ci_runs_the_gates.py`, for the reason
+`.claude/settings.json` is: a guardrail that lives only in config is one edit from being gone.
+
 Viewer:
 
 ```bash
