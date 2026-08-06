@@ -106,11 +106,16 @@ jobs:
           print('OK', sys.version)"
 
       # `xvfb-run -a` picks a free display number rather than assuming :99 is unused.
+      #
+      # `-rs` is not noise: the step below fails the build on any skip, and a failure that says "a
+      # test skipped" without naming it sends the next person to run the suite locally, where the
+      # skip does not reproduce -- that is the whole reason it reached CI. `-rs` prints the test id
+      # and its reason, so the log contains the answer rather than the question.
       - name: pytest (hardware-free lanes)
         shell: bash
         run: |
           set -o pipefail
-          xvfb-run -a uv run pytest -m "not printer and not slicer" | tee pytest-lane.txt
+          xvfb-run -a uv run pytest -rs -m "not printer and not slicer" | tee pytest-lane.txt
 
       # The assertion issue #5 exists for. Two failure modes are being refused, and they are not
       # the same one:
@@ -144,6 +149,8 @@ jobs:
             echo "::error::a test SKIPPED in the hardware-free lane. A skip here is a gate wearing"
             echo "::error::a green badge -- either a dependency is missing on the runner, or a"
             echo "::error::hardware test lost its marker and is now skipping itself instead."
+            echo "the -rs report names it:"
+            sed -n '/short test summary info/,$p' pytest-lane.txt | grep -i '^SKIPPED' || true
             exit 1
           fi
 

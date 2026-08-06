@@ -1,0 +1,18 @@
+{
+  "baseBranch": "master",
+  "gate": {
+    "fast": "uv run ruff check . && uv run ruff format --check .",
+    "full": "uv run ruff check . && uv run ruff format --check . && uv run python -c \"import sys; assert sys.version_info[:2]==(3,13), sys.version; from threedp import measure, features, intent, render, compensate, parts, io, printability, dfm, repair, slicer, gcode, coupon, printer, calibrate; print('OK', sys.version)\" && uv run pytest -m \"not printer\" && uv run python benchmarks/run_mutations.py"
+  },
+  "paths": {
+    "plans": ".agents/plans",
+    "codeReviews": ".agents/code-reviews",
+    "executionReports": ".agents/execution-reports"
+  },
+  "checks": ["lint", "verify (linux)"],
+  "merge": {
+    "strategy": "merge",
+    "admin": false,
+    "deleteBranch": true
+  }
+}
