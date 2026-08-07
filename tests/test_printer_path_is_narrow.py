@@ -131,6 +131,34 @@ def test_the_send_path_is_the_module_it_is_supposed_to_be():
     )
 
 
+def test_diagnostics_in_tools_still_go_through_the_one_send_path():
+    """``tools/`` is outside the package, so the scan above does not reach it.
+
+    That is precisely why it needs saying. Diagnostic scripts talk to the printer, live outside
+    ``src/threedp`` to avoid claiming the send-path exemption, and would otherwise be the one
+    directory in the repository where a second ``paho.mqtt.Client`` could appear with nothing to
+    stop it -- a loophole created by the very rule it evades.
+
+    A script here may import ``threedp.printer`` and use ``PrinterLink`` (including subclassing
+    it). It may not open its own connection.
+    """
+    tools = REPO / "tools"
+    if not tools.is_dir():
+        return
+    scripts = sorted(tools.rglob("*.py"))
+    assert scripts, "tools/ exists but holds no scripts; either populate it or delete it"
+
+    offences = []
+    for path in scripts:
+        imported = _imported_names(path.read_text(encoding="utf-8"))
+        for banned in sorted(NETWORK_MODULES & imported):
+            offences.append(f"{path.relative_to(REPO)} imports {banned}")
+    assert not offences, (
+        "a diagnostic in tools/ reaches the network directly instead of going through "
+        "printer.PrinterLink:\n" + "\n".join(offences)
+    )
+
+
 def test_a_banned_import_named_only_in_prose_is_not_an_offence():
     """The counterpart. `slicer.py` explains where the boundary is; that is documentation."""
     text = (PACKAGE / "slicer.py").read_text(encoding="utf-8")
