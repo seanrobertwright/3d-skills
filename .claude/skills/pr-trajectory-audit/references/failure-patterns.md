@@ -70,7 +70,7 @@ everything else:
 | #2 | MERGED 2026-08-02 | `phase-2-printability-and-preparation` | yes | yes | yes | yes |
 | #3 | MERGED 2026-08-05 | `phase-3-printer-and-calibration` | yes | yes | yes | yes |
 | #6 | MERGED 2026-08-06 | `ci-hardware-free-lanes` | **no** | **no** | **no** | **no** |
-| #7 | **OPEN** | `ams-feed-bisect-tooling` | **no** | **no** | **no** | **no** |
+| #7 | MERGED 2026-08-28 | `ams-feed-bisect-tooling` | **no** | **no** | **no** | **no** |
 
 `ls .agents/code-reviews/` returns only the three phase files plus
 `pr-1-review.md` (PR #1's PHASE 6 diff review). `gh pr view 6 --json comments`
@@ -172,7 +172,10 @@ finding doesn't belong here yet.
 **Before writing any finding, check the PR's actual `state`/`mergedAt`
 (`gh pr view <n> --json state,mergedAt,createdAt`) and, for a duplicate-cluster
 candidate, each member's `headRefName`.** On this repo both checks were
-load-bearing on the first pass: PR #7 is **open, not merged**, and the #1/#2/#3
+load-bearing on the first pass, and one of them changed under the audit: PR #7
+was open when this file was written and **merged at 16:45 the same day**, so a
+finding phrased as "fixable before it lands" was stale within the hour. The
+#1/#2/#3
 duplicate cluster is a pure title-prefix artifact that the branch names disprove
 outright. A finding built from inference about what "probably" happened is not the
 same as one built from what the PR record actually shows.

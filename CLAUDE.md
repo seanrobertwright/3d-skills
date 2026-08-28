@@ -484,6 +484,39 @@ Viewer:
 cd viewer && npm install && npm run dev    # Node >=20; v24.18.0 verified present
 ```
 
+## Shipping a slice
+
+**Every slice writes two files before its PR opens, whether or not it is a phase:**
+
+```
+.agents/code-reviews/<branch>.md        the working-tree review, pre-commit
+.agents/execution-reports/<branch>.md   what was done, and what was measured
+```
+
+`<branch>` is the PR's head branch, with any `/` replaced by `-`. `.agents/plans/` is for phases
+and is not required of a small slice. The paths come from `.claude/post-execute.json`, which is
+the ship pipeline's profile for this repo; that file names the paths but states no obligation,
+which is why the obligation is written here.
+
+The PR body carries `## Review`, citing both files, and `## Validation`, naming the gate that ran
+with its counts. **A phase deliberately skipped is stated in the body** — "no separate PR review
+was run" is a fine thing to write and a bad thing to leave to inference.
+
+This is mechanical, not a habit: `.github/workflows/verify.yml`'s `slice artifacts` job fails a
+pull request whose branch has no matching pair, and `tests/test_ci_runs_the_gates.py` asserts that
+job exists — the same two-layer arrangement `.claude/settings.json` gets from
+`test_printer_path_is_narrow.py`, and for the same reason.
+
+**The rule is here because it was measured missing.** The 2026-08-28 trajectory audit
+(`.agents/audits/`) found all three phase PRs produced both artifacts and both non-phase PRs (#6,
+#7) produced neither — 2 of 2. Not a discipline gradient: the phase PRs each had a
+`.agents/plans/phase-N-*.md` naming their slice, so the convention was discoverable from inside the
+repo, while a small slice had nothing to copy and this file said nothing. #6 is a careful PR that
+retracts its own earlier measurement as non-transferable; care was never the variable.
+
+A review that found nothing still gets a file saying so. A two-line artifact is cheap; the reason
+the check has no escape hatch is that an escape hatch is what the last one had.
+
 ## Phase boundaries
 
 Phase 3 ships the printer path, and **that is the whole of what it opens.** No cloud, no remote
