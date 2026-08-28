@@ -1,0 +1,148 @@
+# Trajectory review -- read-only. Runs Workflow B from the pr-trajectory-audit
+# skill on every new PR: deterministic checks first (Tier 1), then Claude reads the
+# actual diff against the rubric in references/failure-patterns.md and posts the
+# verdict as a PR comment (Tier 2). The human reading that comment during normal
+# review is Tier 3 -- nothing else to configure for it.
+#
+# Mirrors the same anthropics/claude-code-action pattern as this org's other
+# claude-review.yml workflows, including the fork-PR fallback below. Requires the
+# CLAUDE_CODE_OAUTH_TOKEN repo/org secret. Non-blocking by design: this reviews, it
+# never edits the branch and never blocks a merge on its own.
+#
+# GOTCHA (read before relying on this for a public repo): GitHub downgrades
+# GITHUB_TOKEN to read-only, and may not expose repo secrets, on `pull_request`
+# runs triggered by a PR from a FORK -- regardless of the `permissions:` block
+# below. On a public repo, that's exactly the PRs from outside contributors, i.e.
+# a lot of real traffic. The `pull_request` trigger below still fires and still
+# runs Tier 1, but the Claude step may fail to post on fork PRs specifically, with
+# no visible signal beyond a red X in the Actions tab. The `issue_comment` trigger
+# is the safe fallback for that case: a maintainer (OWNER/MEMBER/COLLABORATOR)
+# comments `@trajectory-review` on the PR to run it manually with full permissions.
+#
+# Setup: copy this file to `.github/workflows/trajectory-review.yml` in the repo
+# you want reviewed, and make sure `.claude/skills/pr-trajectory-audit/` (the
+# whole folder -- scripts + references, not just this file) is checked into that
+# same repo. Run Workflow A at least once first so references/failure-patterns.md
+# has real patterns in it before this starts reviewing PRs against it.
+#
+# BEFORE THIS WILL RUN: install the Claude Code GitHub App on the repo, at
+# https://github.com/apps/claude -- a separate, one-time step from the
+# CLAUDE_CODE_OAUTH_TOKEN secret below. Confirmed via a real live-webhook test:
+# skipping this fails with "Claude Code is not installed on this repository" even
+# though checkout and every earlier step in this workflow succeed first.
+#
+# The `--allowedTools` below is not optional decoration. Without it, this action's
+# default tool sandbox has no Bash/gh/uv permissions beyond a few git-write
+# commands (meant for a different use case -- auto-committing fixes), so
+# `mine_prs.py` and every `gh pr diff`/`gh pr view`/`gh pr checks` call in the
+# prompt above gets silently blocked ("this command requires approval, no
+# interactive user to approve it") -- confirmed via a real live-webhook run where
+# Claude worked around the block by reasoning manually instead of running the
+# actual Tier 1 script, defeating the whole point of a cheap deterministic first
+# pass. `--max-turns` is raised from the original 30 to 40 for the same reason:
+# a real run that hit this block anyway (before the fix) still needed 31 turns of
+# manual reasoning to compensate, and manual reasoning as a fallback burns more
+# turns than a working tool call would.
+#
+# CONFIRMED, STILL-OPEN LIMITATION (real live-webhook test, both before and after
+# adding `checks: read` above): `gh pr checks` inside this Action's sandbox
+# consistently fails with "GraphQL: Resource not accessible by integration",
+# unaffected by this workflow file's own `permissions:` block. The most likely
+# cause is that Claude's `gh` calls run against the Claude Code GitHub App's own
+# installation token, not this workflow's GITHUB_TOKEN -- meaning the fix (if any)
+# is a Checks permission the App itself would need to request at install time, not
+# something this YAML can grant. The prompt's step 1 above documents the working
+# fallback (`mcp__github_ci__get_ci_status`) so this degrades gracefully instead
+# of silently producing an UNKNOWN with no CI evidence at all.
+name: Trajectory Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created]
+
+jobs:
+  trajectory-review:
+    if: |
+      github.event_name == 'pull_request' || (
+        github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && contains(github.event.comment.body, '@trajectory-review')
+        && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read         # read-only -- the reviewer never edits the branch
+      pull-requests: write   # post the review as a comment
+      issues: write
+      id-token: write
+      actions: read
+      checks: read           # `gh pr checks` (Tier 1's ci_status) needs this in
+                              # principle -- `actions: read` alone does NOT cover
+                              # it, that's the Actions-run API, not the Checks API
+                              # `gh pr checks` calls. Kept even though a real
+                              # live-webhook test showed it does NOT actually fix
+                              # the GraphQL error below on its own -- see that note.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        # scripts/mine_prs.py declares `dependencies = []` in its PEP 723 header,
+        # so this only needs to guarantee `uv` itself is present -- no install step,
+        # no lockfile, no venv setup.
+
+      - name: Run Claude trajectory review
+        uses: anthropics/claude-code-action@v1
+        with:
+          allowed_bots: "dependabot"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          trigger_phrase: "@trajectory-review"
+          track_progress: true
+          prompt: |
+            Follow Workflow B ("Live review") in
+            .claude/skills/pr-trajectory-audit/SKILL.md for this PR:
+            repo ${{ github.repository }}, PR #${{ github.event.pull_request.number || github.event.issue.number }}.
+
+            In order:
+            1. Run `uv run .claude/skills/pr-trajectory-audit/scripts/mine_prs.py
+               checks ${{ github.repository }} ${{ github.event.pull_request.number || github.event.issue.number }}
+               --json` for the deterministic Tier 1 evidence. If `ci_status` comes
+               back UNKNOWN because `gh pr checks` hit a GraphQL permissions error
+               (a known, confirmed limitation of this Action's own GitHub App
+               installation scope, not fixable from this workflow file), use the
+               `mcp__github_ci__get_ci_status` tool as a fallback for CI-status
+               evidence specifically -- state in the review that this substitution
+               happened and why, don't silently treat it as if the script's own
+               check succeeded.
+            2. Read .claude/skills/pr-trajectory-audit/references/failure-patterns.md
+               -- the rubric. If it has no real patterns in it yet, say so plainly in
+               the review and stop; don't invent patterns.
+            3. Read the actual diff (`gh pr diff`) and the PR body -- not just the
+               title.
+            4. If step 1's duplicate_vs_recent check fired, read the flagged PR(s)'
+               comments and closing reason before treating it as a coordination
+               failure -- title similarity alone can't tell a genuine independent
+               duplicate apart from the same author's own resubmission or rebase,
+               and that distinction is usually visible in a comment. Getting this
+               wrong is a real false positive, not just a hedge.
+            5. Judge the PR against each rubric entry, naming the specific
+               documented rule or coverage-gap pattern and citing real evidence,
+               per .claude/skills/pr-trajectory-audit/references/judging-rubric.md.
+               This is a compliance check against the repo's own AI layer, not a
+               judgment of whether the code/fix is good.
+            6. Post ONE PR review comment with the combined Tier 1 evidence and
+               Tier 2 judgment. State plainly if nothing in the rubric applied --
+               don't stay silent.
+
+            Do not modify any files; this is a read-only review. Do not approve,
+            request changes, or merge -- post findings only, a human decides.
+          claude_args: |
+            --max-turns 40
+            --allowedTools "Bash(uv run .claude/skills/pr-trajectory-audit/scripts/mine_prs.py:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr checks:*),Bash(gh api:*),Bash(gh issue view:*)"

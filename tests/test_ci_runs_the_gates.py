@@ -87,7 +87,10 @@ def test_ci_never_invokes_a_hardware_lane():
 
 
 def test_ci_refuses_a_silent_skip():
-    """Measured 2026-08-06: the hardware-free lane is 470 passed, 19 deselected, zero skipped.
+    """Measured 2026-08-28: the hardware-free lane is 471 passed, 19 deselected, zero skipped.
+
+    (470 on 2026-08-06. Installing the ``pr-trajectory-audit`` skill added one case to
+    ``test_skills_contain_no_measurement_logic``, which is parametrized over installed skills.)
 
     A skip appearing there means a dependency is missing on the runner or a hardware test lost its
     marker and is now skipping itself. Both are the same failure -- something did not run and
