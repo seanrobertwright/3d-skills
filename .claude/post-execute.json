@@ -9,7 +9,7 @@
     "codeReviews": ".agents/code-reviews",
     "executionReports": ".agents/execution-reports"
   },
-  "checks": ["lint", "verify (linux)"],
+  "checks": ["lint", "verify (linux)", "slice artifacts"],
   "merge": {
     "strategy": "merge",
     "admin": false,

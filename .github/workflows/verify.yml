@@ -124,11 +124,11 @@ jobs:
       #     excluded -- caught by requiring a non-zero `deselected` count;
       #   * a test skipped *itself* because its dependency was missing -- caught by requiring no
       #     `skipped` in the summary. Measured 2026-08-28 on this repository: the hardware-free
-      #     lane is `471 passed, 19 deselected` with zero skips, so a skip appearing here is a
-      #     real change and not a tolerance to widen. (It was 470 on 2026-08-06; installing the
-      #     `pr-trajectory-audit` skill added one case to `test_skills_contain_no_measurement_
-      #     logic`, which is parametrized over the installed skills.) This is not hypothetical --
-      #     the check's
+      #     lane is `474 passed, 19 deselected` with zero skips, so a skip appearing here is a
+      #     real change and not a tolerance to widen. (470 on 2026-08-06, then +1 for the
+      #     `pr-trajectory-audit` skill -- `test_skills_contain_no_measurement_logic` is
+      #     parametrized over installed skills -- +1 for #7's `tools/` send-path test, and +2 for
+      #     the `slice-artifacts` assertions below.) This is not hypothetical -- the check's
       #     first green-field run found `test_the_real_profile_tree_flattens_to_the_measured_
       #     density` needing Bambu Studio without carrying the `slicer` marker, invisible on any
       #     machine that has Bambu Studio installed.
@@ -166,3 +166,61 @@ jobs:
       # harness that silently stops discovering them fails this step rather than passing it.
       - name: mutation suite
         run: xvfb-run -a uv run python benchmarks/run_mutations.py
+
+  slice-artifacts:
+    # The ship pipeline's PHASE 2 writes a code review and an execution report for every slice, and
+    # `CLAUDE.md`'s "Shipping a slice" section is where that obligation is stated. This job is the
+    # mechanical half, for the reason `test_printer_path_is_narrow.py` asserts
+    # `.claude/settings.json`: a guardrail that lives only in prose is one forgetful afternoon from
+    # being gone, and nothing about forgetting it looks like a mistake at the time.
+    #
+    # Measured 2026-08-28 by the trajectory audit in `.agents/audits/`: all three phase PRs wrote
+    # both artifacts, and both non-phase PRs (#6, #7) wrote neither -- 2 of 2. The variable was not
+    # care. It was that the phase PRs each had a `.agents/plans/phase-N-*.md` naming their slice, so
+    # the convention was visible from inside the repo, while a small slice had nothing to copy.
+    #
+    # Pull requests only. A push to master has no head branch to name a slice with, and the check
+    # would be asserting something it cannot see.
+    name: slice artifacts
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: assert this slice wrote its review and its report
+        env:
+          # `github.head_ref` is set only for `pull_request`, which is why this job is gated on the
+          # event above rather than on the ref being non-empty -- an empty slice name would make
+          # every path below `.agents/code-reviews/.md` and the check would pass by accident.
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HEAD_REF}" ]; then
+            echo "::error::github.head_ref is empty on a pull_request event; this check cannot"
+            echo "::error::identify the slice and is refusing rather than passing blind."
+            exit 1
+          fi
+          # A branch may contain '/'; the artifact filename flattens it so the pair is one file
+          # each rather than a directory tree nobody expects.
+          slice="${HEAD_REF//\//-}"
+          echo "slice: ${slice}"
+
+          missing=""
+          for path in ".agents/code-reviews/${slice}.md" ".agents/execution-reports/${slice}.md"; do
+            if [ -f "${path}" ]; then
+              echo "  found    ${path}"
+            else
+              echo "  MISSING  ${path}"
+              missing="${missing} ${path}"
+            fi
+          done
+
+          if [ -n "${missing}" ]; then
+            echo "::error::this slice is missing:${missing}"
+            echo "::error::CLAUDE.md's 'Shipping a slice' section requires both files for every"
+            echo "::error::slice, phase or not. A review that found nothing still gets a file"
+            echo "::error::saying so -- a two-line artifact is cheap, and there is deliberately no"
+            echo "::error::escape hatch here, because an escape hatch is what the last one had."
+            exit 1
+          fi
+          echo "both artifacts present"
