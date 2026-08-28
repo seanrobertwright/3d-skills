@@ -123,9 +123,12 @@ jobs:
       #   * the markers were *deleted*, so the hardware tests ran (or vanished) instead of being
       #     excluded -- caught by requiring a non-zero `deselected` count;
       #   * a test skipped *itself* because its dependency was missing -- caught by requiring no
-      #     `skipped` in the summary. Measured 2026-08-06 on this repository: the hardware-free
-      #     lane is `470 passed, 19 deselected` with zero skips, so a skip appearing here is a
-      #     real change and not a tolerance to widen. This is not hypothetical -- the check's
+      #     `skipped` in the summary. Measured 2026-08-28 on this repository: the hardware-free
+      #     lane is `471 passed, 19 deselected` with zero skips, so a skip appearing here is a
+      #     real change and not a tolerance to widen. (It was 470 on 2026-08-06; installing the
+      #     `pr-trajectory-audit` skill added one case to `test_skills_contain_no_measurement_
+      #     logic`, which is parametrized over the installed skills.) This is not hypothetical --
+      #     the check's
       #     first green-field run found `test_the_real_profile_tree_flattens_to_the_measured_
       #     density` needing Bambu Studio without carrying the `slicer` marker, invisible on any
       #     machine that has Bambu Studio installed.

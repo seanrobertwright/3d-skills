@@ -49,7 +49,13 @@ markers = [
 line-length = 100
 # PRD.md is the source of truth and is never reformatted. ruff formats fenced Python blocks in
 # Markdown, and it rewrote the PRD's API-specification snippet on first run.
-extend-exclude = ["viewer", "*.md", ".agents"]
+#
+# `.claude/skills/pr-trajectory-audit` is vendored verbatim from dynamous-community/workshops. Its
+# `mine_prs.py` reports 30 E501s against this repo's 100-column limit and would be reformatted;
+# rewriting it to conform would mean re-doing that on every upstream update, and a local
+# reformatting diff is exactly what makes an upstream change unreadable. Excluded by its specific
+# path rather than by `.claude/skills`, so a *first-party* skill script here is still linted.
+extend-exclude = ["viewer", "*.md", ".agents", ".claude/skills/pr-trajectory-audit"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

@@ -267,6 +267,11 @@ SKILLS = [
     "lril3d-slice",
     "lril3d-print",
     "lril3d-calibrate",
+    # Not an lril3d skill and not about geometry -- it audits PR trajectories against this repo's
+    # own AI layer. It is listed anyway because the guard below is "every installed SKILL.md is
+    # scanned", not "every skill we expect to contain measurement is scanned". Exempting a skill
+    # for being obviously harmless is how the next one gets exempted for looking harmless.
+    "pr-trajectory-audit",
 ]
 
 
