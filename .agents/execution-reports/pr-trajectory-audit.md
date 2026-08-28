@@ -102,11 +102,27 @@ broken; they were stale documentation, which this repo treats as a defect.
 
 ## Not done, and not claimed
 
-- **The live review has never run.** The workflow is installed and its YAML
-  parses; whether it posts a review is unverified until a PR triggers it. The
-  `CLAUDE_CODE_OAUTH_TOKEN` secret is set; **whether the Claude GitHub App is
-  installed on this repo is unconfirmed** — that failure surfaces only at the
-  Claude step, after checkout and every earlier step has gone green.
+- **The live review has never run, and could not have.** Measured on PR #8: the
+  `trajectory-review` check reported **pass in 13 s and posted nothing** — zero
+  comments, zero reviews, every internal step `outcome=skipped`. The reason is in
+  the job log and is by design:
+
+  > `Skipping action due to workflow validation: The workflow file must exist and
+  > have identical content to the version on the repository's default branch.`
+  > … `your workflow will begin working once you merge your PR.`
+
+  `claude-code-action` refuses to run a workflow file not already on the default
+  branch, so a PR cannot rewrite the reviewer that reviews it. **The action is
+  therefore untestable on the PR that introduces it** — the first real exercise is
+  the next PR after this merges.
+
+  **A green check over a job that did nothing** is this repository's founding
+  failure mode, arriving in the tooling built to detect it. It is benign here, and
+  it is worth writing down that the badge was green either way.
+
+- **Whether the Claude GitHub App is installed on this repo is still unconfirmed.**
+  The run read the OAuth token but skipped before reaching the Claude step, which
+  is where a missing App install surfaces. That check is still outstanding.
 - **Neither audit finding is fixed.** This slice ships the finding, not the
   remedy. Violation 1's enforcement test and Gap 1's `CLAUDE.md` section are a
   change to the process layer and belong in their own slice — destination named
