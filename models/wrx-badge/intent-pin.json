@@ -1,0 +1,130 @@
+{
+  "holds": "mounting pin for the wrx-badge: a 7.3 x 5.0 shaft that slips into the trunk's 7.5 mm hole (user-measured), a 3.0 x 2.0 tang that presses into the badge back, then a 0.3 step down to a 35-degree point truncated at 0.1 dia. Prints standing on the shaft face",
+  "asserts": [
+    {
+      "shaft_d": [
+        7.25,
+        7.35
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "cylinder_diameter",
+        "at": [
+          0,
+          0
+        ],
+        "rank": "largest"
+      },
+      "note": "0.2 under the trunk hole; the largest cylinder on the part"
+    },
+    {
+      "tang_d": [
+        2.95,
+        3.05
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "cylinder_diameter",
+        "at": [
+          0,
+          0
+        ],
+        "rank": "smallest"
+      },
+      "note": "0.1 over the badge's 2.9 hole: the press fit"
+    },
+    {
+      "shaft_length": [
+        4.95,
+        5.05
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "cylinder_depth",
+        "at": [
+          0,
+          0
+        ],
+        "rank": "largest"
+      },
+      "note": "covers 16 ga sheet (1.5, unconfirmed) plus 1 mm of foam with 2.5 spare"
+    },
+    {
+      "tang_length": [
+        1.95,
+        2.05
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "cylinder_depth",
+        "at": [
+          0,
+          0
+        ],
+        "rank": "smallest"
+      },
+      "note": "the cylindrical tang only, matching the badge hole depth; the step below the point is what lets the Z-scan find where the tang ends -- without it the taper start read 2.234"
+    },
+    {
+      "shoulder": [
+        2.1,
+        2.2
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "coaxial_step_radial",
+        "at": [
+          0,
+          0
+        ],
+        "between": [
+          0,
+          1
+        ]
+      },
+      "note": "(7.3 - 3.0) / 2: the shoulder that seats on the badge back and sets the depth"
+    },
+    {
+      "overall_length": [
+        8.592,
+        8.692
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "bbox_z"
+      },
+      "note": "5.0 + 2.0 + a 35-degree point from r 1.2 to r 0.05: (1.2 - 0.05) / tan(35) = 1.642. The truncation exists because OCCT tessellates a true apex non-watertight"
+    },
+    {
+      "watertight": [
+        1.0,
+        1.0
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "watertight"
+      }
+    },
+    {
+      "max_overhang": [
+        0.0,
+        40.0
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "max_overhang_deg"
+      },
+      "unit": "deg",
+      "note": "standing on the shaft face, the shoulder and the point both face up; nothing faces down"
+    }
+  ],
+  "golden": {
+    "bbox": [
+      7.3,
+      7.3,
+      8.642
+    ],
+    "volume": 225.99,
+    "tol_pct": 1.0
+  }
+}

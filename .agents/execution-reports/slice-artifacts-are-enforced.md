@@ -118,3 +118,42 @@ its job. The numbers above are the re-run after this file existed.
   installed at all.
 - **Neither #6 nor #7 gained artifacts.** They stay grandfathered by name. The
   audit's Violation 1 is closed going forward, not retroactively.
+
+## Addendum, 2026-09-15: three ruler fixes and two models landed on this branch
+
+The wrx-badge model (`models/wrx-badge/`) forced three fixes to the ruler and the
+DFM layer. They were made on this branch because it was the working tree at the
+time, not because they belong to the slice-artifact rule; they ship in the same
+PR so that `master` is never without them while `models/` depends on them.
+
+1. **`measure.plane_transitions` bisects on section ring count as well as area.**
+   Two Ø2.9 blind pin holes in a 6300 mm² badge section change its area by 0.2 %,
+   under any sane relative tolerance, so the mesh path reported them absent while
+   the BREP path measured them. A hole ceiling is where the section loses a ring.
+2. **`printability.min_wall` discards grazing exits** (`GRAZING_EXIT_COS = 0.5`).
+   On a 1.5 mm rim whose top tilts 10°, eleven of 3000 samples exited through the
+   adjacent inner wall at 80° to the ray and reported a 0.003 mm wall: two DFM
+   BLOCKERs on a part that prints. `WallReport.grazing` reports the discard count.
+3. **`overhang_histogram(..., bridging_span_mm=)` and `dfm.evaluate`** leave a
+   near-horizontal ceiling no wider than the material's `max_bridge_mm` to the
+   bridge rule instead of scoring it as a 90° overhang. A ceiling wider than the
+   span stays an overhang.
+
+`profiles/filaments.json` slots 2 and 3 were re-read from telemetry on 2026-09-13
+(PETG grey / PLA green); the inventory had drifted again. `models/monitor-bridge/`
+holds an implementation brief and research only, no geometry yet.
+
+Nine tests cover the three fixes, including the knife-edge and thin-fin cases
+that the grazing filter must *not* suppress.
+
+Measured 2026-09-15 on the working tree before commit, zero skips:
+
+```
+ruff check . && ruff format --check .     All checks passed!  77 files already formatted
+pytest -m "not printer and not slicer"    483 passed, 19 deselected, 0 skipped
+run_mutations.py                          caught 20/20  missed 0  false-positives 0
+                                          harness-errors 0   VERDICT: PASS (30 mutations)
+```
+
+`-m slicer` and `-m printer` were not run for this addendum; none of the three
+fixes touches either path.

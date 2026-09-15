@@ -1,0 +1,1066 @@
+[
+ {
+  "monitor": "Sceptre \"P30\" (right-hand monitor) \u2014 30-inch 21:9 2560x1080 VA, 1800R curved",
+  "identified_model": "Sceptre C305B-200UN family (C305B-200UN / C305B-200UN1 / C305B-200UNT / C305B-200UN1T.1) \u2014 \"P30\" is the EDID/Windows display name shared by all of them; the exact suffix is only on the rear label",
+  "candidates": [
+   "C305B-200UN (2019, 3xHDMI+1xDP, spec sheet depth w/o stand 4.3\")",
+   "C305B-200UN1 (2020/2021, product page depth w/o stand 3.69\")",
+   "C305B-200UNT (2022, same 27.8x12.6x4.3\" numbers as C305B-200UN)",
+   "C305B-200UN1T.1 (2023-2025, 2xHDMI+2xDP, manual depth w/o stand 3.20\")",
+   "C308B-200UNT (2022 variant, identical published dimensions to C305B-200UNT)",
+   "C305W-2560UN (2020, 85 Hz, 1800R, 27.83x12.65x3.74\", 9.33 lb) \u2014 lower probability: one EDID sample has a 48-75 Hz range but every other sample advertises 120-200 Hz, and pawn listings pair P30 with 200 Hz",
+   "EXCLUDED: C305B-FUN200W NEBULA \u2014 1500R, not 1800R, height-adjustable stand"
+  ],
+  "facts": [
+   {
+    "name": "EDID monitor name string",
+    "value": "Sceptre P30",
+    "unit": "string",
+    "source_url": "https://raw.githubusercontent.com/linuxhw/EDID/master/Digital/Sceptre%20Tech/SPT0BCC/1C82EF440FDA",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "EDID vendor / product id",
+    "value": "SPT 0x0BCC (edid-decode prints Model 3020)",
+    "unit": "id",
+    "source_url": "https://linux-hardware.org/index.php?id=eisa:sceptre-tech-spt0bcc",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "EDID manufacture dates seen with the P30 name",
+    "value": "wk24 2019; wk20 2020; wk34 2021; wk52 2022",
+    "unit": "week/year",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BCC",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "EDID image size (2019 and 2022 samples)",
+    "value": "690 x 291",
+    "unit": "mm",
+    "source_url": "https://raw.githubusercontent.com/linuxhw/EDID/master/Digital/Sceptre%20Tech/SPT0BCC/DE165DEB9A30",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "EDID image size (2020 and 2021 samples)",
+    "value": "690 x 290",
+    "unit": "mm",
+    "source_url": "https://raw.githubusercontent.com/linuxhw/EDID/master/Digital/Sceptre%20Tech/SPT0BCC/FDF98CA79846",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "EDID vertical refresh range (DP, 2019 unit)",
+    "value": "48-200",
+    "unit": "Hz",
+    "source_url": "https://raw.githubusercontent.com/linuxhw/EDID/master/Digital/Sceptre%20Tech/SPT0BCC/1C82EF440FDA",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "EDID vertical refresh range (2022 unit)",
+    "value": "48-190",
+    "unit": "Hz",
+    "source_url": "https://raw.githubusercontent.com/linuxhw/EDID/master/Digital/Sceptre%20Tech/SPT0BCC/DE165DEB9A30",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 paired with model number by a resale listing",
+    "value": "C305B-200UN",
+    "unit": "model",
+    "source_url": "https://www.pawnamerica.com/Product/Sceptre_P30_30_Inch_Curved_Ultrawide_Gaming_Monitor_Local_Pickup_Only_24223025105",
+    "confidence": "retailer"
+   },
+   {
+    "name": "Manual family name",
+    "value": "SCEPTRE C30 Display User Manual (all C305B/C305W 30\" manuals)",
+    "unit": "string",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/UltraWide/SCEPTRE_C305B-200UN1T.1MS30G7user_manual-6CX0004281_2023.10.25hk.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Active screen size (diagonal, as published)",
+    "value": "30 diagonal viewable",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Panel diagonal (as reviewed / EDID-derived)",
+    "value": "29.5 (749 mm)",
+    "unit": "in",
+    "source_url": "https://linux-hardware.org/index.php?id=eisa:sceptre-tech-spt0bcc",
+    "confidence": "review"
+   },
+   {
+    "name": "Aspect ratio",
+    "value": "21:9",
+    "unit": "ratio",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Native resolution",
+    "value": "2560 x 1080",
+    "unit": "px",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Pixel pitch",
+    "value": "0.2697 (H) x 0.2697 (V)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Active area width (arc length) = 2560 x 0.2697",
+    "value": "690.4 (27.18 in)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Active area height = 1080 x 0.2697",
+    "value": "291.3 (11.47 in)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Active area chord width on an 1800R arc = 2R sin(690.4/2R)",
+    "value": "686.2",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Curvature",
+    "value": "1800R",
+    "unit": "mm radius",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Panel type",
+    "value": "VA, edge-lit LED",
+    "unit": "type",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions with stand, C305B-200UN / -200UNT / -200UN1T.1 (W x H x D)",
+    "value": "27.8 x 16.1 x 7.4 (706.1 x 409.0 x 188.0 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions without stand, C305B-200UN spec sheet and -200UNT page (W x H x D)",
+    "value": "27.8 x 12.6 x 4.3 (706.1 x 320.0 x 109.2 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions without stand, C305B-200UN1 product page (W x H x D)",
+    "value": "27.82 x 12.64 x 3.69 (706.6 x 321.1 x 93.7 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305B-200UN1-product1362category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions with stand, C305B-200UN1 product page (W x H x D)",
+    "value": "27.82 x 16.1 x 7.28 (706.6 x 409.0 x 184.9 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305B-200UN1-product1362category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions without stand, C305B-200UN1T.1 user manual (W x H x D)",
+    "value": "27.80 x 12.60 x 3.20 (706.1 x 320.0 x 81.3 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/UltraWide/SCEPTRE_C305B-200UN1T.1MS30G7user_manual-6CX0004281_2023.10.25hk.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions without stand, C305B-200UN1T.1 product page (W x H x D) \u2014 contradicts its own manual",
+    "value": "27.8 x 12.6 x 4.3",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C305B-200UN1T-1-30-Curved-Monitor-product1470category12category95.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions without stand, C305W-2560UN (W x H x D)",
+    "value": "27.83 x 12.65 x 3.74 (706.9 x 321.3 x 95.0 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305W-2560UN-30-Curved-Monitor-product1150category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Net weight with stand (C305B-200UN family)",
+    "value": "12.15 (5.51 kg)",
+    "unit": "lb",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Net weight without stand (C305B-200UN family)",
+    "value": "11.025 (5.00 kg)",
+    "unit": "lb",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Net weight without stand (C305W-2560UN)",
+    "value": "9.33 (4.23 kg)",
+    "unit": "lb",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305W-2560UN-30-Curved-Monitor-product1150category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "VESA mount pattern",
+    "value": "75 x 75, M4 x 10 mm screws, pattern sits in an indentation; metal adapter plate and spacers are shipped in the box",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/UltraWide/SCEPTRE_C305B-200UN1T.1MS30G7user_manual-6CX0004281_2023.10.25hk.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Third-party VESA adapter note (rear recess depth proxy)",
+    "value": "VIVO MOUNT-SRC30 for C305B-200UN/-200UN1/-200UNT/-200UN1T/C305W-2560UN/-2560UN1: 'screen sits approximately 0.3\" closer' (7.6 mm)",
+    "unit": "in",
+    "source_url": "https://vivo-us.com/products/mount-src30",
+    "confidence": "retailer"
+   },
+   {
+    "name": "Tilt range C305B-200UN spec sheet",
+    "value": "backward 10, forward 3",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Tilt range C305B-200UN1 product page",
+    "value": "backward 10, forward 5",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305B-200UN1-product1362category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Tilt range C305B-200UN1T.1 manual",
+    "value": "backward 15, forward 5",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/UltraWide/SCEPTRE_C305B-200UN1T.1MS30G7user_manual-6CX0004281_2023.10.25hk.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Monitor neck height",
+    "value": "12.1 (307 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Stand footprint (W x D)",
+    "value": "18.30 x 7.42 (464.8 x 188.5 mm)",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Housing description",
+    "value": "'Edgeless Bezel', 'Ultra Slim', chassis black, surface anti-glare 3H, red rear LED strips",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Bezel width (retailer copy)",
+    "value": "0.80 (8.0 mm) \u2014 'the bezel is a mere .80 cm wide'",
+    "unit": "cm",
+    "source_url": "https://megamartcenter.com/products/sceptre-30-inch-curved-gaming-monitor-21-9-2560x1080-ultra-wide-slim-hdmi-displayport-up-to-200hz-build-in-speakers-metal-black-c305b-200un1",
+    "confidence": "retailer"
+   },
+   {
+    "name": "Black border inside the glass (review)",
+    "value": "about 1/4 (6.35 mm) 'of black border around the screen'; not edge-to-edge",
+    "unit": "in",
+    "source_url": "https://www.displayninja.com/sceptre-c305b-200un1-review/",
+    "confidence": "review"
+   },
+   {
+    "name": "Housing overhang per side = (706.1 housing chord - 686.2 active chord)/2, or (706.1 - 690.4)/2 if the published width is an arc",
+    "value": "8 to 10 per side (top+bottom total 28.7, bottom chin visibly wider than top)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Sagitta of the 1800R front face across the 706 mm housing width",
+    "value": "35.0 (centre sits 35 mm behind the two ends)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Half-angle subtended by one housing on the 1800R arc = asin(353/1800)",
+    "value": "11.3 (so a continuous two-monitor arc has the inner side faces meeting at 180-2x11.3 = 157.4 deg between front tangents)",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Ports C305B-200UN / -200UNT",
+    "value": "1x HDMI 2.0 + 2x HDMI 1.4 + 1x DP 1.2 + 3.5 mm out, DC 12 V 4 A barrel; all downward-facing in a recessed strip on the rear lower right",
+    "unit": "list",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Ports C305B-200UN1T.1",
+    "value": "2x HDMI 2.0 + 2x DP 1.4 + 3.5 mm out",
+    "unit": "list",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/UltraWide/SCEPTRE_C305B-200UN1T.1MS30G7user_manual-6CX0004281_2023.10.25hk.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "C305B-FUN200W NEBULA curvature (exclusion)",
+    "value": "1500R, 27.6 x 12.5 x 4.79 in without stand",
+    "unit": "mm radius",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305B-FUN200W-30-NEBULA-Curved-Ultrawide-Gaming-Monitor-product1420category12category100.html",
+    "confidence": "manufacturer"
+   }
+  ],
+  "edge_geometry_notes": "Sources for the shape: Sceptre's own product photos (GalleryZip product_id 1134/1362/1470, saved at C:\\Users\\seanr\\AppData\\Local\\Temp\\claude\\D--repos-3d-skills\\1d674529-f719-450b-a8ca-43a8facc5bb1\\scratchpad\\gallery\\) and the rendered manual pages (\u2026\\scratchpad\\pages\\). Nothing below is a published number unless it says so.\n\nFRONT / BEZEL. 'Edgeless' design: the glass runs to the housing edge on the top and both sides with a thin black border under it (retailer 8.0 mm, reviewer ~6.35 mm; inferred from housing width minus active width: 8-10 mm per side). The bottom is a conventional plastic chin carrying the SCEPTRE logo, visibly wider than the top/sides (not published; inferred ~20 mm if the top matches the sides, from 320 - 291.3 = 28.7 mm total). OSD buttons are five small keys on the underside of the chin at the right end; they face down, not sideways, so a centre-seam bridge does not foul them on the right-hand monitor (they would be at the outer end anyway).\n\nSIDE EDGE PROFILE. The vertical side edge is a plain, squared-off plastic band with a small front chamfer, running the full 320 mm height, curved in plan to follow the 1800R arc (the whole housing is curved; the ends are 35 mm forward of the centre). In Sceptre's top-down photo the housing is thinnest at the two ends and swells toward the centre; in the side photo the top edge is a thin sliver and the housing thickens toward the lower half where the rear module lives. ESTIMATE, from a non-orthographic render scaled by the published 320 mm height: the edge band looks on the order of 15-20 mm deep near the top and ~30-40 mm further down where it wraps the panel plus back cover; the published 81-109 mm depth-without-stand is the rear bulge at the centre, not the edge. Treat this as unmeasured \u2014 a caliper on the actual edge is the only real number.\n\nREAR HOUSING. Flat matte back cover with (a) a raised chevron/diamond boss across the upper centre carrying two red LED strips, (b) a shallow rectangular boss across the lower centre with the down-facing port strip, vent slots, and the neck socket, (c) the 75x75 VESA holes sitting in an indentation behind a rubber cover (Sceptre ships a steel adapter plate and four spacers; VIVO's adapter brings the screen ~7.6 mm forward). The cover tapers to the edges, so the last ~40-60 mm at each end (ESTIMATE from the top-down photo) is just panel + thin back cover with no boss \u2014 a clip has a smooth curved rear surface to bear on there, but no feature to hook into.\n\nWHERE A CLIP CAN GRIP. Realistic grip points on the inner edge: (1) a C-clip wrapping the side edge band front-to-back \u2014 front lip must stay on the black border, i.e. under ~6-8 mm, or it covers pixels; rear lip bears on the tapered back cover; (2) the top edge, same wrap, thin sliver \u2014 likely the least deep section; (3) the bottom chin, the deepest and strongest part of the front frame, and the OSD keys are at the far end so a bridge under the inner corner is clear; (4) NOT the VESA \u2014 it is under the stand neck at the centre, 350 mm from the seam. Both monitors' tilt hinges are at the centre neck, so a rigid bridge at the seam also has to carry whatever tilt mismatch exists (published tilt ranges differ by variant: +3/-10, +5/-10, +5/-15).\n\nARC GEOMETRY FOR A CONTINUOUS 1800R PAIR. Each housing subtends 2 x 11.3 deg; placed edge-to-edge on one 1800R circle the inner side faces are parallel to each other only if both are the same model with the same edge chamfer; the front tangent planes meet at 157.4 deg. Because the B30 (left) is a different model, its side band depth and chamfer are not known to match \u2014 measure both before designing a symmetric clip.",
+  "unknowns": [
+   "Which C305B-200UN suffix the user's unit is (-200UN, -200UN1, -200UNT, -200UN1T, -200UN1T.1): all report 'Sceptre P30' over EDID; only the rear label decides, and the published depth-without-stand differs by variant (4.3 / 3.69 / 3.20 in).",
+   "Housing depth at the side edge (front face to rear surface at the extreme left/right ends): not published by Sceptre anywhere; only ESTIMATES from renders above. Needs a caliper.",
+   "Bezel widths (side, top, bottom) as manufacturer numbers: not published. Retailer says 0.80 cm, reviewer says ~1/4 in, inferred 8-10 mm per side; bottom chin width unknown.",
+   "Side-edge cross-section profile (chamfer radius, any front lip, whether the glass is proud of or flush with the plastic band): not documented; photos show a small chamfer only.",
+   "Depth of the VESA indentation and the exact position/size of the rear bosses: not published (VIVO's 0.3 in is the only proxy).",
+   "Whether the published 27.8 in width is the chord or the arc length of the curved housing (affects per-side overhang by ~2 mm).",
+   "Whether Sceptre's 'without stand' depth includes the neck socket or only the back cover \u2014 its own pages disagree with its own manual for the same model (4.3 in vs 3.20 in for C305B-200UN1T.1).",
+   "The left-hand 'Sceptre B30' does not appear in the linuxhw/linux-hardware EDID database under that name and no Sceptre page uses it, so its model, edge depth and bezel are unresolved here; it may be a different family (E305B IPS is flat, so if it is genuinely 1800R it is another C305/C308 variant with a different EDID string).",
+   "Whether the C305W-2560UN (85 Hz) also names itself P30: one EDID sample carries a 48-75 Hz range that fits either its HDMI port or an HDMI 1.4 port on the 200 Hz models; unconfirmed.",
+   "Panel maker/part number (29.5 in VA 2560x1080 1800R): not published."
+  ]
+ },
+ {
+  "monitor": "Sceptre \"B30\" (left monitor) \u2014 30-inch-class (29.5\" viewable) 21:9 curved 1800R ultrawide, 2560x1080. \"Sceptre B30\" is the EDID display-product name the monitor reports to Windows, not a Sceptre catalogue number.",
+  "identified_model": "C305W-2560UN1",
+  "candidates": [
+   "C305W-2560UN (2019, 85 Hz; same housing family, its rear label reads 'Model : P30' and its EDID is named 'C305W-2560UN', so it is the fallback only if the user read names off the rear labels rather than Windows)",
+   "C305B-200UN / C305B-200UN1 / C305B-200UNT / C305B-200UN1T / C305B-200UN1T.1 (200 Hz family; their EDID name is 'Sceptre P30' \u2014 this is what the user's RIGHT monitor most likely is, and it has a different housing: V-stand, red chevron LEDs, OSD buttons under the front chin)",
+   "C305B-FUN200W / FUN200W1 NEBULA (excluded: 1500R, not 1800R, 200 Hz)",
+   "E305B-FU200T (excluded: flat IPS, 210 Hz)"
+  ],
+  "facts": [
+   {
+    "name": "EDID display product name",
+    "value": "'Sceptre B30' \u2014 PNP id SPT0BC2, product code 0x0BC2 (3010), EDID authored week 28 of 2020; 3 captures in linuxhw/EDID, 12 systems on linux-hardware.org",
+    "unit": "n/a",
+    "source_url": "https://github.com/linuxhw/EDID/blob/master/Digital/Sceptre%20Tech/SPT0BC2/23257E30D776",
+    "confidence": "inferred"
+   },
+   {
+    "name": "EDID maximum refresh (identification key)",
+    "value": "DisplayPort block: 'Monitor ranges 48-100 Hz V, 113 kHz H, max dotclock 600 MHz', DTD 2560x1080 @ 100.00 Hz; HDMI 2.0 block: HDMI Forum VSDB 'Maximum TMDS Character Rate: 600 MHz', DTD 2560x1080 @ 100 Hz; HDMI 1.4 block: 'Maximum TMDS clock: 330 MHz', 48-75 Hz. No 120/144/200 Hz timing anywhere \u2014 rules out every C305B-200UN* (whose 'Sceptre P30' EDID carries 2560x1080 @ 200/144/120 Hz) and the C305W-2560UN (own EDID named 'C305W-2560UN', 49-85 Hz)",
+    "unit": "Hz",
+    "source_url": "https://github.com/linuxhw/EDID/blob/master/Digital/Sceptre%20Tech/SPT0BC2/B9B67C97B98B",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Only Sceptre 30-inch at 100 Hz (identification match)",
+    "value": "C305W-2560UN1 product page: 'Refresh Rate: Up to 100Hz Refresh Rate'; ports '2 x HDMI 1.4, 1x HDMI 2.0', '1x DP 1.2' \u2014 exactly the B30 EDID port/refresh profile",
+    "unit": "n/a",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Active screen size (marketing)",
+    "value": "30\" Diagonal Viewable",
+    "unit": "in",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Active screen diagonal (actual)",
+    "value": "29.5 in = 748.9 mm (sqrt(690^2+291^2)); linux-hardware.org lists '690x291mm 29.5-inch'",
+    "unit": "in / mm",
+    "source_url": "https://linux-hardware.org/index.php?id=eisa%3Asceptre-tech-spt0bc2",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Aspect ratio",
+    "value": "21:9 (EDID DTD 64:27)",
+    "unit": "n/a",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Native resolution",
+    "value": "2560 x 1080",
+    "unit": "px",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Pixel pitch",
+    "value": "0.2697mm (H) x 0.2697mm (V)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Active area width x height (EDID)",
+    "value": "690 x 291 (EDID detailed timing image size; base block 'Maximum image size: 69 cm x 29 cm')",
+    "unit": "mm",
+    "source_url": "https://github.com/linuxhw/EDID/blob/master/Digital/Sceptre%20Tech/SPT0BC2/23257E30D776",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Active area width x height (pixel pitch x resolution)",
+    "value": "690.4 x 291.3 (0.2697 x 2560, 0.2697 x 1080) \u2014 agrees with EDID; not stated whether arc or chord",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Panel type",
+    "value": "VA (Vertical Alignment), edge-lit LED, anti-glare 3H",
+    "unit": "n/a",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Curvature",
+    "value": "1800R",
+    "unit": "mm radius",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions without stand (W x H x D)",
+    "value": "27.82\" x 12.64\" x 3.69\" = 706.6 x 321.1 x 93.7 mm. CAUTION: identical digits to the C305B-200UN1 / C305B-200UN1T pages, which have a different stand and housing, so this row may be copied; the previous-generation C305W-2560UN page says 27.83\" x 12.65\" x 3.74\" (706.9 x 321.3 x 95.0 mm)",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Dimensions with stand (W x H x D)",
+    "value": "27.82\" x 16.1\" x 7.28\" = 706.6 x 408.9 x 184.9 mm",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Monitor neck height",
+    "value": "9.74\" = 247.4 mm (differs from the C305B-200UN's 12.1\", confirming a different stand)",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Stand footprint (W x D)",
+    "value": "13.7\" x 9.18\" = 348 x 233 mm (ring base)",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Net weight without stand",
+    "value": "11 lbs. = 4.99 kg",
+    "unit": "lb / kg",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Net weight with stand",
+    "value": "12.14 lbs. = 5.51 kg (gross 15.43 lbs)",
+    "unit": "lb / kg",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "VESA mount pattern",
+    "value": "75 x 75mm, screw M4 x 10mm; neck screw M4 x 12mm x1; stand screws M4 x 12mm x2; a separate metal VESA plate (shared accessory for C305B-200UN/UN1/UNT/UN1T, C305W-2560UN/2560UN1, C255B-FWT240, C345B-QUT168) fits the stand-neck recess",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/Accessories/Add-Ons/C255B-FWT240-C305B-200UN-C305B-200UN1-C305B-200UNT-C305B-200UN1T-C305W-2560UN-C305W-2560UN1-C345B-QUT168-VESA-Wall-Mount-Mount-Plate-product1372category19category33.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Tilt",
+    "value": "Product page: 'Forward: 10\u00b0 Backward: 3\u00b0'; C305W-2560UN manual v20201111 (the manual Sceptre links from the 2560UN1 page): 'Forward: 2\u00b0 Backward: 10\u00b0'; DisplayNinja (2560UN): '-3\u00b0/10\u00b0' \u2014 three different published values",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/CURVEMONITOR/C305W-2560UN-UM%20-%20v20201111.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Chassis colour / rear lighting",
+    "value": "Black; 'Backcover LED Lights: Yes' \u2014 two BLUE vertical LED strips on the rear about 1/4 in from each end (C305B-200UN* have RED chevron strips)",
+    "unit": "n/a",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "OSD button location",
+    "value": "Five buttons on the REAR face, lower corner (monitor's right-hand side as viewed from the front), facing backward \u2014 visible in Sceptre's rear render; DisplayNinja on the 2560UN: 'hotkeys ... placed at the rear of the monitor on the right side'",
+    "unit": "n/a",
+    "source_url": "https://www.sceptre.com/support/GalleryZip.php?product_id=1363",
+    "confidence": "review"
+   },
+   {
+    "name": "I/O location",
+    "value": "DC IN, DP, HDMI2, HDMI1, headphone on a downward/rearward-facing recessed strip right of the neck (from behind); inputs 2x HDMI 1.4, 1x HDMI 2.0, 1x DP 1.2, 1x 3.5 mm",
+    "unit": "n/a",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Housing width minus active width (side bezel + rim + side wall, both sides)",
+    "value": "(706.6 - 690) / 2 = 8.3 per side (upper bound on the visible side bezel; assumes the published W is the chord)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Housing height minus active height (top bezel + bottom chin)",
+    "value": "321.1 - 291 = 30.1 total; renders show a thin top bezel and a wide bottom chin with the SCEPTRE logo, so roughly 6-8 top and 22-24 chin (ESTIMATE from renders)",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/GalleryZip.php?product_id=1363",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Black border around the image (sibling review, not this SKU)",
+    "value": "'1/4\" of black border around the screen' measured on the C305B-200UN1 (~6.4 mm); Sceptre publishes a 'Bezel Width' row (1.0 mm) only for the flat E305B-FU200T, none for any C305",
+    "unit": "in / mm",
+    "source_url": "https://www.displayninja.com/sceptre-c305b-200un1-review/",
+    "confidence": "review"
+   },
+   {
+    "name": "1800R geometry: sagitta of the curve",
+    "value": "chord 690 -> sagitta 33.4, arc 694.3, half-angle 11.05\u00b0; chord 706.6 -> sagitta 35.0, arc 711.2, half-angle 11.32\u00b0. So ~35 of the published 93.7 mm 'depth without stand' is the curve itself, not housing thickness",
+    "unit": "mm / deg",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "inferred"
+   },
+   {
+    "name": "1800R geometry: angle between two monitors continuing one arc",
+    "value": "2 x 11.3 = 22.6\u00b0 between the two chassis chord planes (22.1\u00b0 between active-area chords); the inner edge faces are radial planes and meet flush only if both monitors share one centre of curvature",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/C305W-2560UN1-product1363.html",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Sibling: C305W-2560UN (2019, 85 Hz) dimensions",
+    "value": "Without stand 27.83\" x 12.65\" x 3.74\" (706.9 x 321.3 x 95.0 mm); with stand 27.83\" x 16.11\" x 9.18\"; 9.33 lb / 10.65 lb; VESA 75x75; same ring-base, blue-LED housing family. Its rear label in Sceptre's render reads 'Model : P30'",
+    "unit": "in / mm / lb",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305W-2560UN-30-Curved-Monitor-product1150category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Right-hand 'P30' (for reference): EDID",
+    "value": "'Sceptre P30' = SPT0BCC, product 0x0BCC (3020), EDID week 24 of 2019, 690x291 mm, DP DTDs 2560x1080 @ 200/144/120 Hz \u2014 the C305B-200UN family; a resale listing ties 'Sceptre P30' to MPN C305B-200UN",
+    "unit": "n/a",
+    "source_url": "https://github.com/linuxhw/EDID/blob/master/Digital/Sceptre%20Tech/SPT0BCC/DC4B2CB264DD",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Right-hand 'P30' (for reference): C305B-200UN family dimensions",
+    "value": "C305B-200UN / 200UNT / 200UN1T.1 spec sheets: without stand 27.8\" x 12.6\" x 4.3\" (706.1 x 320.0 x 109.2 mm), 11.025 lb, neck 12.1\", VESA 75x75 M4x10, tilt B10\u00b0/F3\u00b0; C305B-200UN1 / 200UN1T pages: 27.82\" x 12.64\" x 3.69\" (706.6 x 321.1 x 93.7 mm), 11 lb, tilt F5\u00b0/B10\u00b0; 200UN1T.1 manual: 27.80\" x 12.60\" x 3.20\"",
+    "unit": "in / mm / lb",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Shared across both monitors",
+    "value": "Same VA 2560x1080 panel size (690 x 291 mm active, 0.2697 mm pitch), same 1800R, same 75x75 VESA and the same Sceptre VESA plate accessory; chassis width ~706-707 mm on every 30\" C305 SKU",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/Accessories/Add-Ons/C255B-FWT240-C305B-200UN-C305B-200UN1-C305B-200UNT-C305B-200UN1T-C305W-2560UN-C305W-2560UN1-C345B-QUT168-VESA-Wall-Mount-Mount-Plate-product1372category19category33.html",
+    "confidence": "manufacturer"
+   }
+  ],
+  "edge_geometry_notes": "Nothing about the side-edge profile is published for any C305 model; everything below beyond the width/height/depth rows is read off Sceptre's own product renders (galleries product_id=1363 for the C305W-2560UN1 and 1150 for the C305W-2560UN, which share the housing design) and is an ESTIMATE to be caliper-checked. (1) Front: a thin dark rim on the top and both side edges, sitting a millimetre or two proud of the panel face, plus an inner inactive black border; the whole side border is bounded by (706.6-690)/2 = 8.3 mm from housing edge to first pixel. The bottom is a wide dark-grey chin (SCEPTRE logo centred) roughly 20-24 mm tall, with lighter-grey chamfered end caps at both ends in the 2560UN1 render, speaker grilles on its underside near each end, and ventilation slots on the top edge near each end. (2) Side (short) edge: a flat, near-vertical face; in the top-down render the housing is thin at the ends and thick in the middle, i.e. the ends look ~20-25 mm front-to-back versus ~45-55 mm at the central electronics/VESA bulge; the rear cover meets the end face through a rearward facet/chamfer rather than a square corner. The published 93.7 mm 'depth without stand' is a bounding box that includes ~35 mm of 1800R sagitta, so it is NOT the edge thickness. (3) Rear: two raised vertical 'wing' panels about a quarter of the width in from each end, each carrying a blue LED strip; a flatter recessed field between them with the logo; the outermost ~40-50 mm at each end is a plain flat slab \u2014 the natural place for a rear jaw of a clip. (4) Keep-outs on the RIGHT edge of this monitor (the inner edge if it is the left screen): the five OSD buttons sit on the rear face at the lower right corner facing backward, and the port strip is right of centre on the rear; a clip that wraps the rear near the bottom-right corner will foul the buttons. (5) The two monitors are different housings even though the panels match: the P30/C305B-200UN family has a V-shaped stand, red chevron LEDs, and OSD buttons on the underside of the front chin (right side), so the connector's two halves must be modelled to two different edge profiles \u2014 measure both. (6) Curvature: each 1800R screen subtends 2 x 11.05\u00b0 over the active width; for a continuous arc the two chassis must be held at 22.6\u00b0 to each other, with inner edge faces coplanar (radial), and the seam gap is whatever the bezel rims plus clearance leave \u2014 ~2 x 8.3 mm of dead border at minimum.",
+  "unknowns": [
+   "Which naming source the user used: Windows display name (EDID 'Sceptre B30' -> C305W-2560UN1, 'Sceptre P30' -> C305B-200UN family) or the rear label ('Model : P30' appears on the 2019 C305W-2560UN render; the 2021 renders' 'Model :' text is illegible). Decisive check: max refresh in Windows/OSD \u2014 100 Hz = C305W-2560UN1, 85 Hz = C305W-2560UN, 200 Hz = C305B-200UN*.",
+   "Bezel widths (side, top, bottom) for the C305W-2560UN1 \u2014 not published; only a sibling review's '1/4 in of black border' on the C305B-200UN1 exists.",
+   "Housing depth at the side edge (front face to rear surface at the end) \u2014 not published; render estimate 20-25 mm.",
+   "Whether the published without-stand W x H x D on the 2560UN1 page (27.82 x 12.64 x 3.69 in) is genuine or copied from the C305B-200UN1 row; the older 2560UN page says 27.83 x 12.65 x 3.74 in.",
+   "Whether 690 x 291 mm active area is the arc length or the chord (EDID does not say; 4 mm difference across the width).",
+   "Whether the side face is truly flat/vertical and its corner radii; the exact rear-cover facet profile at the ends.",
+   "Tilt range \u2014 three different published values (F10/B3, F2/B10, -3/10).",
+   "Front rim protrusion above the glass, and whether the panel edge is glass-to-edge or has a lip a clip can index on.",
+   "The right-hand P30's exact SKU (C305B-200UN vs 200UN1 vs 200UNT/UN1T/UN1T.1) and which of its two published depth sets (4.3 in vs 3.69 in vs 3.20 in) applies; that housing is different from the B30's."
+  ]
+ },
+ {
+  "monitor": "Sceptre \"B30\" (left) and Sceptre \"P30\" (right): two 30-inch-class (29.5 in panel) 1800R curved 2560x1080 21:9 VA ultrawides. Both names are EDID product-name strings reported to the OS, not Sceptre part numbers.",
+  "identified_model": "B30 = C305W-2560UN1 (EDID SPT0BC2, 48-100 Hz, built 2020-w28; the only Sceptre 30\" 1800R model rated 100 Hz). P30 = C305B-200UN family (EDID SPT0BCC, 200 Hz, built 2019-w24..2023-w42; exact suffix C305B-200UN / -200UN1 / -200UNT / -200UN1T / -200UN1T.1 cannot be resolved from the name). Caveat: if the user read \"P30\" off the rear label rather than the OS, it could instead be the 2019 C305W-2560UN, whose label reads \"Model : P30\" in Sceptre's own photo.",
+  "candidates": [
+   "C305W-2560UN1 (100 Hz, 1800R, blue-strip chassis, 3.69 in deep) - best match for B30",
+   "C305B-200UN (200 Hz, red-V chassis, 4.3 in deep per spec sheet) - P30",
+   "C305B-200UN1 (200 Hz, red-V chassis, listed 3.69 in deep) - P30",
+   "C305B-200UNT (200 Hz, 4.3 in) - P30",
+   "C305B-200UN1T (200 Hz, 3.69 in) - P30",
+   "C305B-200UN1T.1 (2025, 200 Hz, 4.3 in) - P30",
+   "C308B-200UNT (200 Hz, 4.3 in) - P30",
+   "C305W-2560UN (2019, 85 Hz, blue-strip chassis, 3.74 in) - EDID name is 'C305W-2560UN' but rear label reads 'Model : P30'",
+   "C305B-FUN200W / FUN200W1 Nebula (white) - EXCLUDED: 1500R, height-adjustable stand, 4.79 in deep"
+  ],
+  "facts": [
+   {
+    "name": "P30 - EDID product name / PNP id / model code",
+    "value": "Display Product Name 'Sceptre P30'; Manufacturer SPT; product code 0BCC; Model 3020 (18 captured EDIDs)",
+    "unit": "text",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BCC",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 - EDID maximum image size (active area)",
+    "value": "69 cm x 29 cm coarse; detailed timing 690 mm x 291 mm (3 of 18 files say 690 x 290) = 27.17 x 11.46 in",
+    "unit": "mm / in",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BCC",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 - EDID refresh range and manufacture dates",
+    "value": "48-200 Hz (DP); HDMI captures show 75/85/120/165/180 Hz caps; 'Made in' weeks: 2019-w24, 2019-w37, 2020-w20, 2021-w34, 2022-w16, 2022-w52, 2023-w42",
+    "unit": "Hz / year-week",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BCC",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 - linux-hardware.org entry",
+    "value": "'Sceptre Tech Sceptre P30 SPT0BCC 2560x1080 690x291mm 29.5-inch', 39 probes, all 'works'",
+    "unit": "text",
+    "source_url": "https://linux-hardware.org/index.php?id=eisa%3Asceptre-tech-spt0bcc",
+    "confidence": "review"
+   },
+   {
+    "name": "P30 - user report (macOS)",
+    "value": "'Sceptre P30 External Monitor ... USB-C to DisplayPort ... 2560x1080 ... 200Hz'",
+    "unit": "text",
+    "source_url": "https://discussions.apple.com/thread/251744830",
+    "confidence": "review"
+   },
+   {
+    "name": "P30 - secondary-market listing model number",
+    "value": "Pawn listing titled 'Sceptre P30' gives Model Number C305B-200UN",
+    "unit": "text",
+    "source_url": "https://www.pawnamerica.com/Product/Sceptre_P30_30_Inch_Curved_Ultrawide_Gaming_Monitor_Local_Pickup_Only_24223025105",
+    "confidence": "retailer"
+   },
+   {
+    "name": "P30 - secondary-market listing dimensions",
+    "value": "'Sceptre P30 ... Without Stand (inches, W x H x D) 27.8 x 12.6 x 4.3' = 706.1 x 320.0 x 109.2 mm",
+    "unit": "in / mm",
+    "source_url": "https://offerup.com/item/detail/3410283c-2cdf-3ca3-96f3-c43ddb694729",
+    "confidence": "retailer"
+   },
+   {
+    "name": "P30 - 'P' is not 'Prime'",
+    "value": "EDID name 'Sceptre P30' exists on units built week 24 of 2019; Sceptre's Prime/Nebula series launched at CES 2021, so the letter predates the series",
+    "unit": "text",
+    "source_url": "https://gamehaunt.com/sceptre-launches-nebula-and-prime-monitors-at-ces/",
+    "confidence": "inferred"
+   },
+   {
+    "name": "B30 - EDID product name / PNP id / model code",
+    "value": "Display Product Name 'Sceptre B30'; Manufacturer SPT; product code 0BC2; Model 3010 (3 captured EDIDs)",
+    "unit": "text",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BC2",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "B30 - EDID maximum image size (active area)",
+    "value": "69 cm x 29 cm coarse; detailed timing 690 mm x 291 mm = 27.17 x 11.46 in",
+    "unit": "mm / in",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BC2",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "B30 - EDID refresh range and manufacture date",
+    "value": "48-100 Hz (DP capture), 48-75 Hz (HDMI capture); Made in week 28 of 2020 (all three samples)",
+    "unit": "Hz / year-week",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BC2",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "B30 - independent EDID report (Windows)",
+    "value": "'Sceptre B30 ... maximum image size of 27.17 inches horizontally and 11.42 inches vertically, DisplayPort connector, gamma 2.2' (= 690 x 290 mm)",
+    "unit": "in / mm",
+    "source_url": "https://community.intel.com/t5/Intel-Integrated-Performance/Unable-to-route-audio-via-HDMI-to-computer-monitor-with-speakers/m-p/1579474",
+    "confidence": "review"
+   },
+   {
+    "name": "B30 - only Sceptre 30in 1800R model rated 100 Hz is C305W-2560UN1",
+    "value": "C305W-2560UN1: 'Up to 100Hz Refresh Rate', 1800R, 2560 x 1080; matches B30 EDID 48-100 Hz limit",
+    "unit": "Hz",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C305W-2560UN1-product1363category12category95.html",
+    "confidence": "inferred"
+   },
+   {
+    "name": "2019 C305W-2560UN - EDID name is NOT B30/P30",
+    "value": "Display Product Name 'C305W-2560UN'; SPT0C0D; 49-85 Hz; Made in week 33 of 2019",
+    "unit": "text",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0C0D",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "2019 C305W-2560UN - rear label text in Sceptre product photo",
+    "value": "Label reads 'SCEPTRE / Power Input: DC 12V / 4.0A / Made in China / Model : P30' (read from an enlarged crop of Sceptre's rear-view gallery photo)",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/image/cache/data/product_gallery/982-C305W-2560UN/zlide05-1500x1044.jpg",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "All variants - manual short name",
+    "value": "User manuals for C305W-200UN and C305W-200UN1T are titled 'SCEPTRE C30 Display User Manual'",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/CURVEMONITOR/C305W-200UN-UM%20-%20v20201111.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN) - dimensions without stand",
+    "value": "27.8 x 12.6 x 4.3 in (W x H x D) = 706.1 x 320.0 x 109.2 mm",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN) - dimensions with stand",
+    "value": "27.8 x 16.1 x 7.4 in = 706.1 x 408.9 x 188.0 mm; stand separation (W x D) 18.30 x 7.42 in = 464.8 x 188.5 mm; neck height 12.1 in = 307.3 mm",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN) - weight",
+    "value": "11.025 lb (5.00 kg) without stand; 12.15 lb (5.51 kg) with stand; gross 15.45 lb",
+    "unit": "lb / kg",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN) - VESA and screws",
+    "value": "VESA 75 mm x 75 mm, screw M4 x 10 mm; neck screw M4 x 12 mm (1 pc); stand screws M4 x 12 mm (2 pcs); 'VESA Mount Adapter x 1' in the box",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN) - tilt, curvature, bezel wording",
+    "value": "Tilt Backward 10 deg / Forward 3 deg; Curvature 1800R; 'Slim Design: Ultra Slim'; 'Edgeless Bezel' (product page); Backcover LED lights: Red; chassis Black",
+    "unit": "deg / text",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C305B-200UN-30-Curved-Monitor-product1134category12category95.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN) - pixel pitch and panel",
+    "value": "0.2697 mm (H) x 0.2697 mm (V); 30in diagonal viewable; VA; edge-lit LED; anti-glare 3H",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UNT) - dimensions/weight/VESA",
+    "value": "Identical to C305B-200UN: 27.8 x 12.6 x 4.3 in without stand; 27.8 x 16.1 x 7.4 in with; 11.025 / 12.15 lb; VESA 75x75 M4x10; tilt B10/F3",
+    "unit": "in / lb / mm",
+    "source_url": "https://www.sceptre.com/support/818/C305B-200UNT",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN1T.1, 2025) - dimensions/weight",
+    "value": "27.8 x 12.6 x 4.3 in without stand (706.1 x 320.0 x 109.2 mm); 27.8 x 16.1 x 7.4 in with; 11.025 / 12.15 lb; VESA 75x75; tilt B10/F3; 1800R; 'Ultra Slim'",
+    "unit": "in / mm / lb",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C305B-200UN1T-1-30-Curved-Monitor-product1470category12category95.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C308B-200UNT) - dimensions/weight",
+    "value": "27.8 x 12.6 x 4.3 in without stand; 27.8 x 16.1 x 7.4 in with; 11.025 / 12.15 lb; VESA 75x75; tilt B10/F3; 1800R; 'Edgeless Bezel'",
+    "unit": "in / lb",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C308B-200UNT-30-Curved-Monitor-product1445category12category95.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN1, page dated 2023/2024) - dimensions without stand (CONFLICTS with 4.3 in above)",
+    "value": "27.82 x 12.64 x 3.69 in = 706.6 x 321.1 x 93.7 mm; with stand 27.82 x 16.1 x 7.28 in = 706.6 x 408.9 x 184.9 mm; stand separation 18.31 x 7.42 in",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305B-200UN1-product1362category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN1) - weight, VESA, tilt",
+    "value": "11 lb (4.99 kg) without stand; 12.14 lb (5.51 kg) with; VESA 75 x 75 mm; tilt Forward 5 deg / Backward 10 deg; 1800R; 'Edgeless Design'; 'Luminous Backcover Lights'",
+    "unit": "lb / kg / deg",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305B-200UN1-product1362category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN1T, page dated 2024) - dimensions",
+    "value": "27.82 x 12.64 x 3.69 in without stand; 27.82 x 16.1 x 7.28 in with; 12.14 / 11 lb; VESA 75x75; tilt F5/B10; 1800R",
+    "unit": "in / lb",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305B-200UN1T-product1443category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "B30 (C305W-2560UN1) - dimensions without stand",
+    "value": "27.82 x 12.64 x 3.69 in = 706.6 x 321.1 x 93.7 mm",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C305W-2560UN1-product1363category12category95.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "B30 (C305W-2560UN1) - dimensions with stand, weight",
+    "value": "27.82 x 16.1 x 7.28 in = 706.6 x 408.9 x 184.9 mm; 11 lb (4.99 kg) without stand, 12.14 lb (5.51 kg) with",
+    "unit": "in / mm / lb",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C305W-2560UN1-product1363category12category95.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "B30 (C305W-2560UN1) - VESA, tilt, curvature, bezel, LED",
+    "value": "VESA 75 x 75 mm; tilt 'Forward: 10 deg Backward: 3 deg' (as published; likely transposed); 1800R; 'Edgeless Design'; 'Colorful LED light illuminates the back cover'; ports 2x HDMI 1.4, 1x HDMI 2.0, 1x DP 1.2",
+    "unit": "mm / deg",
+    "source_url": "https://www.sceptre.com/Monitors/UltraWide/C305W-2560UN1-product1363category12category95.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "2019 C305W-2560UN (same chassis as B30) - dimensions",
+    "value": "27.83 x 12.65 x 3.74 in without stand = 706.9 x 321.3 x 95.0 mm; with stand 27.83 x 16.11 x 9.18 in = 706.9 x 409.2 x 233.2 mm; carton 31.96 x 16.45 x 6.45 in",
+    "unit": "in / mm",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305W-2560UN-30-Curved-Monitor-product1150category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "2019 C305W-2560UN - weight, VESA, tilt, stand",
+    "value": "9.33 lb (4.23 kg) without stand; 10.65 lb (4.83 kg) with; VESA 75 x 75 mm; tilt Backward 10 deg / Forward 2 deg; 85 Hz; 'Edgeless Bezel Design'; all-metal detachable stand",
+    "unit": "lb / kg / deg",
+    "source_url": "https://www.sceptre.com/Monitors/Gaming-Series/C305W-2560UN-30-Curved-Monitor-product1150category12category100.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Both - user manual specification table (C30 manual, 200UN family)",
+    "value": "'Active Area / Screen Size 30in (diagonal 24in)' [sic]; 'Curvature 1800 deg' [sic]; With Stand 27.8 x 16.1 x 7.4 in; Without Stand 27.8 x 12.6 x 4.3 in; 12.15 lb / 11.03 lb; Wall Mount Pattern 75mm x 75mm Screw Size M4 x 10mm; Base Screws M4 x 12mm (2); Neck Screws M4 x 12mm (1); Tilt Backward 10 deg Forward 1 deg",
+    "unit": "in / lb / mm / deg",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/CURVEMONITOR/C305W-200UN-UM%20-%20v20201111.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Both - manual: back is NOT a flat VESA plate (recess + metal adapter plate)",
+    "value": "'Remove the rubber cover and unscrew the single screw to remove the stand.' 'Once the stand is removed, you will see the indentation where you can install the mounting plate. The mounting pattern is 75mm x 75mm using M4 x 10mm screws.' Package contents include 'Metal Plate for Wall Mount x 1'",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/GamingSeries/C305W-200UN1T-UM-20211123.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Both - manual tilt wording (200UN1T manual)",
+    "value": "'it may be inclined 5+/-1 deg forward and 10+/-1 deg backward'; spec table on same manual says 'Tilt Backward:10 deg Forward: 1 deg'",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/g_clump/pub/Manuals/GamingSeries/C305W-200UN1T-UM-20211123.pdf",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "Both - Sceptre VESA wall-mount adapter plate",
+    "value": "X-shaped steel plate with four corner holes and a central neck clip; sold for C255B-FWT240, C305B-200UN, C305B-200UN1, C305B-200UNT, C305B-200UN1T, C305W-2560UN, C305W-2560UN1, C345B-QUT168; $10.00; dimensions not published",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/Accessories/Add-Ons/C255B-FWT240-C305B-200UN-C305B-200UN1-C305B-200UNT-C305B-200UN1T-C305W-2560UN-C305W-2560UN1-C345B-QUT168-VESA-Wall-Mount-Mount-Plate-product1372category19category33.html",
+    "confidence": "manufacturer"
+   },
+   {
+    "name": "P30 (C305B-200UN1) - review: panel size and screen border",
+    "value": "'29.5in VA panel'; '1/4in of black border around the screen' (~6.4 mm, bezel + inactive panel border, not per-side breakdown); 'as tall as a regular 23in 16:9 monitor'; stand 'tilt-only'; 75x75 adapter provided; two red LED strips on the back; four hotkeys beneath the bottom bezel on the right side",
+    "unit": "in / mm / text",
+    "source_url": "https://www.displayninja.com/sceptre-c305b-200un1-review/",
+    "confidence": "review"
+   },
+   {
+    "name": "B30-chassis (C305W-2560UN) - review: rear and stand",
+    "value": "'two blue LED strips at the rear of the monitor'; stand 'tilt-only by -3 deg/10 deg'; 'VESA mount compatible (75x75mm)'; 'subtle 1800R curvature'",
+    "unit": "text",
+    "source_url": "https://www.displayninja.com/sceptre-c305w-2560un-review/",
+    "confidence": "review"
+   },
+   {
+    "name": "P30 (C305B-200UN) - review: chassis material",
+    "value": "'The monitor's chassis is made of a dark-grey plastic'; 'two red LED strips at the back'; 'V-shaped base'; 'Tilt-only stand'",
+    "unit": "text",
+    "source_url": "https://www.sarlt.com/sceptre-c305b-200un-gaming-monitor/",
+    "confidence": "review"
+   },
+   {
+    "name": "B30-chassis (C305W-2560UN) - review dimensions",
+    "value": "'Dimensions: 27.8 in x 9.2 in x 16.1 in - with stand'; 'Weight: 10.7 pounds'",
+    "unit": "in / lb",
+    "source_url": "https://www.sarlt.com/sceptre-c305w-2560un-monitor/",
+    "confidence": "review"
+   },
+   {
+    "name": "P30 (C305B-200UN1) - Amazon listing",
+    "value": "Title: '30-inch Curved Gaming Monitor 21:9 2560x1080 Ultra Wide/ Slim ... up to 200Hz ... Metal Black (C305B-200UN1) | 30 Va 1800r Curved ... Vesa 75x75'; product-detail table not retrievable (blocked)",
+    "unit": "text",
+    "source_url": "https://www.amazon.com/Sceptre-30-inch-Curved-Gaming-Monitor/dp/B07TXM7K4T",
+    "confidence": "retailer"
+   },
+   {
+    "name": "P30 (C305B-200UN series) - Amazon 2026 listing",
+    "value": "'Sceptre Prime Curved 30-inch Gaming Monitor 200+Hz FreeSync ... Machine Black 2026 (C305B-200UN Series)'",
+    "unit": "text",
+    "source_url": "https://www.amazon.com/Sceptre-30-inch-FreeSync-Speakers-C305B-200UN/dp/B0FC9K6WBZ",
+    "confidence": "retailer"
+   },
+   {
+    "name": "B30-chassis (C305W-2560UN) - Amazon listing",
+    "value": "'Curved 30in 21:9 Gaming LED Monitor 2560x1080p UltraWide Ultra Slim ... Up to 85Hz MPRT 1ms ... Machine Blue (C305W-2560UN)'",
+    "unit": "text",
+    "source_url": "https://www.amazon.com/Sceptre-C305W-2560UN-30-inch-DisplayPort-Build/dp/B07XZNXWGS",
+    "confidence": "retailer"
+   },
+   {
+    "name": "P30 (C305B-200UN) - Walmart listing",
+    "value": "'LED monitor - curved - 30in - 2560 x 1080 UWFHD @ 200 Hz - VA - 270 cd/m - 3000:1 - 5 ms - 3xHDMI, DisplayPort - speakers - black'; page body blocked by bot check",
+    "unit": "text",
+    "source_url": "https://www.walmart.com/ip/Sceptre-C305B-200UN-LED-monitor-curved-30-2560-x-1080-UWFHD-200-Hz-VA-270-cd-m-3000-1-5-ms-3xHDMI-DisplayPort-speakers-black/380702187",
+    "confidence": "retailer"
+   },
+   {
+    "name": "P30 (C305B-200UN1) - Newegg listing",
+    "value": "30in curved, 2560 x 1080, up to 200Hz, 1ms, HDR400, PBP, FreeSync Premium; no dimensions on page; no reviews",
+    "unit": "text",
+    "source_url": "https://www.newegg.com/p/0JC-007F-000B7",
+    "confidence": "retailer"
+   },
+   {
+    "name": "Both - B&H",
+    "value": "No B&H listing found for any Sceptre 30in curved model in search results",
+    "unit": "text",
+    "source_url": "https://www.bhphotovideo.com/",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Both - active area computed from pixel pitch",
+    "value": "2560 x 0.2697 = 690.4 mm wide; 1080 x 0.2697 = 291.3 mm tall; diagonal 749.3 mm = 29.5 in (agrees with EDID 690 x 291)",
+    "unit": "mm / in",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Both - sagitta (bow depth) of the 1800R curve",
+    "value": "Active area: 1800 - sqrt(1800^2 - 345.2^2) = 33.0 mm; full 706 mm housing: 34.9 mm. The side edges sit ~33-35 mm forward of the screen centre",
+    "unit": "mm",
+    "source_url": "https://github.com/linuxhw/EDID/tree/master/Digital/Sceptre%20Tech/SPT0BCC",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Both - arc angle per monitor on a shared 1800R circle",
+    "value": "Active 690.4/1800 rad = 22.0 deg; housing 706/1800 rad = 22.5 deg. For a continuous 1800R arc the two monitors' centre normals must diverge by ~22.5 deg (chord-to-chord included angle at the seam ~157.5 deg)",
+    "unit": "deg",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Both - horizontal housing margin beyond active area, per side",
+    "value": "(706.1 - 690.4)/2 = 7.9 mm if both are arc lengths; 10.0 mm if 27.8 in is the chord (active chord = 686.2 mm). Includes bezel + plastic frame edge. ESTIMATE",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Both - vertical housing margin beyond active area",
+    "value": "320.0 - 291.3 = 28.7 mm total top+bottom, split unequally (bottom bezel visibly wider in photos). ESTIMATE",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Both - centre housing thickness implied by depth spec minus curve bow",
+    "value": "4.3 in spec: 109.2 - 34.9 = ~74 mm at the stand-mount bulge; 3.69 in spec: 93.7 - 34.9 = ~59 mm. Edge thickness NOT derivable. ESTIMATE",
+    "unit": "mm",
+    "source_url": "https://www.sceptre.com/support/574/C305B-200UN",
+    "confidence": "inferred"
+   },
+   {
+    "name": "P30 chassis (red-V, C305B-200UN family) - rear shape from Sceptre photos",
+    "value": "Smooth shell following the curve; raised V-shaped facet across the top centre carrying two red LED strips; central rectangular stand-mount recess; ports face DOWN in a recessed bay at bottom centre-right; vent grilles bottom left and right; back cover tapers to a thin rim at the side edges; top view shows thin ends and a thick centre",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/image/cache/data/product_gallery/1470-C305B-200UN1T.1/5-1500x1044.jpg",
+    "confidence": "inferred"
+   },
+   {
+    "name": "P30 chassis (red-V) - side and front from Sceptre photos",
+    "value": "Side view: front bezel edge is thin; rear bulge concentrated behind the centre and top-centre; front: narrow side/top bezels, wider bottom bezel with SCEPTRE logo centred, OSD buttons at lower-right with labels printed on the front of the bezel, speaker slots in the bottom bezel",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/image/cache/data/product_gallery/1470-C305B-200UN1T.1/3-1500x1044.jpg",
+    "confidence": "inferred"
+   },
+   {
+    "name": "B30 chassis (blue-strip, C305W-2560UN/2560UN1) - rear shape from Sceptre photos",
+    "value": "Back is three facets (two outer wings + centre panel) separated by vertical seams each carrying a blue LED strip; SIX rear-facing OSD buttons on the lower corner of the back that is lower-LEFT seen from behind (= the monitor's right-hand edge seen from the front, i.e. the INNER edge of a left-hand monitor); ports face down at bottom centre-right; label at bottom centre; stand column attaches at a small central mount; oval ring base with angled neck",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/image/cache/data/product_gallery/1363-C305W-2560UN1/4-1500x1044.jpg",
+    "confidence": "inferred"
+   },
+   {
+    "name": "B30 chassis (blue-strip) - side/top from Sceptre photos",
+    "value": "Side view: thin edges, faceted centre bump on the back, small step/ledge near the top rear edge; top view: thin tapering ends with vent slots near each end, blue strips visible, ring base under the centre",
+    "unit": "text",
+    "source_url": "https://www.sceptre.com/image/cache/data/product_gallery/1363-C305W-2560UN1/5-1500x1044.jpg",
+    "confidence": "inferred"
+   },
+   {
+    "name": "Dual-monitor connector - Thingiverse 6160803 Hinged Multi Monitor Alignment Clip (Spanching)",
+    "value": "DIY copy of ConnectedView ScreenBuddy: two halves joined by a printed hinge, pins 4 mm dia x 20 mm long, 0.5 mm hinge tolerance; Fusion 360 source supplied for re-parametrising; attaches to the rear housing (adhesive, like the original)",
+    "unit": "mm",
+    "source_url": "https://www.thingiverse.com/thing:6160803",
+    "confidence": "review"
+   },
+   {
+    "name": "Dual-monitor connector - MakerWorld 2747875 Universal Dual Monitor Alignment Clip (KRAMPLAUZIS)",
+    "value": "'dual-screw adjustment system' to fine-tune angle and depth between displays; large hand-tightened locking nuts; 'zero-gap'; page blocked (403) so mounting method not confirmed",
+    "unit": "text",
+    "source_url": "https://makerworld.com/en/models/2747875-universal-dual-monitor-alignment-clip",
+    "confidence": "review"
+   },
+   {
+    "name": "Dual-monitor connector - other free designs found",
+    "value": "MakerWorld 467681 Dual Monitor Clip; 1043844 ScreenBuddy remix; 1165347 Alignment Tool for Multiple Monitors; 1256735 V-Lock Dual Monitor Clip; 1737296 Adjustable Triple Monitor Alignment Kit; Printables 870987 coupler for Dell P2720DC (upper and lower clips over the edge, model-specific); Thingiverse 7303642 / MyMiniFactory 769096 Multi-Monitor Alignment System (Adam Freeman, 'clamps monitors together'); all pages 403 to fetch - details from search snippets",
+    "unit": "text",
+    "source_url": "https://www.yeggi.com/q/dual+monitor+clip/",
+    "confidence": "review"
+   },
+   {
+    "name": "Dual-monitor connector - commercial ConnectedView ScreenBuddy",
+    "value": "Adhesive foil on the back of each half sticks to the rear housing; halves join by a magnet with a hinge; angle lockable 15-45 deg; keeps screens at same height and angle",
+    "unit": "deg",
+    "source_url": "https://www.multitronic.fi/en/products/4252225",
+    "confidence": "retailer"
+   },
+   {
+    "name": "Dual-monitor connector - commercial adhesive hinge clips (Amazon/vxb)",
+    "value": "'Pre-applied adhesive', 'Peel and Press Install', 'tool-free', 'Sturdy polymer construction', 'works with most flat-screen monitors on clean, dry surfaces'; built-in hinge for angle adjustment; low-profile; no dimensions or curved-monitor note given",
+    "unit": "text",
+    "source_url": "https://vxb.com/products/adhesive-monitor-connector-2-pack-for-triple-scree",
+    "confidence": "retailer"
+   },
+   {
+    "name": "Dual-monitor connector - Sceptre-specific",
+    "value": "No connector, clip or bracket made for or tested on any Sceptre 30in curved model was found on Printables, Thingiverse, MakerWorld, MyMiniFactory, Amazon, Reddit or forums",
+    "unit": "text",
+    "source_url": "https://www.stlfinder.com/3dmodels/dual-monitor-clip/",
+    "confidence": "inferred"
+   }
+  ],
+  "edge_geometry_notes": "Nothing about the side-edge profile is published by Sceptre; what follows comes from Sceptre's own spec tables, the user manual, and inspection of Sceptre's product-gallery photos (downloaded and viewed; label crops enlarged 4x). Overall envelope, both chassis: 706-707 mm wide chord, 320-321 mm tall, 94-109 mm deep without stand (Sceptre publishes both 3.69 in and 4.3 in for what appears to be the same red-V housing, so measure). Active area is 690 x 291 mm on both (EDID and 0.2697 mm pitch agree), so the housing adds only ~8-10 mm per side beyond the picture and ~29 mm total top+bottom; DisplayNinja calls the visible black border ~1/4 in. Curve: 1800R gives a 33-35 mm bow, so each inner edge sits ~34 mm in front of its screen centre and each monitor subtends ~22.5 deg of the circle; a continuous arc needs the two centre normals ~22.5 deg apart, i.e. an included angle of ~157.5 deg at the seam, not a straight-line butt joint. Depth is not uniform: the side views show thin tapering ends and a thick central bulge behind the stand mount/VESA area, so a clip cannot assume the 94/109 mm depth exists at the edge - the edge is far thinner (unmeasured). Rear near VESA is a recess ('indentation'), not a flat plate: the stand fixes with one M4x12 screw under a rubber cover and Sceptre ships an X-shaped steel adapter to create a 75x75 M4x10 mount. Rear housings differ between the two: the red-V chassis (P30 by EDID = C305B-200UN family) has a raised V facet at top centre with red LED strips, downward-facing ports in a recessed bay at bottom centre-right, vents bottom left/right, and front-facing OSD buttons at the lower-right of the bottom bezel; the blue-strip chassis (B30 by EDID = C305W-2560UN1; also the 2019 C305W-2560UN whose label says P30) has a three-facet back with vertical blue LED strips in the seams and SIX rear-facing OSD buttons on the lower rear corner that corresponds to the monitor's right-hand edge as viewed from the front - on a left-hand B30 that is the inner edge, so anything wrapping the rear of that edge low down will collide with the buttons. Both have speaker slots in the bottom bezel and a wider bottom bezel than sides/top; side bezels are 'edgeless' style (thin plastic lip plus inactive panel border). Where a clip could grip, given the above: (1) over the top and bottom edges near the seam, where the housing is thinnest and no buttons/ports live at the top (the bottom bezel carries buttons on the P30 lower-right and speaker slots on both); (2) adhesive/VHB pads on the rear shell wings near the inner edge, which is how every existing commercial and printed connector attaches (ScreenBuddy magnet-hinge, Amazon hinge clips) - the rear wing surfaces are smooth but curved and faceted, so pads need to follow the local surface; (3) a bridge between the two 75x75 X-plates/stand necks, which is the only flat, metal, screw-referenced feature on either monitor. Both stands are tilt-only with published ranges that disagree page-to-page (F1-F5 / B10), so the connector must also equalise tilt or the seam will scissor top-to-bottom. All mm figures for edge thickness, bezel widths, rear taper angle, and button/port positions must be caliper-measured on the user's units; the two published depths differ by 15 mm and the user's P30 could be either housing generation.",
+  "unknowns": [
+   "Which physical chassis each name refers to: 'B30' and 'P30' are EDID names shown by the OS (B30 -> SPT0BC2 100 Hz = C305W-2560UN1; P30 -> SPT0BCC 200 Hz = C305B-200UN family), but Sceptre's photo of the 2019 C305W-2560UN shows a rear label 'Model : P30' while its EDID says 'C305W-2560UN'. Ask the user: max refresh (100 vs 200 Hz), LED colour/shape on the back (blue vertical strips vs red V), stand shape (oval ring vs V/tripod), and where the OSD buttons are (rear vs front).",
+   "Exact P30 suffix (C305B-200UN / -200UN1 / -200UNT / -200UN1T / -200UN1T.1): not resolvable from the name; the rear label or box gives it.",
+   "Housing depth at the side edges (mm), rear-cover taper angle, rim/lip thickness, and bezel widths (side, top, bottom) in mm: not published anywhere; only 'Ultra Slim', 'Edgeless', and DisplayNinja's '1/4 in black border'.",
+   "Published overall depth conflicts: 4.3 in (109 mm) on the C305B-200UN/-200UNT/-200UN1T.1/C308B spec pages and manuals vs 3.69 in (94 mm) on the C305B-200UN1/-200UN1T/C305W-2560UN1 pages and 3.74 in on C305W-2560UN; unknown whether this is two housings or two measuring conventions.",
+   "Whether Sceptre's 27.8 in width is the chord or the arc length; changes the per-side margin between 7.9 and 10.0 mm.",
+   "Exact positions (from the inner edge) of the rear OSD button row (blue-strip chassis), the downward port bay, the vent grilles, and the speaker slots - only qualitative from photos.",
+   "Tilt ranges: published as B10/F3, F5/B10, F10/B3, and B10/F1 across Sceptre pages and manuals; actual range on each unit unknown; both are tilt-only and must be matched for a flush seam.",
+   "Dimensions of Sceptre's X-shaped VESA adapter plate and the depth of the stand-mount recess: not published (spec PDF has a photo only).",
+   "Whether the two panels' inner edges can physically touch: the housing's outermost side surface (plastic lip vs glass edge) is not described, and the 1800R geometry means the edges meet at ~157.5 deg included angle only if both monitors share one arc centre.",
+   "No Sceptre-specific or curved-monitor-specific connector design exists to copy; all found designs assume flat backs (adhesive) or straight top/bottom edges (clips); none states a monitor-thickness range for a 30 in curved unit.",
+   "Amazon product-detail tables, Walmart pages, displayspecifications.com, MakerWorld, Printables, Thingiverse, MyMiniFactory and YouTube were blocked (403/bot check) for direct fetch; their contents are cited from search snippets only.",
+   "The C305B-FUN200W/FUN200W1 'Nebula' 30 in models are 1500R with a height-adjustable stand and 4.79 in depth; excluded because the user states 1800R, but confirm the user's P30 is not white/Nebula."
+  ]
+ }
+]

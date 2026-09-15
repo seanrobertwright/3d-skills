@@ -107,3 +107,24 @@ exists to catch.
 
 **Approve.** Finding 1 is the one to revisit if the grandfather set is ever
 touched; the rest are accepted with reasons recorded.
+
+## Addendum, 2026-09-15: the ruler fixes committed alongside this slice
+
+Reviewed the working-tree diff to `measure.py`, `printability.py`, `dfm.py` and the
+four test files before commit.
+
+- **Ring-count bisection** (`measure.py`): the count check runs before the area
+  check, so a transition that changes both is bisected on count, which is the
+  discrete and therefore unambiguous signal. Accepted.
+- **Grazing-exit filter** (`printability.py`): the threshold is a named constant
+  with its derivation in the comment, and two tests pin the boundary from both
+  sides (a 45° knife edge is still reported; a 90° corner is not). The discard
+  count is surfaced in the report string rather than silently dropped. Accepted.
+- **Bridge exclusion from overhangs** (`printability.py`, `dfm.py`): the threshold
+  comes from `profiles/dfm-rules.json`'s cited `max_bridge_mm`, not from Python,
+  so `dfm.py` still holds no threshold of its own. `_bridge_patches` is shared by
+  both callers rather than duplicated. Accepted.
+- **Low**: `printability.py`'s module docstring is not updated for the new
+  keyword argument. Accepted as-is; the function docstring is.
+
+No finding blocks. The mutation suite is unchanged at 30 and still 20/20.

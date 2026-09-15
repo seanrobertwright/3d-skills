@@ -65,6 +65,14 @@ DEFAULT_MIN_BORE_D_MM = 2.0
 # samples that is ~4 expected hits and a real chance of seeing none at all, which would report a
 # thin pin as absent rather than as thin. 6000 makes the miss probability negligible.
 DEFAULT_FEATURE_SAMPLES = 6000
+# An inward ray's first exit is only a thickness if it leaves through a face that *faces* the
+# ray. Measured on a domed badge (models/wrx-badge): samples on a 1.5mm rim whose top tilts 10
+# degrees exited through the adjacent 1mm inner wall at 80 degrees to the ray and reported 0.003mm
+# on a part whose thinnest wall is 1.5mm -- eleven such samples in 3000, every one of them a
+# corner, and two DFM BLOCKERs on a part that prints. The exit face's normal must be within 60
+# degrees of the ray: cos(60) = 0.5. A wedge of interior angle t exits at cos(t), so a 45-degree
+# knife-edge flare (0.71) is still a thin feature and a 90-degree corner (0.0) is not.
+GRAZING_EXIT_COS = 0.5
 # Downward faces within this many degrees of horizontal are bridging rather than sloping.
 BRIDGE_ANGLE_DEG = 80.0
 _PLATE_TOL = 1e-6
@@ -81,6 +89,7 @@ class WallReport:
     samples: int
     hits: int
     threshold_mm: float = DEFAULT_MIN_WALL_MM
+    grazing: int = 0  # exits discarded for leaving through a face the ray only grazed
 
     @property
     def flag(self) -> bool:
@@ -90,7 +99,7 @@ class WallReport:
         return (
             f"min_wall  min {self.min_mm:.3f} / p1 {self.p1_mm:.3f} / "
             f"median {self.median_mm:.3f} mm"
-            f"   ESTIMATE ({self.hits}/{self.samples} rays hit)"
+            f"   ESTIMATE ({self.hits}/{self.samples} rays hit, {self.grazing} grazing discarded)"
         )
 
 
@@ -273,9 +282,16 @@ def _on_build_plate(mesh: trimesh.Trimesh) -> np.ndarray:
 
 
 def overhang_histogram(
-    mesh: trimesh.Trimesh, threshold_deg: float = DEFAULT_OVERHANG_THRESHOLD_DEG
+    mesh: trimesh.Trimesh,
+    threshold_deg: float = DEFAULT_OVERHANG_THRESHOLD_DEG,
+    bridging_span_mm: float | None = None,
 ) -> OverhangReport:
-    """Area-weighted overhang histogram, binned from vertical."""
+    """Area-weighted overhang histogram, binned from vertical.
+
+    With ``bridging_span_mm`` given, a near-horizontal downward patch no wider than it is a
+    bridge and is left out: it is :func:`bridge_spans`'s to judge. Without it every ceiling is
+    the worst-case overhang, which is what the histogram's inclusive top bin exists to keep.
+    """
     if len(mesh.faces) == 0:
         raise ValueError("cannot measure overhangs on a mesh with no faces")
 
@@ -283,6 +299,15 @@ def overhang_histogram(
     areas = mesh.area_faces
     on_plate = _on_build_plate(mesh)
     candidate = ~on_plate
+    if bridging_span_mm is not None:
+        # A near-horizontal ceiling narrow enough to bridge is a bridge, not an overhang: the
+        # nozzle throws it across in one move and it is judged by max_bridge. Measured on
+        # models/wrx-badge: two Ø2.9 blind pin holes read as a 90-degree overhang BLOCKER in
+        # every material while bridge_spans reported 2.9 mm against a 5 mm limit. A ceiling
+        # *wider* than the span stays an overhang, which is what it is.
+        for faces, span in _bridge_patches(mesh, BRIDGE_ANGLE_DEG):
+            if span.span_mm <= bridging_span_mm:
+                candidate[faces] = False
 
     bins: list[tuple[float, float, float]] = []
     for lo, hi in zip(_BIN_EDGES[:-1], _BIN_EDGES[1:], strict=True):
@@ -322,6 +347,12 @@ def min_wall(
     Sampling means this is an estimate and is reported as one. It is deliberately *not* a Tier 1
     measurement: a wall that a ray never happens to cross is a wall this cannot see.
 
+    An exit is only counted if the ray leaves through a face that faces it (within 60 degrees,
+    :data:`GRAZING_EXIT_COS`). Without that, every raised feature whose top is not exactly
+    horizontal reports the corner between its top and its side as a wall of a few microns -- see
+    the constant's note for the measured case. The knife-edge exception is deliberate: a wedge
+    sharper than 60 degrees still exits facing the ray and is still reported thin.
+
     The same rays measure *positive* features as well as walls -- the inward distance from a pin's
     surface is the pin's own thickness -- so :func:`min_feature_size` is this function at a higher
     sample count rather than a second implementation of the ray cast. ``p1_mm`` is carried
@@ -341,14 +372,21 @@ def min_wall(
     origins = points - normals * eps
     directions = -normals
 
-    locations, index_ray, _tri = mesh.ray.intersects_location(
+    locations, index_ray, index_tri = mesh.ray.intersects_location(
         ray_origins=origins, ray_directions=directions, multiple_hits=False
     )
     if len(index_ray) == 0:
         raise ValueError("no inward ray hit anything; the mesh is probably not closed")
 
     distances = np.linalg.norm(locations - origins[index_ray], axis=1)
-    distances = distances[distances > eps * 10]
+    real = distances > eps * 10
+    # A ray that leaves through a face it only grazes has measured a corner, not a wall: the
+    # sample sat within a fraction of a millimetre of a convex edge and the exit face is the
+    # *other* side of that edge. Keep exits whose face turns toward the ray (GRAZING_EXIT_COS).
+    exit_cos = np.einsum("ij,ij->i", directions[index_ray], mesh.face_normals[index_tri])
+    facing = exit_cos >= GRAZING_EXIT_COS
+    grazing = int((real & ~facing).sum())
+    distances = distances[real & facing]
     if len(distances) == 0:
         raise ValueError("every inward ray hit its own origin; the mesh is degenerate")
 
@@ -359,6 +397,7 @@ def min_wall(
         samples=int(samples),
         hits=int(len(distances)),
         threshold_mm=float(threshold_mm),
+        grazing=grazing,
     )
 
 
@@ -395,32 +434,42 @@ def bridge_spans(
     if len(mesh.faces) == 0:
         raise ValueError("cannot measure bridges on a mesh with no faces")
 
+    spans = [span for _faces, span in _bridge_patches(mesh, angle_deg)]
+    spans.sort(key=lambda s: (-s.span_mm, -s.area))
+    return BridgeReport(spans=spans, threshold_mm=float(threshold_mm), angle_deg=float(angle_deg))
+
+
+def _bridge_patches(mesh: trimesh.Trimesh, angle_deg: float) -> list[tuple[np.ndarray, BridgeSpan]]:
+    """Connected patches of near-horizontal downward faces, each with its span, as (faces, span).
+
+    Shared by :func:`bridge_spans`, which reports them, and :func:`overhang_histogram`, which
+    needs to know which faces they are so a bridge is not also scored as an overhang.
+    """
     ang = _face_angles_from_vertical(mesh)
     selected = (ang >= angle_deg) & ~_on_build_plate(mesh)
     index = np.flatnonzero(selected)
-    spans: list[BridgeSpan] = []
-    if len(index):
-        adjacency = mesh.face_adjacency
-        if len(adjacency):
-            internal = selected[adjacency[:, 0]] & selected[adjacency[:, 1]]
-            edges = adjacency[internal]
-        else:
-            edges = np.zeros((0, 2), dtype=np.int64)
-        groups = trimesh.graph.connected_components(edges, nodes=index, min_len=1)
-        for group in groups:
-            tris = mesh.triangles[np.asarray(group, dtype=np.int64)]
-            dx = float(tris[:, :, 0].max() - tris[:, :, 0].min())
-            dy = float(tris[:, :, 1].max() - tris[:, :, 1].min())
-            spans.append(
-                BridgeSpan(
-                    span_mm=min(dx, dy),
-                    long_mm=max(dx, dy),
-                    area=float(mesh.area_faces[np.asarray(group, dtype=np.int64)].sum()),
-                    z=float(tris[:, :, 2].mean()),
-                )
-            )
-    spans.sort(key=lambda s: (-s.span_mm, -s.area))
-    return BridgeReport(spans=spans, threshold_mm=float(threshold_mm), angle_deg=float(angle_deg))
+    patches: list[tuple[np.ndarray, BridgeSpan]] = []
+    if len(index) == 0:
+        return patches
+    adjacency = mesh.face_adjacency
+    if len(adjacency):
+        internal = selected[adjacency[:, 0]] & selected[adjacency[:, 1]]
+        edges = adjacency[internal]
+    else:
+        edges = np.zeros((0, 2), dtype=np.int64)
+    for group in trimesh.graph.connected_components(edges, nodes=index, min_len=1):
+        faces = np.asarray(group, dtype=np.int64)
+        tris = mesh.triangles[faces]
+        dx = float(tris[:, :, 0].max() - tris[:, :, 0].min())
+        dy = float(tris[:, :, 1].max() - tris[:, :, 1].min())
+        span = BridgeSpan(
+            span_mm=min(dx, dy),
+            long_mm=max(dx, dy),
+            area=float(mesh.area_faces[faces].sum()),
+            z=float(tris[:, :, 2].mean()),
+        )
+        patches.append((faces, span))
+    return patches
 
 
 def footprint(

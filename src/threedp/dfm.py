@@ -339,7 +339,10 @@ def evaluate(
             )
 
     overhangs = printability.overhang_histogram(
-        mesh, threshold_deg=float(record["max_overhang_deg"]["value"])
+        mesh,
+        threshold_deg=float(record["max_overhang_deg"]["value"]),
+        # a ceiling this material can bridge is scored by max_bridge_mm, not as an overhang
+        bridging_span_mm=float(record["max_bridge_mm"]["value"]),
     )
     add("max_overhang_deg", overhangs.max_deg)
 
