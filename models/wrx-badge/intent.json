@@ -1,0 +1,157 @@
+{
+  "holds": "rear trunk badge for a 2015-2021 WRX: 127 x 63.5 ellipse, 4.0 thick at the edge, face domed 3.0 (ellipsoidal, same rise all round), 1.5-wide rim and traced 'kate made' graphic both 1.0 proud of the curved face, flat back. The dome rise and the relief are freeform claims the ruler cannot verify and are stated here, not asserted. Two blind pin holes in the back at x = +/-50 (100 c-c, user-measured on the trunk), 2.9 dia x 2.0 deep with flat ceilings, taking the tang of a separate pin. The ceilings are 2.9 mm bridges; the overhang ruler scores any ceiling at 90 degrees, so they are asserted by area, not angle",
+  "asserts": [
+    {
+      "badge_width": [
+        126.5,
+        127.5
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "bbox_x"
+      },
+      "note": "FastWRX lists the 2015-2021 center trunk badge as about 5 in wide; the outer ellipse is the widest thing on the part"
+    },
+    {
+      "badge_height": [
+        63.0,
+        64.0
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "bbox_y"
+      },
+      "note": "about 2 1/2 in tall, same listing; the outer ellipse is the tallest thing on the part"
+    },
+    {
+      "overall_height": [
+        7.9,
+        8.05
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "bbox_z"
+      },
+      "note": "edge 4.0 + crown rise 3.0 + relief 1.0 = 8.0 at the apex. The apex falls in the gap between the two words, so the highest letter corner sits a few hundredths below it. A flat face reads 5.0, a dome with no relief 7.0, relief stacked twice 9.0 -- this one number separates all four"
+    },
+    {
+      "solid_volume": [
+        35700.0,
+        null
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "volume"
+      },
+      "note": "elliptical slab 25335 + ellipsoidal cap 9529 (pi*A*B*h^2*(3C-h)/(3C^2)) + rim about 442 = 35306 mm3 with NO graphic; the letters add about 899 (traced). Floor is body + rim + half the letters, so a badge whose graphic did not trace, or whose dome is missing (-9529), measures below it"
+    },
+    {
+      "watertight": [
+        1.0,
+        1.0
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "watertight"
+      },
+      "note": "three ellipsoid intersections unioned; a failed boolean leaves an open shell that does not slice"
+    },
+    {
+      "unsupported_area": [
+        0.0,
+        14.0
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "unsupported_area",
+        "threshold_deg": 45.0
+      },
+      "unit": "mm2",
+      "note": "the only downward faces past 45 degrees are the two \u00d82.9 hole ceilings, 2 x 6.61 = 13.2 mm2, which print as bridges. Anything above that is a real overhang: a dome gone concave, a letter undercut, a roof that should not exist"
+    },
+    {
+      "thinnest_feature": [
+        1.4,
+        null
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "sampled_min_wall",
+        "samples": 3000
+      },
+      "tier": 2,
+      "note": "the 1.5 mm rim is the thinnest deliberate feature; the font's hairline slits in 'a' and 'd' read thinner and are a property of the graphic, not a defect. Sampled, so ESTIMATE"
+    },
+    {
+      "pin_hole_d_left": [
+        2.85,
+        2.95
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "cylinder_diameter",
+        "at": [
+          -50,
+          0
+        ],
+        "rank": "smallest"
+      },
+      "note": "press fit for a 3.0 tang; the hole is placed by the trunk's 100 mm centre-to-centre, user-measured, so an absent or misplaced hole FAILs here"
+    },
+    {
+      "pin_hole_d_right": [
+        2.85,
+        2.95
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "cylinder_diameter",
+        "at": [
+          50,
+          0
+        ],
+        "rank": "smallest"
+      }
+    },
+    {
+      "pin_hole_depth": [
+        1.95,
+        2.05
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "cylinder_depth",
+        "at": [
+          50,
+          0
+        ],
+        "rank": "smallest"
+      },
+      "note": "a flat ceiling is a plane transition, so this reads exactly on the mesh path too; a conical roof was tried and the Z-scan could not locate where its taper began. 2.0 leaves 3.15 mm of body above the ceiling at x = 50"
+    },
+    {
+      "pin_hole_count": [
+        2,
+        2
+      ],
+      "source": "user-confirmed",
+      "measure": {
+        "kind": "feature_count",
+        "diameter": [
+          2.5,
+          3.5
+        ]
+      },
+      "note": "exactly two pin holes and nothing else in that diameter band"
+    }
+  ],
+  "golden": {
+    "bbox": [
+      127.0,
+      63.5,
+      8.0
+    ],
+    "volume": 36183.31,
+    "tol_pct": 1.0
+  }
+}

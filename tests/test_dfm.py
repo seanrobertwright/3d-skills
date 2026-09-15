@@ -373,3 +373,40 @@ def test_a_squat_part_produces_no_aspect_ratio_finding(plate_mesh):
     assert "max_aspect_ratio" not in {
         f.rule for f in dfm.evaluate(plate_mesh, "PLA_generic").findings
     }
+
+
+def test_a_domed_rim_produces_no_min_wall_finding(tilted_ring_mesh):
+    """The false-positive detector for the grazing-exit filter, at the DFM layer.
+
+    A 1.5mm ring with a tilted top is a printable feature. Before ``GRAZING_EXIT_COS`` this read
+    0.003mm and produced two BLOCKERs, which refuses a part that prints -- and a verifier that
+    refuses parts that print is a slower route to the same place as having no verifier.
+    """
+    report = dfm.evaluate(tilted_ring_mesh, "PLA_generic", part="tilted-ring")
+    blockers = {f.rule for f in report.findings if f.severity == "BLOCKER"}
+    assert "min_wall_mm" not in blockers
+    assert "min_feature_mm" not in blockers
+
+
+def test_a_bridgeable_ceiling_is_judged_by_the_bridge_rule_not_the_overhang_rule():
+    """A blind Ø2.9 pin hole printed face-up has a 2.9 mm ceiling. In PETG that is inside the
+    5 mm bridge limit, so it must not be a max_overhang BLOCKER -- and a 12 mm ceiling must be,
+    because a ceiling too wide to bridge is exactly an overhang."""
+    from build123d import Align, Box
+
+    from threedp import features
+
+    bottom = (Align.CENTER, Align.CENTER, Align.MIN)
+
+    def block(width):
+        return features._tessellate(
+            Box(30.0, 30.0, 10.0, align=bottom) - Box(width, width, 2.0, align=bottom)
+        )
+
+    narrow = dfm.evaluate(block(2.9), "PETG_generic", part="narrow-ceiling")
+    assert "max_overhang_deg" not in {f.rule for f in narrow.findings if f.severity == "BLOCKER"}
+
+    wide = dfm.evaluate(block(12.0), "PETG_generic", part="wide-ceiling")
+    rules = {f.rule: f.severity for f in wide.findings}
+    assert rules.get("max_overhang_deg") == "BLOCKER"
+    assert rules.get("max_bridge_mm") == "WARNING"

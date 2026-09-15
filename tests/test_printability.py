@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 import pytest
-from conftest import PLATE, build_overhang_cone
+from conftest import PLATE, TILTED_RING, build_overhang_cone
 
 from threedp import features, printability
 
@@ -279,3 +279,90 @@ def test_an_axis_aligned_bore_is_still_reported(plate_mesh):
     assert r.tilted == 0
     assert len(r.diameters) == 2
     assert r.min_mm == pytest.approx(PLATE["hole_d"], abs=0.05)
+
+
+# --- grazing exits -------------------------------------------------------------------------
+
+
+def test_min_wall_does_not_read_a_tilted_corner_as_a_wall(tilted_ring_mesh, monkeypatch):
+    """A raised ring whose top tilts 10.8 degrees: the thinnest wall is the ring, 1.5mm.
+
+    Measured on models/wrx-badge before the exit-angle filter existed: samples on the rim top
+    exited through the adjacent 1mm inner wall at 80 degrees to the ray and reported 0.003mm, two
+    DFM BLOCKERs on a part that prints. The second half of this test disables the filter and
+    asserts the artefact comes back, so the filter is proven to be what holds the number up.
+    """
+    r = printability.min_wall(tilted_ring_mesh, samples=3000)
+    assert r.min_mm == pytest.approx(TILTED_RING["width"], abs=0.06)
+    assert r.grazing > 0
+
+    monkeypatch.setattr(printability, "GRAZING_EXIT_COS", -1.0)
+    unfiltered = printability.min_wall(tilted_ring_mesh, samples=3000)
+    assert unfiltered.min_mm < 0.5, "the corner artefact should be visible with the filter off"
+    assert unfiltered.grazing == 0
+
+
+def test_min_wall_still_reports_a_knife_edge():
+    """A 45-degree flare meeting its own top face: a wedge sharper than 60 degrees exits
+    *facing* the ray (cos 0.71) and must still read as the sliver it is."""
+    from build123d import Align, Box, BuildPart, Cone, Locations
+
+    with BuildPart() as p:
+        Box(60.0, 40.0, 10.0)
+        with Locations((0, 0, 5.0)):
+            Cone(
+                bottom_radius=2.0,
+                top_radius=8.0,
+                height=6.0,
+                align=(Align.CENTER, Align.CENTER, Align.MIN),
+            )
+    r = printability.min_wall(features._tessellate(p.part), samples=3000)
+    assert r.min_mm < 0.3
+
+
+def test_min_wall_still_reports_a_thin_fin():
+    """The filter must not swallow a genuine 0.5mm wall: its sides face each other squarely."""
+    from build123d import Align, Box, BuildPart, Locations
+
+    with BuildPart() as p:
+        Box(60.0, 40.0, 10.0)
+        with Locations((0, 0, 5.0)):
+            Box(20.0, 0.5, 8.0, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    r = printability.min_wall(features._tessellate(p.part), samples=3000)
+    assert r.min_mm == pytest.approx(0.5, abs=0.02)
+
+
+# --- bridges are not overhangs -------------------------------------------------------------
+
+
+def _block_with_ceiling(width: float):
+    """A 30x30x10 block with a blind square pocket from the bottom, ``width`` across, 2 deep."""
+    from build123d import Align, Box, Location
+
+    bottom = (Align.CENTER, Align.CENTER, Align.MIN)
+    return Box(30.0, 30.0, 10.0, align=bottom) - Box(width, width, 2.0, align=bottom).move(
+        Location((0, 0, 0))
+    )
+
+
+def test_a_ceiling_is_an_overhang_unless_told_the_bridge_span():
+    """Default behaviour is unchanged: a ceiling is the worst-case overhang, 90 degrees."""
+    mesh = features._tessellate(_block_with_ceiling(2.9))
+    assert printability.overhang_histogram(mesh).max_deg == pytest.approx(90.0)
+
+
+def test_a_ceiling_within_the_bridge_span_is_not_an_overhang():
+    """Measured on models/wrx-badge: two Ø2.9 pin-hole ceilings were a 90-degree BLOCKER in
+    every material while ``bridge_spans`` put them at 2.9 mm against a 5 mm PETG limit."""
+    mesh = features._tessellate(_block_with_ceiling(2.9))
+    r = printability.overhang_histogram(mesh, bridging_span_mm=5.0)
+    assert r.max_deg < 45.0
+    assert r.unsupported_area == 0.0
+
+
+def test_a_ceiling_wider_than_the_bridge_span_stays_an_overhang():
+    mesh = features._tessellate(_block_with_ceiling(12.0))
+    assert printability.overhang_histogram(mesh, bridging_span_mm=5.0).max_deg == pytest.approx(
+        90.0
+    )
+    assert printability.bridge_spans(mesh).max_span_mm == pytest.approx(12.0, abs=0.05)

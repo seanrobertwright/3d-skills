@@ -1,0 +1,887 @@
+[
+ {
+  "name": "monitor-seam-h-clip (top-corner H-sleeve for the Sceptre B30 / P30 seam)",
+  "summary": "A single-piece H-section sleeve that drops onto the top inner corners of both monitors at the seam. In plan it is an H: a 1.6 mm front web that lies on the outer 5 mm of each bezel (well inside the ~6.4-8.1 mm dead border) and visually closes the seam, a 1.6 mm spine that sits in the seam between the two parallel inner side faces, and a 2.4 mm rear web that reaches 12 mm onto the plain outer slab of each rear cover. The two slots are different widths -- each is that monitor's caliper-measured edge depth plus 0.3 mm -- and the rear web steps between them so the FRONT faces stay flush. A 3 mm cap closes the top of the H and rests on both monitors' top edges: it is the positive stop that sets the height, carries the part's weight, and is the face that prints on the bed. Designed for the continuous-arc arrangement (both monitors on one 1800R circle, tangents matching at the seam, sagitta across the part 0.046 mm); if the user has toed the monitors in toward a desk-distance seat the seam is a 12 mm rear wedge and this concept is wrong -- that is the first thing to confirm. No hardware. Every edge dimension is currently a PLACEHOLDER from Sceptre's renders and must be replaced by caliper readings before anything prints; the first print is a 15 mm tall slice of the same model to prove both fits.",
+  "how_it_attaches": "Slip-on from above, held by gravity and geometry, no adhesive and no screws. The user sets both stands to the same tilt, brings the two inner side faces together (spine gap 1.6 mm), then lowers the clip onto the top-inner corners until the cap lands on both top edges. The front web hooks over the bezel rims (5 mm reach, 1.6 mm proud of the glass), the spine drops into the seam, and the rear web bears on the rear covers 12 mm in from each edge. Each slot is a 0.3 mm slip fit on its own monitor's edge depth, so the clip constrains the two inner edges to within 0.3 mm front-to-back (flush faces), fixes the seam gap in X, and levels the two top edges in Z; the 60 mm of web running down the edge gives it the moment arm to resist one monitor tipping (tilt mismatch) or yawing relative to the other. It is deliberately at the TOP corner only: the left monitor (B30, blue-strip chassis) carries its six rear OSD buttons at the lower rear corner of its right-hand edge, which is the inner edge, so a bottom clip on that side would foul them until the button positions are mapped. Nothing else is near the top-inner corners: the P30's OSD keys are under the chin at its outer end, the LED wings are ~175 mm in, the port bays are at centre-right. Unlike every commercial curved-monitor connector found (all adhesive on the rear shell or VESA-neck bridges), this indexes on the edges and can be lifted off.",
+  "geometry_sketch": "Model frame = print frame. Z runs along the monitor edge, INVERTED relative to use: z = 0 is the cap's top face (the bed), z = H is the open end of the slots that goes on first. X runs across the seam, left monitor at -X, right at +X, x = 0 on the spine centreline. Y runs front to back, y = 0 on the front web's outer face.\n\nCAP (z from 0 to CAP_T = 3.0, my-choice): a flat slab whose plan is the union of two rectangles -- left: x from -(SPINE_T/2 + REAR_REACH) = -12.8 to 0, y from 0 to DEPTH_L; right: x from 0 to +12.8, y from 0 to DEPTH_R -- where DEPTH_side = FRONT_WEB_T + SLOT_W_side + REAR_WEB_T (derived, 26.3 with placeholders). When the two depths differ the cap's back edge steps at x = 0. Its underside at z = CAP_T is the floor of both slots (two horizontal planes, one per side, at the same z).\n\nWEBS (z from CAP_T to H = 60.0, my-choice), all pure Z-extrusions, all faces vertical:\n- FRONT WEB: x from -(SPINE_T/2 + FRONT_REACH) = -5.8 to +5.8 (FRONT_WIDTH = 11.6 derived), y from 0 to FRONT_WEB_T = 1.6 (my-choice). This is the seam cover; it lies on 5.0 mm (FRONT_REACH, my-choice) of each bezel.\n- SPINE: x from -0.8 to +0.8 (SPINE_T = 1.6, my-choice), y from FRONT_WEB_T to the deeper of the two rear-web back faces. It sits in the seam between the two inner side faces.\n- REAR WEB, left: x from -12.8 to 0 (REAR_REACH = 12.0, my-choice), y from FRONT_WEB_T + SLOT_W_L to that + REAR_WEB_T = 2.4 (my-choice). Right: mirror with SLOT_W_R. Where SLOT_W_L != SLOT_W_R the rear web has a vertical step at x = 0; the front web does not, so the two front faces are held flush.\n- SLOT WIDTHS: SLOT_W_side = D_EDGE_side + CLEARANCE, CLEARANCE = 0.3 (my-choice), D_EDGE_side must-measure (placeholder 22.0 both, an ESTIMATE from renders of 20-25 mm; NOT a print-ready number). Role hole.\n- REAR TAPER: the rear cover thickens away from the edge, so each rear web's inner face is a vertical plane through (x = edge, y = D_EDGE + CLEARANCE) and (x = edge + 12, y = D_IN12 + CLEARANCE); REAR_TAPER_DEG = atan((D_IN12 - D_EDGE) / 12), derived, DEGREES. With placeholders D_IN12 = D_EDGE so the taper is 0 and the face is parallel to the front web.\n- LEAD-IN: a 1.0 mm x 45 deg chamfer (LEADIN, my-choice) on the inner edges of the front and rear webs at z = H, the end that meets the monitor first. In print these faces point UP.\n- Small 45 deg chamfers on the front web's two outer vertical edges to soften the 1.6 mm step off the bezel; vertical edges, DFM-neutral. NO chamfer on the cap's bed-side edges (it would be a downward 45 deg face, over PETG's 40 deg BLOCKER).\n\nDerived envelope with placeholders: WIDTH = SPINE_T + 2 x REAR_REACH = 25.6 (bbox_x, outer); DEPTH = 1.6 + 22.3 + 2.4 = 26.3 (bbox_y, outer); H = 60.0 (bbox_z). Volume: cap 25.6 x 26.3 x 3.0 = 2020 + front web 11.6 x 1.6 x 57 = 1058 + spine 1.6 x 22.3 x 57 = 2034 + rear web 25.6 x 2.4 x 57 = 3502 = 8614 mm^3 (derived, ~11 g PETG; changes with D_EDGE). Sagitta of the 1800R panel across the 11.6 mm front web is 0.009 mm and across the 25.6 mm cap 0.046 mm, so flat planes are correct to within a layer. SEAM_ANGLE_DEG = 0 (my-choice pending confirmation of arrangement A); a non-zero value turns the spine into a wedge and rotates the right-hand slot in plan -- still a Z-extrusion, so printability is unchanged, but bbox_x becomes a trig-derived number.",
+  "parameters": [
+   {
+    "name": "D_EDGE_L",
+    "value_mm": 22,
+    "role": "hole",
+    "origin": "must-measure",
+    "note": "PLACEHOLDER, ESTIMATE from Sceptre renders (20-25 mm). Left monitor (B30), its right-hand = inner edge: housing depth front rim to rear cover at the very edge, within the top 60 mm. Sets SLOT_W_L. Do not print until replaced."
+   },
+   {
+    "name": "D_IN12_L",
+    "value_mm": 22,
+    "role": "hole",
+    "origin": "must-measure",
+    "note": "PLACEHOLDER. Same edge, caliper jaws slid 12 mm in from the edge. With D_EDGE_L it sets the rear web's taper; placeholder equal to D_EDGE_L means zero taper."
+   },
+   {
+    "name": "D_EDGE_R",
+    "value_mm": 22,
+    "role": "hole",
+    "origin": "must-measure",
+    "note": "PLACEHOLDER, ESTIMATE from renders (15-25 mm near the top). Right monitor (P30), its left-hand = inner edge. Sets SLOT_W_R. The P30 is a different chassis from the B30; assume nothing carries over."
+   },
+   {
+    "name": "D_IN12_R",
+    "value_mm": 22,
+    "role": "hole",
+    "origin": "must-measure",
+    "note": "PLACEHOLDER. P30 inner edge, 12 mm in. Sets REAR_TAPER_R_DEG."
+   },
+   {
+    "name": "BEZEL_L",
+    "value_mm": 8.1,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "ESTIMATE (706.6-690.4)/2; reviewer figure for the sibling is ~6.35. Housing side face to first lit pixel on the B30's inner edge. Check only, not a geometry input: FRONT_REACH must be <= BEZEL - 1.0 or the front web covers pixels."
+   },
+   {
+    "name": "BEZEL_R",
+    "value_mm": 8.1,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "ESTIMATE, same derivation for the P30 (retailer 8.0, reviewer ~6.35). Same check."
+   },
+   {
+    "name": "CLEARANCE",
+    "value_mm": 0.3,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Slip fit added to each measured edge depth: caliper +/-0.05, plus PETG_generic calibration is still a published default with measured: null so the print's own error is unmeasured. Holds the edge within 0.3 mm front-to-back without needing a press fit on a plastic housing."
+   },
+   {
+    "name": "SLOT_W_L",
+    "value_mm": 22.3,
+    "role": "hole",
+    "origin": "derived",
+    "note": "D_EDGE_L + CLEARANCE. The left pocket width, front web inner face to rear web inner face at the edge."
+   },
+   {
+    "name": "SLOT_W_R",
+    "value_mm": 22.3,
+    "role": "hole",
+    "origin": "derived",
+    "note": "D_EDGE_R + CLEARANCE. Independent of SLOT_W_L; the rear web steps by the difference."
+   },
+   {
+    "name": "REAR_TAPER_L_DEG",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "DEGREES, not mm. atan((D_IN12_L - D_EDGE_L)/12). Inclination of the left rear web's inner face in plan so it bears on the tapering rear cover along its whole 12 mm reach rather than on one edge line."
+   },
+   {
+    "name": "REAR_TAPER_R_DEG",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "DEGREES, not mm. atan((D_IN12_R - D_EDGE_R)/12)."
+   },
+   {
+    "name": "FRONT_WEB_T",
+    "value_mm": 1.6,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Four 0.4 mm beads (min wall 0.8 BLOCKER, so 2x margin). As thin as prints reliably as a 57 mm tall vertical wall, so the seam cover stands only 1.6 mm proud of the glass."
+   },
+   {
+    "name": "FRONT_REACH",
+    "value_mm": 5,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "How far the front web reaches across each bezel from the housing edge. 1.35 mm short of the smallest bezel figure found (6.35) and 3.1 mm short of the derived 8.1. If a measured BEZEL is below 6.0, drop this to BEZEL - 1.0."
+   },
+   {
+    "name": "SPINE_T",
+    "value_mm": 1.6,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Four beads. Sets the seam gap between the two housings; 1.6 mm added to ~16 mm of dead border already across the seam. Ties front and rear webs together along the full height so the H is stiff rather than two plates hanging from the cap."
+   },
+   {
+    "name": "REAR_WEB_T",
+    "value_mm": 2.4,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Six beads; the stiff, unseen member that takes the clip's bending load."
+   },
+   {
+    "name": "REAR_REACH",
+    "value_mm": 12,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Bears well inside the plain outer 40-60 mm of each rear cover (ESTIMATE from Sceptre's top-down photos), far from the LED wings (~175 mm in) and the port bays. Reduce if the B30's top-edge vent slots turn out to be within 13 mm of the corner."
+   },
+   {
+    "name": "CAP_T",
+    "value_mm": 3,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "The slab on the bed; the stiffest member and the positive stop on the monitors' top edges. 15 layers at 0.2 mm."
+   },
+   {
+    "name": "H",
+    "value_mm": 60,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Length down the edge = the moment arm against tilt and yaw mismatch. Anything up to ~250 fits the 256 mm bed; 60 balances grip against print time. The first print uses H = 15 as a fit slice."
+   },
+   {
+    "name": "LEADIN",
+    "value_mm": 1,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "45 deg chamfer on the slot inner edges at the open end so the clip starts onto the edge. Faces up in print, so the angle is for assembly, not DFM."
+   },
+   {
+    "name": "SEAM_ANGLE_DEG",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "DEGREES, not mm. 0 = continuous 1800R arc, inner side faces parallel. Pending confirmation; a toe-in arrangement at desk distance implies ~27 deg and this concept should be abandoned for a hinge rather than wedging the spine."
+   },
+   {
+    "name": "WIDTH",
+    "value_mm": 25.6,
+    "role": "outer",
+    "origin": "derived",
+    "note": "SPINE_T + 2 x REAR_REACH; the part's bbox_x."
+   },
+   {
+    "name": "DEPTH_L",
+    "value_mm": 26.3,
+    "role": "outer",
+    "origin": "derived",
+    "note": "FRONT_WEB_T + SLOT_W_L + REAR_WEB_T; left-side outer depth."
+   },
+   {
+    "name": "DEPTH_R",
+    "value_mm": 26.3,
+    "role": "outer",
+    "origin": "derived",
+    "note": "FRONT_WEB_T + SLOT_W_R + REAR_WEB_T; right-side outer depth. bbox_y = max(DEPTH_L, DEPTH_R)."
+   },
+   {
+    "name": "FRONT_WIDTH",
+    "value_mm": 11.6,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "SPINE_T + 2 x FRONT_REACH; the visible width of the seam cover."
+   },
+   {
+    "name": "VOLUME_NOMINAL",
+    "value_mm": 8614,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "mm^3, not mm. Cap 2020 + front web 1058 + spine 2034 + rear web 3502 with placeholder edge depths; recompute after measurement. The intent floor sits below it by less than the smallest web so a missing web fails."
+   }
+  ],
+  "must_measure": [
+   "Arrangement check, no caliper: stand the two monitors as you want them and look down the seam from above. If the gap is even from front to back, they are on one arc (SEAM_ANGLE_DEG = 0) and this design applies. If the gap is wedge-shaped, measure it at the front and at the rear with the caliper and report both plus the edge depth; that gives the seam angle and probably means a hinge, not this sleeve.",
+   "D_EDGE_L: on the LEFT monitor (B30), its RIGHT-hand (inner) side edge, 10 mm below the top corner: close the caliper's outside jaws across the housing from the front rim to the rear cover with the jaws no more than 3 mm in from the edge. Read to 0.05 mm. Repeat 55 mm below the top corner. Report both; if they differ by more than 0.3 mm the edge tapers along its height and the slot needs to follow it.",
+   "D_IN12_L: same monitor, same edge, same two heights, but slide the closed jaws 12 mm in from the edge (mark 12 mm with a pencil first). This is the rear cover's taper; the front face's 1800R curvature over 12 mm adds only 0.04 mm and can be ignored.",
+   "D_EDGE_R and D_IN12_R: the same four readings on the RIGHT monitor (P30), its LEFT-hand (inner) side edge. Measure it separately -- it is a different chassis and its published depths disagree with each other by 28 mm.",
+   "BEZEL_L and BEZEL_R: put a full-white image on each screen; lay the caliper flat on the glass with one jaw against the housing's outer side face and read the distance to the first lit pixel, on the inner edge of each monitor. The front web reaches 5.0 mm; each reading must be at least 6.0 or the reach comes down.",
+   "Rim: with the caliper's depth rod, how far the front rim stands proud of the glass at the inner edge on each monitor (expected 1-2 mm). If it is over 2 mm the front web bears on the rim only, which is fine, but say so.",
+   "Top edge, no caliper needed: confirm the top edge is flat and solid for 13 mm in from each inner corner (the B30 has vent slots on its top edge near the ends) and that the top-inner corner radius is small -- hold a coin against it; if the radius looks over 2 mm, report it so the cap gets a matching relief.",
+   "Height match: with both stands set to the tilt you will use, measure or sight whether the two top edges are at the same height at the seam. The cap can absorb well under 1 mm; a bigger offset needs a shim under the shorter stand, not a change to this part."
+  ],
+  "verifiable_assertions": [
+   "Tier 1 -- bbox_x [25.5, 25.7] source user-confirmed: SPINE_T + 2 x REAR_REACH. The rear web is the widest thing on the part; a truncated rear reach or a missing half fails it. Becomes a trig-derived range if SEAM_ANGLE_DEG is ever non-zero.",
+   "Tier 1 -- bbox_y [26.2, 26.4] source user-confirmed: FRONT_WEB_T + max(SLOT_W_L, SLOT_W_R) + REAR_WEB_T. This is the one Tier 1 number that pins a slot width: with the two web thicknesses fixed, the deeper slot cannot be wrong without moving the back face. Range recomputed when D_EDGE is replaced.",
+   "Tier 1 -- bbox_z [59.9, 60.1] source user-confirmed: H. The webs are the tallest thing on the part.",
+   "Tier 1 -- plane_gap between [0, 1] = [2.95, 3.05] source user-confirmed: the gap between the bed plane (cap top face) and the next horizontal plane up, which is the slot floors on the cap's inner side. Proves the cap exists at its thickness and that both slots are open above it; a cap that grew into a slot, or a slot that punched through the cap, changes the plane set. The two floors sit at the same z so they dedupe to one plane; if a step were introduced between them a third plane would appear and the index-2 plane would no longer be the web top.",
+   "Tier 1 -- plane_gap between [1, 2] = [56.9, 57.1]: slot floor to web top, the usable slot length. Structural, so it also fails if the lead-in chamfer is mistakenly drawn as a full-width horizontal step.",
+   "Tier 1 -- volume [8000, null] source user-confirmed: nominal 8614 with placeholders. The floor is above nominal minus the front web (1058) and far above nominal minus the spine (2034), so a missing web or spine fails while normal chamfer losses (~50) pass. Golden bbox/volume go in golden, this floor goes in asserts as a topology claim, open above.",
+   "Tier 1 -- watertight [1, 1]: an H with a cap is four boxes unioned; a failed union leaves an open shell.",
+   "Tier 1 -- unsupported_area [0, 0] at threshold_deg 40 (the PETG rule, tighter than PLA's 45): every face is a Z-extrusion, the bed face is excluded, the lead-in chamfers face up. Any area at all is a modelling error such as a chamfer put on the bed-side edge or a rear-web step drawn as a slope.",
+   "Tier 1 -- max_overhang_deg [0, 5]: all walls vertical (0 deg from vertical). Same failure modes as above, reported as an angle.",
+   "Tier 1 -- dfm_violation_count [0, 0] with material PETG_generic, severity BLOCKER: min wall 1.6 vs 0.8, no holes, no overhangs; footprint 673 mm^2 clears the 100 mm^2 WARNING and aspect ratio 60/25.6 = 2.3 clears 8.",
+   "Tier 2 ESTIMATE -- sampled_min_wall [1.5, null], 3000 samples: the front web and spine at 1.6 are the thinnest members; a ray-sampled minimum is an estimate by construction.",
+   "Tier 2, stated in holds but NOT asserted -- SLOT_W_L and SLOT_W_R individually, FRONT_REACH, REAR_REACH and both REAR_TAPER_DEG: all are vertical planes in the print frame and the ruler measures horizontal planes and Z-cylinders only. bbox_y pins the deeper slot; the shallower slot's width and the rear taper are verified physically by the 15 mm fit slice on the monitors, not by the ruler.",
+   "Tier 2 -- the fit itself (0.3 mm clearance on a plastic housing) and the assumption that the rear cover is a plane over the 12 mm reach: claims about the monitors, which the ruler cannot see. The fit slice is the check.",
+   "Not verifiable here -- pixel coverage (FRONT_REACH <= BEZEL - 1): a claim about the monitor, gated by the user's BEZEL readings before geometry, exactly as a counterbore is checked against head_h before geometry."
+  ],
+  "print_orientation_and_dfm": "Print cap-down, inverted relative to use: the 25.6 x 26.3 mm cap is the bed face and the three webs rise 57 mm vertically from it, so the model's Z is the print Z and the DFM measurements are taken on the print orientation. Every wall is a pure Z-extrusion: 0 deg from vertical on the front web, spine, rear web, the rear-web step at x = 0 and the cap's L-shaped back edge. The only downward face is the bed face, which the overhang ruler excludes. The 1.0 mm lead-in chamfers are at the top of the print and face up; the chamfers on the front web's outer edges are on vertical edges. No bridges: the slots are open at the top of the print, the slot floors are the cap's upward-facing inner side, and nothing spans air. No supports, no brim (673 mm^2 footprint, aspect ratio 2.3). Deliberately omitted: a chamfer or fillet on the cap's bed-side outer edges, because on the bed side it would be a downward 45 deg face -- exactly the PLA threshold and over PETG's 40 deg BLOCKER -- for a cosmetic gain; the cap's top edge is the one visible from the front, so if the user wants it softened it goes in as a vertical-edge chamfer on the cap's X-facing sides instead. Elephant's foot on the cap perimeter is cosmetic and touches no fit. The 1.6 mm webs are four 0.4 mm beads at 57 mm tall in PETG: short layer times on a small part, so the slicer's minimum layer time matters more than any geometry here. Sequence: print H = 15 first (same model, ~3 g), try it on both corners, adjust D_EDGE/CLEARANCE, then print H = 60.",
+  "risks": [
+   "Every edge-depth number is a placeholder read off product renders, and Sceptre's own pages disagree about the same housing's depth by 15-28 mm; nothing prints until the eight caliper readings replace them. A confident print from the placeholders is the founding failure this repository exists to refuse.",
+   "The slot widths and rear tapers are vertical planes in the print frame, so the ruler cannot measure them individually; bbox_y pins only the deeper slot. The shallower slot is verified by the fit slice on the monitor, not by intent.json.",
+   "Arrangement assumption: designed for a continuous 1800R arc (inner faces parallel). If the user has toed the monitors toward a desk-distance seat the seam is a ~27 deg wedge (12 mm open at the rear over 26 mm of depth) and this H-clip is the wrong concept; a hinged bridge is.",
+   "Edge depth may change over the 60 mm the clip covers (the housings thicken lower down); a 0.3 mm slip fit absorbs 0.3 mm of taper along Z, no more. Two heights are requested for exactly this reason.",
+   "Rear cover taper across X: if D_IN12 - D_EDGE is large the rear web touches only along its inner edge line unless the taper is modelled; the model does model it, but it rests on two caliper readings 12 mm apart, so the plane is an interpolation.",
+   "Pixel coverage: the 5.0 mm front reach is safe against 6.35 mm and 8.1 mm bezel figures but both are estimates; a measured bezel under 6.0 mm means reducing the reach, and an edgeless panel whose glass runs to the housing edge may have a black border narrower than the housing overhang suggests.",
+   "The B30's top-edge vent slots are described as near each end; if one lies within 13 mm of the inner corner the cap partly covers it. Also, a monitor's top edge over its vents runs warm, which is why PETG (Tg ~80 C) is specified over PLA (Tg ~60 C) despite PLA being stiffer and available in more colours.",
+   "Top-inner corner radius: the cap's inner corner is sharp; a radiused housing corner leaves the cap standing off by up to the radius until a relief is added.",
+   "Height mismatch between stands: the cap needs both top edges within well under 1 mm of each other; the published with-stand heights match (408.9 vs 409.0 mm) but the user's floor and tilt settings decide. The part cannot absorb a height offset.",
+   "Tilt: the clip forces the inner edges coplanar; if the two tilt hinges are set differently the clip is loaded in torsion continuously and PETG creeps. Set tilts equal first and re-check the seam after a week.",
+   "Top corner only: the bottom of the seam is unconstrained because the B30's rear OSD buttons sit at the lower rear corner of its inner edge. A second clip at the bottom needs the button positions measured first.",
+   "The rear web assumes the outermost 40-60 mm of each rear cover is a plain slab; that is read from photos, not measured. If a boss or facet starts inside 12 mm the reach must shrink.",
+   "PETG_generic calibration is still a published default (measured: null) so every compensated export warns; the 0.3 mm clearance is sized to survive an uncalibrated printer, and the fit slice is what actually settles it.",
+   "The only loaded PETG is green and the PLAs are yellow, purple and a blue-ish generic; there is no black filament, so the seam cover will be visible. Material choice and colour are the user's call once the fit is proven."
+  ],
+  "material": "Bambu PETG (profiles/filaments.json AMS slot 3, calibration PETG_generic). Chosen over PLA because the cap sits on the monitors' top edges directly over their exhaust vents, where a PLA part (Tg ~60 C) under a small constant load would creep and a PETG part (Tg ~80 C) will not; the part has no overhangs or bridges, so PETG's tighter 40 deg / 5 mm DFM rules cost it nothing. Every export will carry the PETG_generic measured: null warning, which is passed to the user rather than swallowed; the 0.3 mm slip clearance is sized for that. PLA (slots 0/2 or the external spool) is an acceptable fallback if colour matters more than heat, with the same geometry. PLA-CF (slot 1) is abrasive and excluded. No ABS is loaded and none is needed."
+ },
+ {
+  "name": "Sceptre B30/P30 VESA arc bridge (V-block + two end brackets + seam cover)",
+  "summary": "A three-print structural bridge that hangs both monitors from their 75x75 VESA plates on two short lengths of 2020 aluminium extrusion. The angle between the monitors is fixed by ONE printed centre block behind the seam, whose two bar sockets are set at the arc angle (each rotated THETA = 11.36 deg from the seam's perpendicular, included angle 157.3 deg) so both half-bars lie tangent to the same 1800R arc and the two screens continue one circle. Two identical printed end brackets (VESA plate + U-channel) carry the bars at each monitor; the block's rear face carries four M4 heat-set inserts so a single heavy-duty desk arm holds the whole pair and sets tilt for both at once. A separate thin T-section strip with a keel drops into the 3 mm seam gap from the front and hides the two inactive borders. Stands come off: the VESA recess is where the stand neck lives (Sceptre's manual: remove the stand to expose the indentation for the plate), and a neck-to-neck tie could never fix tilt because both tilt hinges are above the neck. Every part fits the 256 mm bed (brackets 96x96x28.4, block 170x96x30.4, cover 321x18 placed diagonally); the 828 mm span is bought aluminium, not printed, because no printed spar 730 mm long is stiff enough or fits the bed.",
+  "how_it_attaches": "Stands removed from both monitors. Sceptre's shipped X-shaped steel VESA plate is fitted to each recess (published: 75x75, M4x10). One printed END BRACKET (96x96x8 plate with a 20.4 mm U-channel on its rear face) is screwed onto each X-plate through four M4 counterbored clearance holes (parts-db:M4.clearance 4.5, head_d 7.0) using M4 x 14 screws (10 mm published + 3.5 mm web, length to be confirmed against the boss depth). A 414 mm length of 2020 extrusion lies in each bracket channel, parallel to that monitor's VESA plane, retained by two M5 bolts (parts-db:M5.clearance 5.5) through the channel's top wall into drop-in T-nuts in the bar's upper slot. The inner ends of the two bars enter the CENTRE BLOCK's two 75 mm-deep U-sockets, which are angled at +/-THETA so the bars meet in a shallow V whose vertex is 55 mm behind the VESA-face circle at the seam; each socket has the same two M5 wall clamps. The block's flat rear pad carries four M4 heat-set inserts (parts-db:M4-insert hole_d 5.0, length 8.1, min_boss_od 9.0) on a 75x75 pattern for a desk arm / post head rated >= 12 kg; the arm's tilt sets both screens together, so tilt mismatch is impossible by construction. The SEAM COVER is a 321 x 18 x 1.2 strip with a 2.4 x 5 keel that presses into the 3 mm gap between the two housings' inner side faces from the front; the strip lies on the two inactive borders (about 8 mm each, must-measure) and never over pixels. Keep-outs checked from the research: the B30's rear OSD buttons are at its lower inner corner, and the bar and block run at VESA height (screen centre), so they clear; the P30's OSD keys are under the chin at its OUTER end. Ports on both are near the bottom/centre-right and cables route below the bar.",
+  "geometry_sketch": "ARRANGEMENT (continuous arc, chosen): both screens on one 1800R circle with centre C in front of the viewer. \"Each monitor centred on the viewer\" is impossible for two side-by-side panels; the real alternative is a flat butt joint (normals parallel), which breaks the arc and is just THETA_DEG = 0 in this parametrisation. With the housings HOUSING_W = 706.6 wide [must-measure, published 27.82 in] and a deliberate SEAM_GAP = 3.0 at the front face [my-choice], the half-pitch chord is (706.6+3)/2 = 354.8, so THETA_DEG = asin(354.8/1800) = 11.36 deg [derived]; the two centre normals are 22.7 deg apart and the front tangent planes meet at 157.3 deg. Sagitta of each housing over its own chord = 1800 - sqrt(1800^2 - 353.3^2) = 35.0 [derived]. A straight bar joining the two VESA centres (chord 2*1855*sin 11.36 = 730.7) would see a sagitta of 730.7^2/(8*1855) = 36.0 mm at the seam; that is why the bar is split into two tangent halves meeting at the angled block instead of wedging the end brackets. The seam cover spans only 18 mm across the seam, sagitta 18^2/(8*1800) = 0.02 mm, so it is modelled flat. VESA_DEPTH = 55 [must-measure; ESTIMATE from 93.7 published depth minus 35 sagitta minus a few mm of recess], giving R_VESA = 1855 [derived]; bar centreline sits BRK_FLOOR + BAR_W/2 = 18 behind the VESA face, so R_BAR = 1873 [derived]; the two bar centrelines meet on the seam radial at R_BAR/cos(THETA) = 1910.4, i.e. VERTEX_SETBACK = 55.4 behind the R_VESA circle [derived] and roughly 90 behind the housings' thin rear at the seam (EDGE_DEPTH 20-25, must-measure). Distance along each bar from VESA centre to vertex = 1873*tan(11.36) = 376.3 [derived]; BAR_HALF_LEN = 376.3 - 10 (centre web) + 48 (fill the bracket channel to its outer edge) = 414 [derived].\n\nPART 1, END BRACKET (x2 identical, no mirror): square plate BRK_SIZE 96 x 96 [my-choice: 75 pattern + two 9 mm bosses + margin], BRK_FLOOR 8 thick [my-choice]. Four Z-axis through holes VESA_HOLE_D 4.5 [parts-db:M4.clearance, hole] at (+/-37.5, +/-37.5) [VESA_PITCH 75, must-measure on the X-plate], each with a coaxial counterbore VESA_CBORE_D 7.6 [derived: parts-db:M4.head_d 7.0 + 0.6 my-choice, hole] from the rear face down to a floor VESA_WEB 3.5 above the VESA face [my-choice: screw engagement], so VESA_CBORE_DEPTH = 8 - 3.5 = 4.5 [derived, >= head_h 4.0]. On the rear face, a U-channel along X, centred in Y: CH_W = BAR_W 20.0 [must-measure, extrusion] + BAR_CLEAR 0.4 [my-choice] = 20.4 [derived, hole]; walls WALL_T 8 [my-choice] rising CH_DEPTH = 20.4 [derived = CH_W, captures the full bar] to a top at Z = 28.4 [derived]. The holes at |y| = 37.5 lie outside the channel (|y| <= 10.2). Two M5 clamp holes CLAMP_HOLE_D 5.5 [parts-db:M5.clearance, hole] through the +Y wall, horizontal, teardrop-topped at TEARDROP_DEG 40 from vertical [my-choice, under the 45 deg BLOCKER], at x = +/-30 [CLAMP_X, my-choice], centred at Z = CLAMP_Z = 8 + 10 = 18 [derived: the bar's upper slot]. Optional raised 75x75 pad PLATE_PROUD 0 on the VESA face [must-measure: only if the X-plate sits below the recess rim].\n\nPART 2, CENTRE BLOCK (x1, symmetric about the seam plane): rear pad PAD_SIZE 96 x 96 [my-choice] x PAD_T 10 [my-choice, > insert length 8.1] with four Z-axis through holes INSERT_HOLE_D 5.0 [parts-db:M4-insert.hole_d, hole] at (+/-37.5, +/-37.5) [VESA_PITCH]; boss material around each >= 9.0 [parts-db:M4-insert.min_boss_od]. Two channel arms, each a prism ARM_W = 20.4 + 2*8 = 36.4 wide [derived] x BLOCK_H = 10 + 20.4 = 30.4 tall [derived], from the bed up, running from x = +/-10 (centre web CENTRE_WEB 20 [my-choice]) to x = +/-85 [ARM_LEN 85, my-choice], each rotated +/-THETA_DEG about the vertical axis at the vertex, so its U-socket (CH_W 20.4 wide, SOCKET_DEPTH 75 [my-choice] long, floor at Z = 10 coplanar with the pad top, open upward = toward the monitors in use) points toward its monitor's VESA. Block length 170 [derived]. Two M5 teardrop clamp holes per arm through the outer (+Y-use) wall at 58 and 78 from the vertex [my-choice]. Two angle-witness through holes WITNESS_D 3.0 [my-choice, >= min_hole 2.0] in each socket floor at WITNESS_X = 80 [my-choice], WITNESS_Y = 80*tan(THETA) = 16.07 [derived]: their position, not their size, is what verifies the socket angle.\n\nPART 3, SEAM COVER (x1): strip COVER_L = HOUSING_H 321.1 [must-measure] x COVER_W 18 [my-choice: <= 2*BORDER_MIN + SEAM_GAP, never over pixels] x COVER_T 1.2 [my-choice, 6 layers], with a centred keel KEEL_W = SEAM_GAP - 0.6 = 2.4 [derived] x KEEL_H 5.0 [my-choice] full length. Underside steps RIM_STEP_L / RIM_STEP_R 0 [must-measure: rim height above glass on each monitor; the B30 rim is reported proud, the P30 is edgeless].",
+  "parameters": [
+   {
+    "name": "R_SCREEN",
+    "value_mm": 1800,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "User-stated 1800R for both, treated as user-confirmed; not caliper-measurable."
+   },
+   {
+    "name": "HOUSING_W",
+    "value_mm": 706.6,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Published 27.82 in; chord vs arc unresolved (changes THETA by 0.03 deg). Tape across the housing ends."
+   },
+   {
+    "name": "HOUSING_H",
+    "value_mm": 321.1,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Published 12.64 in; sets COVER_L. Measure both monitors, use the shorter."
+   },
+   {
+    "name": "SEAM_GAP",
+    "value_mm": 3,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Deliberate front-face gap between the housings so different bezels never rub and the cover keel has something to locate in."
+   },
+   {
+    "name": "THETA_DEG",
+    "value_mm": 11.36,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "DEGREES, not mm. asin((HOUSING_W+SEAM_GAP)/2 / R_SCREEN). Socket rotation in the block; 0 gives a flat butt joint."
+   },
+   {
+    "name": "SAGITTA_HOUSING",
+    "value_mm": 35,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "1800 - sqrt(1800^2 - 353.3^2). Why the published 93.7 depth is not a housing thickness."
+   },
+   {
+    "name": "VESA_DEPTH",
+    "value_mm": 55,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Glass at screen centre to the X-plate outer face along the centre normal. Placeholder ESTIMATE (93.7 - 35 - recess). Both monitors; they may differ (P30 published 109.2 vs 93.7)."
+   },
+   {
+    "name": "R_VESA",
+    "value_mm": 1855,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "R_SCREEN + VESA_DEPTH."
+   },
+   {
+    "name": "BAR_W",
+    "value_mm": 20,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Actual 2020 extrusion width/height (real profiles 19.8-20.1). Not in parts-db; user-supplied hardware."
+   },
+   {
+    "name": "BAR_CLEAR",
+    "value_mm": 0.4,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Slip fit for an aluminium bar in a PETG channel; refine after the coupon."
+   },
+   {
+    "name": "CH_W",
+    "value_mm": 20.4,
+    "role": "hole",
+    "origin": "derived",
+    "note": "BAR_W + BAR_CLEAR. Channel width in brackets and block. NOT Tier 1 verifiable (vertical-plane gap)."
+   },
+   {
+    "name": "CH_DEPTH",
+    "value_mm": 20.4,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "= CH_W; channel captures the bar's full depth so the walls carry tilt moment."
+   },
+   {
+    "name": "R_BAR",
+    "value_mm": 1873,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "R_VESA + BRK_FLOOR + BAR_W/2: radius of each bar's centreline at its VESA."
+   },
+   {
+    "name": "VERTEX_SETBACK",
+    "value_mm": 55.4,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "R_BAR/cos(THETA) - R_VESA: how far the block vertex sits behind the VESA-face circle at the seam."
+   },
+   {
+    "name": "BAR_HALF_LEN",
+    "value_mm": 414,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "R_BAR*tan(THETA) - CENTRE_WEB/2 + BRK_SIZE/2 = 376.3 - 10 + 48. Cut two from a 1 m length."
+   },
+   {
+    "name": "BRK_SIZE",
+    "value_mm": 96,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "75 pattern + 2 x 9 mm boss + margin; must clear the recess rim, ports and the B30 rear OSD row (must-measure)."
+   },
+   {
+    "name": "BRK_FLOOR",
+    "value_mm": 8,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Plate thickness; leaves VESA_WEB under the counterbores."
+   },
+   {
+    "name": "WALL_T",
+    "value_mm": 8,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Channel wall; carries the bar's bearing couple (about 1 MPa at 18 N m)."
+   },
+   {
+    "name": "VESA_PITCH",
+    "value_mm": 75,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Published 75x75; measure hole centres on Sceptre's X-plate. Not a parts-db key."
+   },
+   {
+    "name": "VESA_HOLE_D",
+    "value_mm": 4.5,
+    "role": "hole",
+    "origin": "parts-db",
+    "note": "parts-db:M4.clearance. Four Z-axis through holes per bracket."
+   },
+   {
+    "name": "VESA_CBORE_D",
+    "value_mm": 7.6,
+    "role": "hole",
+    "origin": "derived",
+    "note": "parts-db:M4.head_d 7.0 + 0.6 my-choice head clearance."
+   },
+   {
+    "name": "VESA_WEB",
+    "value_mm": 3.5,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Material under the M4 heads; Tier 1 via plane_gap. Sets SCREW_LEN."
+   },
+   {
+    "name": "VESA_CBORE_DEPTH",
+    "value_mm": 4.5,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "BRK_FLOOR - VESA_WEB; >= parts-db:M4.head_h 4.0."
+   },
+   {
+    "name": "SCREW_LEN",
+    "value_mm": 14,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "Published M4x10 + VESA_WEB 3.5 -> M4x14. Must not bottom in the monitor's boss (must-measure boss depth)."
+   },
+   {
+    "name": "CLAMP_HOLE_D",
+    "value_mm": 5.5,
+    "role": "hole",
+    "origin": "parts-db",
+    "note": "parts-db:M5.clearance. Horizontal teardrop holes through the +Y channel wall into 2020 T-nuts. Not Z-axis, so unverified."
+   },
+   {
+    "name": "TEARDROP_DEG",
+    "value_mm": 40,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "DEGREES. Roof planes of the horizontal holes at 40 deg from vertical, under the 45 deg BLOCKER with margin for faceting."
+   },
+   {
+    "name": "CLAMP_X",
+    "value_mm": 30,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "+/-30 from the VESA centre on the bracket; 58 and 78 from the vertex on the block arms."
+   },
+   {
+    "name": "CLAMP_Z",
+    "value_mm": 18,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "BRK_FLOOR + BAR_W/2: centre of the bar's upper T-slot in the bracket (PAD_T + 10 = 20 in the block)."
+   },
+   {
+    "name": "PLATE_PROUD",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "X-plate outer face relative to the recess rim; if negative, add a raised 75 mm pad under the bracket."
+   },
+   {
+    "name": "PAD_SIZE",
+    "value_mm": 96,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Block rear pad; the desk arm head (must-measure) must fit on it."
+   },
+   {
+    "name": "PAD_T",
+    "value_mm": 10,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Block floor; > parts-db:M4-insert.length 8.1 so the insert never breaks through into the socket side; Tier 1 via plane_gap."
+   },
+   {
+    "name": "INSERT_HOLE_D",
+    "value_mm": 5,
+    "role": "hole",
+    "origin": "parts-db",
+    "note": "parts-db:M4-insert.hole_d; four Z-axis through holes, boss >= parts-db:M4-insert.min_boss_od 9.0."
+   },
+   {
+    "name": "ARM_LEN",
+    "value_mm": 85,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Arm from the vertex; block length 170, fits the bed."
+   },
+   {
+    "name": "SOCKET_DEPTH",
+    "value_mm": 75,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Bar engagement in the block; lever arm for the bearing couple."
+   },
+   {
+    "name": "CENTRE_WEB",
+    "value_mm": 20,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Solid material between the two socket ends at the vertex."
+   },
+   {
+    "name": "ARM_W",
+    "value_mm": 36.4,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "CH_W + 2*WALL_T."
+   },
+   {
+    "name": "BLOCK_H",
+    "value_mm": 30.4,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "PAD_T + CH_DEPTH."
+   },
+   {
+    "name": "WITNESS_D",
+    "value_mm": 3,
+    "role": "hole",
+    "origin": "my-choice",
+    "note": "Angle-witness hole in each socket floor; >= 2.0 min hole."
+   },
+   {
+    "name": "WITNESS_X",
+    "value_mm": 80,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Distance from the vertex along X; sets the angle sensitivity (0.5 mm tol_xy over 80 mm = 0.36 deg)."
+   },
+   {
+    "name": "WITNESS_Y",
+    "value_mm": 16.07,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "WITNESS_X * tan(THETA). A 1 deg socket error moves the hole 1.5 mm and the intent check finds no cylinder there."
+   },
+   {
+    "name": "COVER_L",
+    "value_mm": 321.1,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "= HOUSING_H. Printed diagonally: (321+18)/sqrt2 = 240 < 256."
+   },
+   {
+    "name": "COVER_W",
+    "value_mm": 18,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Must be <= 2*BORDER_MIN + SEAM_GAP; borders published ~8.1 and ~8-10 (ESTIMATE), must-measure both."
+   },
+   {
+    "name": "COVER_T",
+    "value_mm": 1.2,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Six 0.2 layers; above min_wall 0.8."
+   },
+   {
+    "name": "KEEL_W",
+    "value_mm": 2.4,
+    "role": "outer",
+    "origin": "derived",
+    "note": "SEAM_GAP - 0.6 (my-choice clearance); light friction in the gap."
+   },
+   {
+    "name": "KEEL_H",
+    "value_mm": 5,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Keel depth into the gap; shallower than EDGE_DEPTH."
+   },
+   {
+    "name": "RIM_STEP_L",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "B30 rim height above glass at the inner edge; underside step of the cover."
+   },
+   {
+    "name": "RIM_STEP_R",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "P30 (edgeless) rim height above glass at the inner edge."
+   },
+   {
+    "name": "EDGE_DEPTH",
+    "value_mm": 22,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Housing depth at the inner edge, both monitors; ESTIMATE 20-25 from renders. Clearance check only."
+   },
+   {
+    "name": "BORDER_MIN",
+    "value_mm": 8,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Inactive border, glass edge to first lit pixel, both inner edges; the smaller bounds COVER_W."
+   }
+  ],
+  "must_measure": [
+   "HOUSING_W and HOUSING_H with a tape on each monitor, stand off: chord across the two housing ends, and top edge to bottom edge; give both monitors' numbers.",
+   "BORDER on each inner edge: display a full-white screen and caliper from the outer edge of the housing to the first lit pixel, on the B30 right edge and the P30 left edge.",
+   "RIM_STEP on each inner edge: caliper depth from the top of the bezel rim to the glass surface (0 if the glass is flush/edgeless).",
+   "EDGE_DEPTH on each inner edge: caliper front face to rear surface at the extreme end of the housing, mid-height.",
+   "VESA_DEPTH on each: with the stand off and the X-plate fitted, lay a straightedge across the two front ends, measure from the straightedge to the X-plate outer face at the centre with a depth gauge, then subtract SAGITTA_HOUSING 35.0 (or report the raw number and I will subtract).",
+   "X-plate: hole-centre pitch in both directions (expect 75.0), plate thickness, whether its four holes are tapped or clear, and PLATE_PROUD: how far its outer face stands above or below the surrounding recess rim.",
+   "Boss depth: with the X-plate on, thread the supplied M4x10 into a corner hole by hand until it stops and measure the exposed length; this decides whether M4x14 will bottom out.",
+   "Extrusion: caliper the actual width and height of the 2020 bar you buy (BAR_W), and the T-slot opening width; confirm your drop-in T-nuts and M5 bolts fit.",
+   "Desk arm/post head: outer size of its 75x75 plate (must be <= 96 x 96) and the length of its M4 screws (they thread into 8.1 mm inserts in a 10 mm floor).",
+   "Keep-outs: distance from the VESA centre to the nearest port, cable, vent or OSD button on the rear of each monitor, in the four directions, so the 96 mm bracket footprint and the bar can be checked against them."
+  ],
+  "verifiable_assertions": [
+   "Bracket, Tier 1: feature_count with diameter band [4.4, 4.6] == 4 and band [7.5, 7.7] == 4 (VESA holes and counterbores present); cylinder_diameter at [37.5, 37.5] (and the other three corners) rank largest == 7.6 +/- 0.05 and rank second == 4.5 +/- 0.05 [parts-db:M4.clearance]; coaxial_step_radial between [0, 1] at each corner == 1.55.",
+   "Bracket, Tier 1: plane_gap between [0, 1] == 3.5 (VESA_WEB: bed face to counterbore floors), between [0, 2] == 8.0 (channel floor), between [0, 3] == 28.4 (wall tops); watertight == 1; golden bbox 96 x 96 x 28.4 and volume as drift guards only.",
+   "Bracket, Tier 1 process claims: max_overhang_deg [0, 45] and unsupported_area [0, 0] at threshold 45 (the teardrop roofs are at 40 deg); dfm_violation_count severity BLOCKER material PETG_generic == 0.",
+   "Block, Tier 1: feature_count band [4.9, 5.1] == 4 and cylinder_diameter at (+/-37.5, +/-37.5) == 5.0 +/- 0.05 [parts-db:M4-insert.hole_d], cylinder_depth there == 10.0 (PAD_T); plane_gap [0, 1] == 10.0 (pad top / socket floors coplanar), [0, 2] == 30.4 (arm tops); watertight; max_overhang_deg, unsupported_area, dfm_violation_count as above.",
+   "Block, Tier 1 angle check by position: cylinder_diameter at [80, 16.07] and at [-80, -16.07] with tol_xy 0.5 == 3.0 +/- 0.05 (WITNESS). This verifies THETA_DEG to about 0.36 deg through where the hole is, not what size it is; a socket built at the wrong angle puts no cylinder at that point and the assertion FAILS with 'absent'. feature_count band [2.9, 3.1] == 2 guards against a witness hole being dropped.",
+   "Cover, Tier 1: plane_gap [0, 1] == 1.2 (plate top), [0, 2] == 6.2 (keel top); bbox_x == 321.1 and bbox_y == 18.0 are load-bearing here (the strip must not exceed the borders) so they go in asserts with source user-confirmed, not only golden; watertight; dfm_violation_count BLOCKER == 0.",
+   "Cover, Tier 2: sampled_min_wall [1.1, null] (ray-sampled, ESTIMATE); it would not detect a missing keel, which is why the keel-top plane_gap exists.",
+   "UNVERIFIABLE with the current measure kinds, stated plainly: CH_W 20.4 in both the brackets and the block is a gap between VERTICAL planes and plane_gap measures horizontal planes only; it is the one dimension that decides whether the bar fits, so it needs a 15 mm-long coupon slice of the bracket printed and calipered before the full parts (or a vertical-plane-gap measure added to measure.py). The M5 clamp holes are horizontal cylinders and the Z-scan does not see them; they are clearance holes and low-risk, reported as ESTIMATE. THETA_DEG itself has no direct angle measure and is only checked through the witness-hole position above. Every 'this will hold 10 kg' statement is Tier 2 engineering judgement, not a measurement.",
+   "ams_mismatch_count == 0 for materials ['PETG'] against captured telemetry, at dispatch, per ADR-16."
+  ],
+  "print_orientation_and_dfm": "END BRACKET (x2): VESA face down on the bed (96 x 96 = 9216 mm2 contact), channel open upward. All four VESA holes and counterbores are Z-axis, counterbores open upward with horizontal floors at Z = 3.5, channel floor at Z = 8 faces up, wall tops at 28.4; every other face is vertical, so max overhang is set by the two horizontal M5 clamp holes in the +Y wall, which are teardropped with 40 deg roofs (measured from vertical) and therefore under the 45 deg BLOCKER; no bridge anywhere (the counterbore-on-the-bed-face trap is avoided by putting all heads on the rear/top). Walls 8 mm, web 3.5 mm, all above 0.8; smallest hole 4.5 above 2.0; aspect 28.4/96 well under 8. Height 28.4, footprint 96 x 96. CENTRE BLOCK (x1): rear pad down on the bed (96 x 96 contact), both U-sockets open upward, socket floors coplanar with the pad top at Z = 10 (upward-facing), insert holes Z-axis through the 10 mm pad with no ceiling because they exit into open air above the pad outside the arms. The arms are full-height prisms from the bed, so no overhang; the angled arms give vertical walls at +/-11.36 deg in plan, still vertical. Clamp holes in the arms' outer walls: horizontal, teardrop 40 deg. Height 30.4, footprint 170 x ~70 inside a 96 pad; aspect fine. Inserts go in from the bed face after printing (heat-set into a Z-axis hole; the through hole means an over-long arm screw cannot bottom). SEAM COVER (x1): flat, keel up, placed at 45 deg on the plate: footprint extent (321 + 18)/sqrt2 = 240 per axis, under 256. Keel 2.4 wide and plate 1.2 thick both above min_wall 0.8; no overhang. Slice for the textured PEI plate (profiles/slicer.json override, M190 S55). Material PETG_generic (Bambu PETG, slot 3) for all three; expect calibration.json to warn 'measured: null' for PETG_generic on every compensated export, and pass that warning on, since the 20.4 channels are exactly the kind of dimension an unmeasured hole delta gets wrong.",
+  "risks": [
+   "The channel width (20.4) is the fit-critical dimension and is NOT verifiable by the repository's measure kinds (vertical-plane gap). Print a short coupon slice of the bracket first; do not commit ~8 hours of PETG on an unmeasured hole delta.",
+   "The stands come off and a desk arm/post rated for the whole pair (~11.5 kg: 2 x 5.0 kg monitors + 0.4 kg bar + ~0.6 kg prints) must be bought; a gas-spring arm rated 2-9 kg will sag. The load hangs from four M4 inserts in PETG on a 75 pattern.",
+   "Identity of the P30 is unresolved (C305B-200UN family, published depth 81.3 / 93.7 / 109.2 depending on suffix), so VESA_DEPTH may differ between the two monitors; a per-side VESA_DEPTH is supported but the block is symmetric, so a large difference (>10 mm) means the bars are not on one circle and the seam will step. Measure both before modelling.",
+   "X-plate geometry is unpublished: hole type (tapped or clear), thickness, and whether it sits proud of or below the recess rim. If below, the bracket needs the PLATE_PROUD pad or it rocks on the rim. If the monitor bosses are shallow, M4x14 bottoms out and the bracket is loose while the screws feel tight.",
+   "Ports, vents and the B30's six rear OSD buttons are near the lower inner corner and the port strip is right of centre; the 96 mm bracket footprint or the bar may foul a cable exit. Keep-out distances are only qualitative from renders.",
+   "PETG creep under a sustained 5 kg cantilever: the bracket web (3.5 mm) and channel walls are loaded permanently and monitors run warm; PLA would be worse. Inspect after a week for seam drift; the witness holes and plane gaps say nothing about creep.",
+   "The seam cover is held by keel friction only, on two different bezel surfaces (proud rim vs edgeless glass) and the inner side faces may not be radial (if they are perpendicular to each chord the gap opens 8 mm at 20 mm depth); it may need two small VHB dots, which are not modelled. No black filament is loaded (yellow, purple, teal PLA; green PETG), so the visible strip will not match the bezels.",
+   "Housing width chord/arc and the published 706.6 vs 706.1 disagreement change THETA by <0.05 deg, negligible; but a flat-butt preference (THETA = 0) is a different block print, not an adjustment.",
+   "Cable routing: with stands gone the monitors' downward ports are near the bar height minus ~130 mm; fine, but the V-block sits 90 mm behind the seam and a wall-mounted arm may not have that reach.",
+   "Two monitors on one arm cannot be independently yawed or tilted afterwards; that is the point, and it is also the cost."
+  ],
+  "material": "PETG (Bambu PETG, AMS slot 3, calibration PETG_generic, currently a published default with \"measured\": null) for the two brackets and the block: better creep resistance than PLA under a permanent ~5 kg cantilever beside a warm monitor back, and tougher around heat-set inserts. Seam cover also PETG for colour consistency, though any loaded PLA works; note that no black filament is loaded so the visible strip will be green, yellow, purple or teal unless the user loads a black spool. PLA-CF is excluded (abrasive on the stainless nozzle). ABS is not loaded and not needed."
+ },
+ {
+  "name": "Arc-seam rear bridge (flat spine + two stepped shoes)",
+  "summary": "A rigid flat PETG spine (120 x 120 x 6 mm with two 8 mm ribs) bolts from behind onto two VHB-bonded shoes, one on the plain rear cover of each monitor 16-56 mm inboard of the seam. The spine is identical for both monitors and carries no unknowns; the two shoes carry ALL the measured unknowns -- each monitor's housing depth at the edge, its rear-cover taper, and the 1800R arc's fall across the pad -- as a thickness step between the shoes (DT = T_EDGE_R - T_EDGE_L) plus a shallow wedge on each. Both front glasses lie on one 1800 mm arc while the rear surfaces lie at 1800 + t, so a bridge that references the rear must be thicker on the thinner housing by exactly DT; that step is what makes the front faces continuous. Arrangement designed for: the CONTINUOUS ARC (both monitors on one 1800R circle, tangent-continuous at the seam; the chassis chord lines sit at 2 x asin(353/1800) = 22.6 deg to each other). Seam geometry, derived: rear-surface radius ~1821; across the 120 mm spine the surface falls chord^2/(8R) = 120^2/(8 x 1821) = 0.99 mm from the tangent plane; 0.86 mm at the outer pad edges (+/-56); 0.79 mm between a pad's inner (16) and outer (56) edges; only 0.11 mm within one 40 mm pad, which 1.1 mm VHB foam absorbs. The alternative (each monitor toed in toward a desk-distance viewer, e.g. 0.7 m: each chord rotated asin(353/700) = 30.3 deg) opens a ~38 deg wedge behind the seam that no flat plate spans; the user's phrase -- 1800R, connect in the middle -- only closes the seam on the shared arc, so that is the case designed for, and the price is stated (the geometric sweet spot is 1.8 m away). Each shoe's incline would be Tier 2, so each shoe carries two witness pockets sharing one floor plane whose depths turn the wedge's magnitude AND sign into Tier 1 cylinder_depth readings. Nothing is built until four caliper numbers (two edge depths, two tapers) replace the render-derived placeholders.",
+  "how_it_attaches": "Two shoes (40 wide x 120 tall, PAD_W x PAD_H) are bonded with 3M VHB 5952 (1.1 mm foam, 30 x 110 strip each) to the plain rear cover of each monitor, spanning 16 to 56 mm inboard of its inner edge and centred 160 mm above the housing bottom (BRIDGE_Y_FROM_BOTTOM; raised if the B30's rear OSD buttons survey inside that zone). Each shoe carries two M3 heat-set inserts (parts-db:M3-insert: hole_d 4.0, length 5.7) on its spine face. The spine is a flat plate with four \u00d83.4 through-holes (parts-db:M3.clearance) at (+/-36, +/-40); four M3 x 10 socket screws (head_d 5.5, parts-db:M3; length is my choice: 6 mm plate + 5.7 insert with thread to spare) go in from behind. Assembly order: (1) set both stands to the same tilt and butt the monitors with a 2.0 mm seam gap and their top edges level; (2) bolt both shoes tight to the spine so the spine is the placement jig and the pads land at exactly +/-(16..56); (3) apply VHB to the shoes, peel, and press the whole assembly onto the two backs centred on the seam. The shoe step DT and the two wedges then hold the front faces coplanar and the arc continuous; nothing touches the front, the top, or the seam itself. The spine can be unbolted later leaving the shoes on the monitors; the shoes come off only by cutting the VHB (fishing line, heat) -- the housing is unharmed, the tape is not reusable. The shoes and screws, not the tape, carry the geometry; the tape carries only shear from the monitors' relative weight (near zero on their own stands) and the peel from any tilt mismatch, which is why both tilts are equalised before bonding.",
+  "geometry_sketch": "Frame: X runs along the arc across the seam (seam at x = 0, +x toward the right monitor), Y runs up the monitors, Z points away from the monitor backs. Three printed solids from two model programs. SPINE (one part): a rectangular plate SPINE_X = 120 (derived: 2 x (SEAM_GAP/2 + PAD_INSET + PAD_W + 4 mm margin) = 2 x (1 + 15 + 40 + 4)) by SPINE_Y = 120 (my choice) by SPINE_T = 6.0 (my choice), its Z = 0 face flat (the shoe interface, printed on the bed). On its outer face two ribs run the full length in X along the top and bottom edges: RIB_W = 4.0 wide, RIB_H = 8.0 tall (my choice), so bbox_z = 14.0 (derived). Four \u00d8 SPINE_HOLE_D = 3.4 through-holes (parts-db:M3.clearance) at x = +/-HOLE_X = 36 (derived: pad centre = SEAM_GAP/2 + PAD_INSET + PAD_W/2), y = +/-HOLE_Y = 40 (my choice: 80 mm apart on a 120 plate, clear of the ribs whose inner faces are at y = +/-56). No counterbore: M3 heads (5.5 dia, 3.0 tall) sit proud on the unseen outer face; a 4 mm-deep counterbore in a 6 mm plate would leave 2 mm. SHOE (one program, two parameter sets, the left one installed rotated 180 deg about Z so its +x still points away from the seam): a block PAD_W = 40 by PAD_H = 120 (my choice; = SPINE_Y) whose Z = 0 face is flat (spine interface, printed on the bed) and whose top face is a plane inclined only about Y, rising linearly from SHOE_T_IN at x = -20 (the seam end) to SHOE_T_OUT at x = +20 (the outer end). Thickness law, derived from the measurements: gap between the spine plane and the rear surface at arc position x is const - t(x) + x^2/(2 x (R_FRONT + t)); the arc term rises ARC_RISE = (56^2 - 16^2)/(2 x 1821) = 0.79 across the pad and the taper term falls by TAPER (positive when the housing thickens away from the seam), so SHOE_T_OUT = SHOE_T_IN + ARC_RISE - TAPER for that side. The step: the shoe on the shallower housing is thicker by DT = T_EDGE_R - T_EDGE_L (derived). The thinnest point of the thinner shoe is SHOE_T_MIN = 9.0 (my choice: 6.2 insert hole + 2.8 floor). With the placeholder inputs (T_EDGE_L 20.0, T_EDGE_R 22.0, both tapers 0.0 -- ESTIMATES, not measurements): right shoe 9.00 -> 9.79, left shoe 11.00 -> 11.79. Features cut from each shoe's inclined top: two \u00d8 INSERT_HOLE_D = 4.0 (parts-db:M3-insert.hole_d) blind holes at (0, +/-40), INSERT_HOLE_DEPTH = 6.2 deep from the local surface (derived: 5.7 insert + 0.5 relief), flat floors; and two \u00d8 WITNESS_D = 3.0 (my choice: above the 2.0 min-hole rule, small enough to sit in the 5 mm margin outside the 30 mm VHB strip) witness pockets at (-WITNESS_X, 0) and (+WITNESS_X, 0) with WITNESS_X = 17 (my choice: 1.5 mm wall to the pad edge), both cut down to the SAME absolute floor WITNESS_FLOOR_Z = 2.0 (my choice), so their depths read T(-17) - 2.0 and T(+17) - 2.0 -- the outer one deeper by 0.85 x (ARC_RISE - TAPER). Not printed but part of the assembly: VHB_T = 1.1 (my choice: 3M 5952; its compliance is the budget for the 0.11 mm in-pad arc residual and caliper error), SEAM_GAP = 2.0 (my choice: the end faces are radial on a shared arc and could touch, but 2 mm keeps two imperfect end faces from rubbing when tilted and hides +/-0.3 mm of residual flush error), PAD_INSET = 15 (my choice: clears the rearward end-face facet seen in the renders; must exceed the measured FACET by 3), BRIDGE_Y_FROM_BOTTOM = 160 (my choice: mid-height of a 320 housing so tilt torque loads the pad symmetrically). R_FRONT = 1800 is the user's stated curvature and matches Sceptre's published 1800R for both models; it is confirmed, not measured.",
+  "parameters": [
+   {
+    "name": "R_FRONT",
+    "value_mm": 1800,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Radius of the front glass arc, user-stated and matching Sceptre's published 1800R for both models. A confirm, not a caliper reading: the whole seam geometry is derived from it."
+   },
+   {
+    "name": "T_EDGE_L",
+    "value_mm": 20,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "B30 (left): front glass to rear surface, 16 mm in from the inner edge at bridge height. PLACEHOLDER from render estimate (20-25); the model must not be built on it."
+   },
+   {
+    "name": "T_EDGE_R",
+    "value_mm": 22,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "P30 (right): same measurement. PLACEHOLDER; published depths (81/94/109 mm) are bounding boxes including 35 mm of sagitta and say nothing about the edge."
+   },
+   {
+    "name": "TAPER_L",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Rise of the B30 rear surface from 16 to 56 mm inboard of the seam, positive when the housing thickens away from the seam. PLACEHOLDER 0 (renders show a plain slab in the last 40-50 mm)."
+   },
+   {
+    "name": "TAPER_R",
+    "value_mm": 0,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Same for the P30. PLACEHOLDER 0."
+   },
+   {
+    "name": "FACET",
+    "value_mm": 12,
+    "role": "neutral",
+    "origin": "must-measure",
+    "note": "Width of the rearward chamfer/facet at the inner edge before the rear surface becomes plain, larger of the two monitors. PAD_INSET must be >= FACET + 3. PLACEHOLDER."
+   },
+   {
+    "name": "ARC_RISE",
+    "value_mm": 0.79,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "(56^2 - 16^2) / (2 x (R_FRONT + mean T_EDGE)) = 2880 / 3642. Fall of the rear surface from a flat tangent plane between the pad's inner and outer edges; the same arc gives 0.99 across the whole 120 spine and 0.11 within one 40 pad."
+   },
+   {
+    "name": "DT",
+    "value_mm": 2,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "T_EDGE_R - T_EDGE_L. The thinner housing gets the thicker shoe by this much; with the placeholders that is the left (B30) shoe. Sign matters and comes only from the calipers."
+   },
+   {
+    "name": "SEAM_GAP",
+    "value_mm": 2,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Gap between the inner end faces. On a shared arc the end faces are radial and could touch; 2 mm keeps imperfect end faces from rubbing under tilt and hides +/-0.3 mm of residual flush error."
+   },
+   {
+    "name": "PAD_INSET",
+    "value_mm": 15,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Pad starts this far inboard of the inner edge: clears the end-face facet seen in Sceptre's renders and lands the pad on plain cover. Raise it if FACET measures over 12."
+   },
+   {
+    "name": "PAD_W",
+    "value_mm": 40,
+    "role": "outer",
+    "origin": "my-choice",
+    "note": "Pad width along the arc (16..56 from the seam). Wide enough for peel resistance, narrow enough that the in-pad arc residual is 0.11 mm; shrink to 30 if the plain rear field is narrower than 56 mm."
+   },
+   {
+    "name": "PAD_H",
+    "value_mm": 120,
+    "role": "outer",
+    "origin": "my-choice",
+    "note": "Pad height along the monitor; equals SPINE_Y. The lever arm against tilt mismatch; 4800 mm2 of tape per side."
+   },
+   {
+    "name": "SHOE_T_MIN",
+    "value_mm": 9,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Thinnest point of the thinner shoe: 6.2 insert hole + 2.8 floor so a heat-set insert cannot bulge the bonding face."
+   },
+   {
+    "name": "SHOE_R_T_IN",
+    "value_mm": 9,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "Right shoe thickness at its seam end (x = -20 in the shoe frame). = SHOE_T_MIN with the placeholders because the right housing is the deeper one."
+   },
+   {
+    "name": "SHOE_R_T_OUT",
+    "value_mm": 9.79,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "SHOE_R_T_IN + ARC_RISE - TAPER_R. Thickness at the outer end (x = +20)."
+   },
+   {
+    "name": "SHOE_L_T_IN",
+    "value_mm": 11,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "SHOE_R_T_IN + DT (thinner housing, thicker shoe)."
+   },
+   {
+    "name": "SHOE_L_T_OUT",
+    "value_mm": 11.79,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "SHOE_L_T_IN + ARC_RISE - TAPER_L. If a measured taper exceeds ARC_RISE the wedge reverses and SHOE_T_MIN moves to the outer end; the formula still holds."
+   },
+   {
+    "name": "INSERT_HOLE_D",
+    "value_mm": 4,
+    "role": "hole",
+    "origin": "parts-db",
+    "note": "parts-db:M3-insert.hole_d. Two blind holes per shoe at (0, +/-40), cut from the inclined face."
+   },
+   {
+    "name": "INSERT_HOLE_DEPTH",
+    "value_mm": 6.2,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "parts-db:M3-insert.length 5.7 + 0.5 relief, measured from the local inclined surface; flat floor."
+   },
+   {
+    "name": "WITNESS_D",
+    "value_mm": 3,
+    "role": "hole",
+    "origin": "my-choice",
+    "note": "Two witness pockets per shoe at (+/-17, 0). Above the 2.0 min-hole rule; fits the 5 mm margin outside the 30 mm VHB strip with a 1.5 mm wall."
+   },
+   {
+    "name": "WITNESS_X",
+    "value_mm": 17,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Pocket offset from the pad centre; 1.5 mm of wall to the pad edge at 20."
+   },
+   {
+    "name": "WITNESS_FLOOR_Z",
+    "value_mm": 2,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Absolute floor shared by both witness pockets, so their depths are T(-17) - 2 and T(+17) - 2 and their difference is 0.85 x (ARC_RISE - TAPER) with its sign. Kept 1.2 mm clear of the right shoe's insert floors at 3.195 so the ruler's sorted planes stay distinct."
+   },
+   {
+    "name": "SPINE_X",
+    "value_mm": 120,
+    "role": "outer",
+    "origin": "derived",
+    "note": "2 x (SEAM_GAP/2 + PAD_INSET + PAD_W + 4). Spans both pads with a 4 mm margin."
+   },
+   {
+    "name": "SPINE_Y",
+    "value_mm": 120,
+    "role": "outer",
+    "origin": "my-choice",
+    "note": "= PAD_H. Height of the spine along the monitors."
+   },
+   {
+    "name": "SPINE_T",
+    "value_mm": 6,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Plate thickness. With the ribs the section resists the torsion a tilt mismatch applies about X; estimated 0.17 deg twist per 1 N m over the 30 mm free span -- an ESTIMATE, not verified."
+   },
+   {
+    "name": "RIB_H",
+    "value_mm": 8,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Two ribs along X at y = +/-56..60 on the outer face; turn the plate into a channel for torsional stiffness. bbox_z = SPINE_T + RIB_H = 14.0."
+   },
+   {
+    "name": "RIB_W",
+    "value_mm": 4,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Rib thickness; five perimeters of a 0.4 nozzle, well above the 0.8 min-wall rule."
+   },
+   {
+    "name": "HOLE_X",
+    "value_mm": 36,
+    "role": "neutral",
+    "origin": "derived",
+    "note": "SEAM_GAP/2 + PAD_INSET + PAD_W/2: the pad centre, where the spine's screw holes and the shoes' inserts coincide."
+   },
+   {
+    "name": "HOLE_Y",
+    "value_mm": 40,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Screw rows 80 mm apart, 16 mm clear of the rib inner faces."
+   },
+   {
+    "name": "SPINE_HOLE_D",
+    "value_mm": 3.4,
+    "role": "hole",
+    "origin": "parts-db",
+    "note": "parts-db:M3.clearance. Four through-holes; no counterbore (M3 head_d 5.5, head_h 3.0 per parts-db sits proud on the unseen face)."
+   },
+   {
+    "name": "VHB_T",
+    "value_mm": 1.1,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "3M VHB 5952 foam thickness, not printed. Its compliance is the budget that absorbs the 0.11 mm in-pad arc residual plus caliper error; a step or gap over ~0.3 mm is NOT absorbed."
+   },
+   {
+    "name": "BRIDGE_Y_FROM_BOTTOM",
+    "value_mm": 160,
+    "role": "neutral",
+    "origin": "my-choice",
+    "note": "Placement, not geometry: pad centre height above the housing bottom, mid-height of a 320 housing. Raise it if the B30's rear OSD button cluster surveys inside 100-220 mm."
+   }
+  ],
+  "must_measure": [
+   "T_EDGE_L and T_EDGE_R: on each monitor, at 160 mm up from the bottom of the housing, close the caliper's outside jaws over the inner edge from the FRONT GLASS surface (not the bezel rim -- the rims differ between the two models, the glass is on the shared 1800R arc) to the rear cover surface, as far in as the jaws reach (~16 mm). Report both to 0.05 mm.",
+   "TAPER_L and TAPER_R: hold a steel rule on edge against the rear cover, running from the inner edge 100 mm inward at the same 160 mm height. Report the gap under the rule at 16 mm in and at 56 mm in (caliper depth rod or feeler). TAPER = how much thicker the housing is at 56 than at 16, positive if it thickens away from the seam; if the rule sits flat within 0.3 mm over 16-56, report 0. (A straight rule on the 1821 mm arc reads only 0.11 mm sagitta over 40 mm, so this reads the taper, not the curve.)",
+   "FACET: on each monitor, how far in from the inner edge the rear surface becomes the plain flat field -- the width of the rearward chamfer/facet at the end. Larger of the two; PAD_INSET must exceed it by 3 mm.",
+   "Keep-out survey: mark the pad zone on each back (16-56 mm in from the inner edge, 100-220 mm up from the bottom) and confirm it is plain cover with nothing raised or recessed. On the B30 (left) report the height above the bottom edge of the top of the rear OSD button cluster at its lower-right rear corner and its distance in from the edge -- that corner is the inner edge. On both, report the distance from the inner edge to the nearest raised wing/boss (renders suggest 40-60 mm of plain slab; if it is under 56, PAD_W shrinks to 30).",
+   "Levelness: with both monitors on their stands and butted at 2 mm, lay a rule across both top edges and report any height offset (published with-stand heights match at 408.9 vs 409.0 mm despite different neck heights; the bridge cannot correct a height offset, it can only tolerate it).",
+   "Arrangement: confirm the two are meant as one continuous 1800R arc (tangent-continuous at the seam, sweet spot 1.8 m away) rather than each toed in toward you at desk distance -- this design does not apply to the toed-in case.",
+   "Seam gap preference: 2.0 mm is my choice; say if you want them touching or wider. And confirm nothing sits on the inner END faces themselves (a lip, a button, a port)."
+  ],
+  "verifiable_assertions": [
+   "SPINE, all Tier 1, printed Z=0 face down: bbox_x [119.9,120.1] (SPINE_X), bbox_y [119.9,120.1], bbox_z [13.9,14.1] (plate + rib).",
+   "SPINE plane_gap between sorted horizontal planes [0,1] = [5.95,6.05] (bed face to plate top between the ribs) and [1,2] = [7.95,8.05] (plate top to rib tops) -- the ribs and the plate thickness by structure, not by restating the parameter.",
+   "SPINE cylinder_diameter at each of (36,40), (-36,40), (36,-40), (-36,-40), rank smallest: [3.35,3.45], source parts-db:M3.clearance; cylinder_depth at (36,40) [5.95,6.05] (a through-hole in the plate, not under a rib); feature_count in band [3.0,4.0] = [4,4] -- exactly four screw holes and nothing else that size.",
+   "SPINE watertight [1,1]; volume [93500,94200] (120x120x6 + 2 ribs 120x4x8 - 4 holes = 93862; a missing rib is -3840 and falls out of the window); unsupported_area at 45 deg [0,1] (the only downward face is the build-plate face, which the ruler excludes); dfm_violation_count BLOCKER under PETG_generic [0,0].",
+   "SHOE (per side, Tier 1, printed Z=0 face down): bbox_x [39.9,40.1], bbox_y [119.9,120.1], bbox_z = the thicker end: right [9.7,9.9], left [11.7,11.9] -- this is the check on DT and on the wedge's magnitude; a shoe built without the step reads 9.79 on both sides.",
+   "SHOE cylinder_depth at the two witness pockets, rank smallest: right shoe (-17,0) = T(-17) - 2.0 = [7.0,7.15] and (+17,0) = [7.65,7.8]; left shoe [9.0,9.15] and [9.65,9.8]. The outer pocket is deeper by 0.85 x (ARC_RISE - TAPER) = 0.67 with the placeholders: this is the ONE Tier 1 claim that sees the wedge's SIGN. bbox_z and volume are identical for a reversed wedge and cannot.",
+   "SHOE plane_gap [0,1] = [1.95,2.05] (bed face to the shared witness floor) and [0,2] = insert-floor height = T(0) - 6.2 (right [3.1,3.3], left [5.1,5.3]) -- a second, independent read of the thickness at the pad centre.",
+   "SHOE cylinder_diameter at (0,40) and (0,-40) rank smallest [3.95,4.05], source parts-db:M3-insert.hole_d; cylinder_depth there [6.1,6.3] (the mouth sits on a ~1 deg incline, so the top varies 0.08 mm across the 4 mm bore -- tolerance covers it); feature_count band [3.8,4.2] = [2,2] and band [2.8,3.2] = [2,2].",
+   "SHOE watertight [1,1]; volume right ~[44600,45100] (4800 x 9.395 - inserts 156 - witnesses 105 = 44836), left ~[54100,54700] (54407); unsupported_area at 45 deg [0,1]; dfm_violation_count BLOCKER PETG_generic [0,0].",
+   "TIER 2 / ESTIMATE, stated not asserted: the shoe incline as an ANGLE (no measure kind reads a non-horizontal plane; it is pinned only through the witness depths and bbox_z above); the in-pad arc residual 0.11 mm; the torsional stiffness figure; every placeholder input (T_EDGE, TAPER, FACET) until the calipers replace it.",
+   "NOT VERIFIABLE BY THE REPOSITORY AT ALL: that the two front faces end up coplanar and the arc continuous -- that is a claim about the assembled monitors, not the part. The user checks it after fitting with a rule across the seam on the glass at three heights and reports the numbers; the bridge's step and wedges are correct only if those read under 0.3 mm."
+  ],
+  "print_orientation_and_dfm": "All three parts print flat on their spine/shoe interface face (Z = 0 on the bed), with no supports and no bridges. SPINE: plate on the bed, ribs up as vertical walls (0 deg from vertical), four vertical \u00d83.4 through-holes -- no downward face exists except the build-plate face, so unsupported_area is 0 and max overhang is 0 deg; the textured PEI imprints the interface face, which is fine for a bolted flat-on-flat joint. SHOES: spine face on the bed, the inclined bonding face on top. The incline is an UPWARD-facing surface (1.1 deg with the placeholders, a few degrees if a taper is measured) so it is not an overhang; it prints as layer terraces (~10 mm long at 0.2 mm layers and 1.1 deg), cosmetic and under the tape. Insert holes and witness pockets are blind from the top with flat floors: open mouths, no ceilings, no bridges. Printing the shoes bonding-face-down was rejected because it would tilt the insert axes off Z and bind the screws. Against profiles/dfm-rules.json for PETG_generic (overhang BLOCKER 40 deg, bridge WARNING 5 mm, min wall/feature 0.8, min hole 2.0): no face approaches 40 deg, no span is bridged, thinnest wall is the 1.5 mm between a witness pocket and the pad edge, smallest hole is 3.0. Footprints 14400 and 4800 mm2 clear the 100 mm2 tipping rule; aspect ratios are under 1. Slicer settings (not model parameters): 0.2 mm layers, 4 walls, 40% infill on the spine for stiffness, no brim needed in PETG at this footprint. The 120 x 120 spine fits the P1S bed with margin; all three parts fit one plate.",
+  "risks": [
+   "The whole design rests on four caliper numbers that do not exist yet; the placeholder inputs are render-derived ESTIMATES and Sceptre's published depths (81, 94, 109 mm across pages for the same family) prove the spec sheets cannot substitute. Building on the placeholders would produce a confident, plausible, wrong step.",
+   "The pad zone may not be plain on the B30: its six rear OSD buttons are at the lower-right rear corner, which is the INNER edge of a left-hand monitor. The 160 mm bridge height is chosen to clear them but the cluster's height is unmeasured; the survey decides.",
+   "The plain rear slab is a render estimate of 40-60 mm at each end; if the wing/boss starts inside 56 mm the pad must narrow to 30 mm and the peel margin shrinks.",
+   "Tilt: both stands are tilt-only and sprung; the bridge locks them together and any later single-stand tilt puts the tape in peel, VHB's weak mode. Both tilts are equalised before bonding and moved together afterwards, or not at all.",
+   "Height offset: the bridge cannot correct two screens sitting at different heights; the 120 mm pads only tolerate it. Published with-stand heights agree to 0.1 mm but that is a spec, not a measurement.",
+   "VHB is semi-permanent: removal is by cutting the foam and cleaning residue, and a shoe cannot be repositioned once pressed. Command-strip adhesive would be removable but roughly a third as strong in peel and 1 mm thicker.",
+   "Continuous-arc assumption: at a 0.7 m desk the outer edges sit ~22.6 deg off-axis (what a single 60-inch 1800R would do). If the user prefers to toe each monitor in, the rear opens a ~38 deg wedge at the seam and this concept is the wrong one; a hinged bridge would be.",
+   "The rear surface within a pad is assumed to be a plane (plus the arc); a crowned or ribbed cover would leave the VHB touching only at high points. The rule test in the measurement list catches this.",
+   "A reversed wedge or a step of the wrong sign passes bbox_z and volume; only the two witness-pocket depths catch it at Tier 1, and only because they share an absolute floor. If that detail is dropped in modelling, the sign becomes unverifiable.",
+   "Calibration for PETG_generic is a published default with measured: null, so the export warns and the \u00d83.4/4.0/3.0 holes go out uncompensated. Acceptable here because none is a press fit: the clearance hole has 0.4 mm slack and heat-set inserts tolerate +/-0.1.",
+   "Flush accuracy at the seam is bounded by caliper error (+/-0.05), tape compliance (+/-0.3) and the housings' own front-to-rear variation; expect +/-0.3 mm, which the 2 mm gap hides. A press-fit-grade flush is not on offer.",
+   "reconcile_ams: the Bambu PETG green slot is the one loaded PETG; a swap to PLA is a params/material change, not a geometry change, but the PETG DFM rules (40 deg, 5 mm) were the ones checked."
+  ],
+  "material": "Bambu PETG (green, loaded in the AMS): better creep and heat margin than PLA for a part bolted under a small sustained tilt torque against an electronics housing, and the design has no overhang or bridge for PETG's tighter DFM rules (40 deg, 5 mm) to bite on. Bambu PLA (yellow or purple) is an acceptable fallback with the same geometry. Not PLA-CF: abrasive, and the abrasive-nozzle rule is Phase 4. Hardware from the parts DB: 4 x M3-insert (parts-db:M3-insert), 4 x M3 socket screws (parts-db:M3; M3 x 10 length is my choice); 3M VHB 5952 tape is not in the parts DB and is cited as a my-choice with its 1.1 mm thickness stated."
+ }
+]

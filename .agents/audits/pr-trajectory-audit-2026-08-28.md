@@ -87,7 +87,7 @@ and substitute their own:
 | #2 | MERGED 2026-08-02 | `phase-2-printability-and-preparation` | yes | yes | yes | yes |
 | #3 | MERGED 2026-08-05 | `phase-3-printer-and-calibration` | yes | yes | yes | yes |
 | #6 | MERGED 2026-08-06 | `ci-hardware-free-lanes` | **no** | **no** | **no** | **no** |
-| #7 | **OPEN** | `ams-feed-bisect-tooling` | **no** | **no** | **no** | **no** |
+| #7 | MERGED 2026-08-28 16:45 | `ams-feed-bisect-tooling` | **no** | **no** | **no** | **no** |
 
 - `ls .agents/code-reviews/` → `phase-1-…`, `phase-2-…`, `phase-3-…`,
   `pr-1-review.md`. `ls .agents/execution-reports/` → the three phase files only.
@@ -109,8 +109,15 @@ Fairness note on the two cases: **#6 is the weaker one.** It *introduced*
 `.claude/post-execute.json`, so the explicit profile did not exist when the branch
 was cut — though `.agents/code-reviews/` already did, and the pipeline's
 auto-detection resolves to first-existing. **#7 is unambiguous**: the profile was
-committed and in the tree a full day before its branch. PR #7 is also still open,
-so this one is fixable before it lands rather than a post-mortem.
+committed and in the tree a full day before its branch.
+
+> **Corrected 2026-08-28.** This section originally read "PR #7 is also still
+> open, so this one is fixable before it lands rather than a post-mortem." #7
+> merged at 16:45 that day, while the audit was being written up. Both cases are
+> now post-mortems, and Violation 1 is confirmed on **two merged PRs**, not one
+> merged and one catchable. Recorded as a correction rather than edited away: an
+> audit that quietly updates its own evidence is doing the thing it exists to
+> catch.
 
 **System-evolution fix.** Tighten enforcement, in this repo's own established
 idiom. Nothing mechanical checks the requirement today —
@@ -149,7 +156,7 @@ exists.
 **The cluster.**
 
 - [PR #6](https://github.com/seanrobertwright/3d-skills/pull/6) — "ci: run the three hardware-free validation lanes on every push and PR" — MERGED
-- [PR #7](https://github.com/seanrobertwright/3d-skills/pull/7) — "feat(tools): read-only diagnostics for the AMS feed bisect" — OPEN
+- [PR #7](https://github.com/seanrobertwright/3d-skills/pull/7) — "feat(tools): read-only diagnostics for the AMS feed bisect" — MERGED 2026-08-28 16:45
 
 **Why this is worth encoding.** Recurrence is **2 of 2** — 100% of the PRs where
 no in-repo signal existed. The three phase PRs each had

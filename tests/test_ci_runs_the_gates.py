@@ -87,10 +87,13 @@ def test_ci_never_invokes_a_hardware_lane():
 
 
 def test_ci_refuses_a_silent_skip():
-    """Measured 2026-08-28: the hardware-free lane is 471 passed, 19 deselected, zero skipped.
+    """Measured 2026-08-28: the hardware-free lane is 474 passed, 19 deselected, zero skipped.
 
-    (470 on 2026-08-06. Installing the ``pr-trajectory-audit`` skill added one case to
-    ``test_skills_contain_no_measurement_logic``, which is parametrized over installed skills.)
+    470 on 2026-08-06, then +1 for the ``pr-trajectory-audit`` skill (``test_skills_contain_no_
+    measurement_logic`` is parametrized over installed skills), +1 for #7's ``tools/`` send-path
+    test, +2 for the ``slice-artifacts`` assertions in this file. The intermediate 471 recorded on
+    2026-08-28 was measured on a branch cut before #7 merged and was never true of master -- which
+    is the hazard in citing a count at all, and the reason nothing here *asserts* one.
 
     A skip appearing there means a dependency is missing on the runner or a hardware test lost its
     marker and is now skipping itself. Both are the same failure -- something did not run and
@@ -144,3 +147,51 @@ def test_the_markers_ci_excludes_are_the_markers_that_exist():
             f"'{marker}' is excluded by CI but is not declared in pyproject.toml; one of the two "
             f"has been renamed and the other has not"
         )
+
+
+def test_ci_asserts_every_slice_wrote_its_review_and_report():
+    """`CLAUDE.md`'s "Shipping a slice" rule, made mechanical.
+
+    Measured 2026-08-28 by the trajectory audit in ``.agents/audits/``: all three phase PRs wrote
+    both artifacts and both non-phase PRs wrote neither, 2 of 2. The rule existed the whole time --
+    in ``.claude/post-execute.json``, which names the paths, and in a ship-pipeline skill installed
+    at user level *outside this repository*. An agent reading ``CLAUDE.md`` cover to cover could
+    not learn it existed. So the rule moved into ``CLAUDE.md`` and the check moved in here, which
+    is the arrangement ``.claude/settings.json`` already has via ``test_printer_path_is_narrow``.
+    """
+    text = workflow_text()
+    assert "slice-artifacts:" in text, (
+        "CI no longer has the slice-artifacts job. Without it the code review and execution report "
+        "are prose in CLAUDE.md, which is exactly the state the 2026-08-28 audit found failing on "
+        "2 of 2 non-phase PRs."
+    )
+    for path in (".agents/code-reviews/", ".agents/execution-reports/"):
+        assert path in text, f"the slice-artifacts job no longer checks {path}"
+    assert "github.event_name == 'pull_request'" in text, (
+        "the slice-artifacts job is not gated on pull_request. `github.head_ref` is empty on a "
+        "push, and an empty slice name makes every path `.agents/code-reviews/.md` -- the check "
+        "would pass by accident on every push to master."
+    )
+
+
+def test_this_repository_has_the_artifacts_the_ci_job_demands():
+    """The skipped-layer guard for the check above: CI asserts a pairing this repo must satisfy.
+
+    A slice writes two files. A directory holding one of a pair means a slice shipped half its
+    record -- and that half is invisible in CI, which only ever looks at the branch in front of it.
+    """
+    reviews = {p.stem for p in (REPO / ".agents" / "code-reviews").glob("*.md")}
+    reports = {p.stem for p in (REPO / ".agents" / "execution-reports").glob("*.md")}
+    assert reviews, "no code reviews found; the path is wrong"
+
+    # Slices that shipped before the rule existed. Grandfathered by *name*, never by a tolerance:
+    # a new unpaired slice fails, and removing a name from here can only make the check stricter.
+    # `pr-1-review` is PR #1's PHASE 6 diff review, which has no execution-report counterpart by
+    # design -- it is a second review of one slice, not a slice of its own.
+    PRE_RULE = {"pr-1-review", "ci-hardware-free-lanes", "ams-feed-bisect-tooling"}
+
+    unpaired = (reviews ^ reports) - PRE_RULE
+    assert not unpaired, (
+        f"these slices have a code review or an execution report but not both: {sorted(unpaired)}. "
+        f"CLAUDE.md's 'Shipping a slice' section requires the pair."
+    )

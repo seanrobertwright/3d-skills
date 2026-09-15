@@ -243,3 +243,36 @@ def bridge_mesh():
     from threedp.features import _tessellate
 
     return _tessellate(build_bridge())
+
+
+TILTED_RING = {"outer_r": 15.0, "width": 1.5, "proud": 1.0, "sphere_r": 80.0}
+
+
+def build_tilted_ring():
+    """A plate carrying a 1.5mm ring whose top is a sphere cap: 1.0 proud at the outer edge,
+    tilting 10.8 degrees there, so the top slopes *down toward the outside* exactly as a domed
+    badge's rim does. The thinnest wall on the part is the ring itself, 1.5mm.
+
+    Built in algebra mode: a builder-mode ``Sphere(mode=Mode.INTERSECT)`` inside a nested
+    ``BuildPart`` was measured leaving the ring uncut (bbox z 11.0 for a 6.27 part).
+    """
+    import math
+
+    from build123d import Align, Box, Cylinder, Location, Sphere
+
+    r, w, proud, R = (TILTED_RING[k] for k in ("outer_r", "width", "proud", "sphere_r"))
+    bottom = (Align.CENTER, Align.CENTER, Align.MIN)
+    plate = Box(60.0, 40.0, 10.0)
+    face_z = 5.0
+    column = Cylinder(r, 6.0, align=bottom).move(Location((0, 0, face_z))) - Cylinder(
+        r - w, 6.0, align=bottom
+    ).move(Location((0, 0, face_z)))
+    apex_z = face_z + proud + (R - math.sqrt(R * R - r * r))
+    return plate + (column & Sphere(R).move(Location((0, 0, apex_z - R))))
+
+
+@pytest.fixture(scope="session")
+def tilted_ring_mesh():
+    from threedp.features import _tessellate
+
+    return _tessellate(build_tilted_ring())

@@ -223,3 +223,32 @@ def test_unsupported_format_raises(tmp_path):
 def test_missing_file_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         features.extract(tmp_path / "nope.step")
+
+
+def test_small_blind_holes_are_found_by_ring_count_not_area():
+    """Two Ø2.9 blind holes, 2.0 deep, in a 60x40 plate: 0.55 % of the section area.
+
+    Measured on models/wrx-badge (0.2 % there): the area-only transition finder never saw the
+    ceilings, the slab straddled them, and the mesh path reported both holes absent while the
+    BREP path measured them. A ceiling is where the section loses a ring, which the count sees
+    regardless of how large the part around it is.
+    """
+    from build123d import Align, Box, Cylinder, Location
+
+    from threedp import measure
+
+    bottom = (Align.CENTER, Align.CENTER, Align.MIN)
+    plate = Box(60.0, 40.0, 10.0, align=bottom)
+    for x in (-21.0, 21.0):
+        plate = plate - Cylinder(1.45, 2.0, align=bottom).move(Location((x, 0, 0)))
+    mesh = features._tessellate(plate)
+
+    zs = measure.plane_transitions(mesh)
+    assert any(abs(z - 2.0) < 0.005 for z in zs), zs
+
+    fs = features.from_mesh(mesh)
+    holes = [c for c in fs.cylinders if 2.5 <= c.diameter_unchecked <= 3.5]
+    assert len(holes) == 2
+    for c in holes:
+        assert c.diameter == pytest.approx(2.9, abs=0.01)
+        assert c.z_max - c.z_min == pytest.approx(2.0, abs=0.005)

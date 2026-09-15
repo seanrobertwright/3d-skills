@@ -168,6 +168,14 @@ def section_rings(mesh, z: float) -> list[np.ndarray]:
     return rings
 
 
+def _ring_count(mesh, z: float) -> int:
+    """How many closed rings the section at Z=z has; 0 if the plane misses the mesh."""
+    sec = _section(mesh, z)
+    if sec is None:
+        return 0
+    return int(len(sec.entities))
+
+
 def section_area(mesh, z: float) -> float:
     """Enclosed area of the mesh cross-section at Z=z, holes subtracted. 0.0 if the plane misses.
 
@@ -191,12 +199,12 @@ def plane_transitions(
     tol: float = DEFAULT_TRANSITION_TOL,
     area_rel_tol: float = 0.01,
 ) -> list[float]:
-    """Z heights at which the cross-sectional area changes discontinuously.
+    """Z heights at which the cross-section changes discontinuously, in area or in ring count.
 
     These are the horizontal planes of the part: the build-plate face, the top face, a pocket
-    floor, a counterbore shoulder. Detection quantises to ``step``, so every candidate is then
-    **bisected** to ``tol`` -- reporting the step boundary would forfeit the +/-0.005mm
-    guarantee (PRD 6.2).
+    floor, a counterbore shoulder, the ceiling of a blind hole. Detection quantises to ``step``,
+    so every candidate is then **bisected** to ``tol`` -- reporting the step boundary would
+    forfeit the +/-0.005mm guarantee (PRD 6.2).
 
     Only Z is supported. A Z-scan cannot see angled features; callers must not promote a
     mesh-derived measurement of one to Tier 1 (ADR-4).
@@ -214,18 +222,28 @@ def plane_transitions(
     if len(zs) < 2:
         return [round(zmin, 6), round(zmax, 6)]
     areas = [section_area(mesh, float(z)) for z in zs]
+    # Ring count is the second signal. Two blind pin holes in a 6300 mm2 badge section change
+    # its area by 0.2 %, under any sane relative tolerance, and the slab straddled their ceiling
+    # so the mesh path reported the holes absent while the BREP path measured them. A hole
+    # ceiling is where the section loses a ring, which no tolerance can miss (measured 2026-09).
+    counts = [_ring_count(mesh, float(z)) for z in zs]
 
     transitions: list[float] = [zmin, zmax]
     for i in range(len(zs) - 1):
         a_lo, a_hi = areas[i], areas[i + 1]
+        n_lo, n_hi = counts[i], counts[i + 1]
         scale = max(abs(a_lo), abs(a_hi), 1e-9)
-        if abs(a_hi - a_lo) <= area_rel_tol * scale:
+        if n_lo == n_hi and abs(a_hi - a_lo) <= area_rel_tol * scale:
             continue
         lo, hi = float(zs[i]), float(zs[i + 1])
         while hi - lo > tol:
             mid = 0.5 * (lo + hi)
-            a_mid = section_area(mesh, mid)
-            if abs(a_mid - a_lo) <= abs(a_mid - a_hi):
+            if n_lo != n_hi:
+                on_low_side = _ring_count(mesh, mid) == n_lo
+            else:
+                a_mid = section_area(mesh, mid)
+                on_low_side = abs(a_mid - a_lo) <= abs(a_mid - a_hi)
+            if on_low_side:
                 lo = mid  # still on the low side of the step
             else:
                 hi = mid

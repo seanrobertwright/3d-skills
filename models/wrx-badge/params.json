@@ -1,0 +1,19 @@
+{
+  "BADGE_X":        {"value": 127.0, "role": "outer",   "note": "ellipse major axis; FastWRX 'about 5 in', user-confirmed"},
+  "BADGE_Y":        {"value": 63.5,  "role": "outer",   "note": "ellipse minor axis; FastWRX 'about 2 1/2 in', user-confirmed"},
+  "BODY_T":         {"value": 4.0,   "role": "neutral", "note": "flat back to the face AT THE EDGE, user-confirmed"},
+  "CROWN_RISE":     {"value": 3.0,   "role": "neutral", "note": "face rises this much from edge to centre, same all round (ellipsoidal), user-confirmed"},
+  "RIM_W":          {"value": 1.5,   "role": "neutral", "note": "radial width of the raised rim, user-confirmed"},
+  "RIM_H":          {"value": 1.0,   "role": "neutral", "note": "rim stands this far proud of the curved face, user-confirmed"},
+  "GRAPHIC_W":      {"value": 108.0, "role": "neutral", "note": "traced letters scaled to this ink width; 85% of the badge, user-confirmed"},
+  "GRAPHIC_H":      {"value": 1.0,   "role": "neutral", "note": "letters stand this far proud of the curved face, user-confirmed"},
+  "PIN_X":          {"value": 50.0,  "role": "neutral", "note": "half of the trunk's 100 mm hole centre-to-centre, user-measured with a caliper"},
+  "PIN_HOLE_D":     {"value": 2.9,   "role": "hole",    "note": "press-fit hole for the 3.0 tang, user-confirmed"},
+  "PIN_HOLE_DEPTH": {"value": 2.0,   "role": "neutral", "note": "blind, flat ceiling: a 2.9 mm bridge when printed face-up, user-confirmed"},
+  "POINT_ANGLE_DEG": {"value": 35.0, "role": "neutral", "note": "pin point surface from vertical. DEGREES, not mm"},
+  "PIN_SHAFT_D":    {"value": 7.3,   "role": "outer",   "note": "0.2 under the trunk's 7.5 mm hole, user-measured; slips in"},
+  "PIN_SHAFT_L":    {"value": 5.0,   "role": "neutral", "note": "16 ga sheet (1.5, unconfirmed) + 1 mm foam + 2.5 spare, user-confirmed"},
+  "PIN_TANG_D":     {"value": 3.0,   "role": "outer",   "note": "presses into PIN_HOLE_D, user-confirmed"},
+  "PIN_TANG_L":     {"value": 2.0,   "role": "neutral", "note": "matches PIN_HOLE_DEPTH so the shoulder seats on the back, user-confirmed"},
+  "PIN_POINT_D":    {"value": 2.4,   "role": "outer",   "note": "base of the point, 0.3 in from the tang so the Z-scan sees where the tang ends"}
+}
