@@ -5,6 +5,12 @@ description: Use when a verified part needs turning into machine instructions �
 
 # lril3d-slice — G-code, time, and grams
 
+> **Where the Python runs.** Run every Python snippet in this skill with `threedp-python`, the
+> interpreter the README's "Use the skills from any folder" step puts on the PATH, so the skill
+> works from any folder. Inside the checkout, `uv run python` works too. `profiles/` is read from the
+> checkout unless `THREEDP_PROFILES` says otherwise; `models/<name>/...` paths are relative to
+> where you are.
+
 Thin skill, thick library. **No preset names or thresholds belong in this file** — they live in
 `profiles/slicer.json`. Read `PRD.md` §12 and §9.
 

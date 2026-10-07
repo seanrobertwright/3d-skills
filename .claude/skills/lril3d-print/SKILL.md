@@ -5,6 +5,12 @@ description: Use when a sliced part is ready to go to the physical printer — s
 
 # lril3d-print — the send path, and the human gate in front of it
 
+> **Where the Python runs.** Run every Python snippet in this skill with `threedp-python`, the
+> interpreter the README's "Use the skills from any folder" step puts on the PATH, so the skill
+> works from any folder. Inside the checkout, `uv run python` works too. `profiles/` is read from the
+> checkout unless `THREEDP_PROFILES` says otherwise; `models/<name>/...` paths are relative to
+> where you are.
+
 Thin skill, thick library. **No ports, no payload fields, no timeouts belong in this file** — they
 live in `profiles/printer-conn.json` beside the measurement that produced them. Read `PRD.md` §9
 and §12.

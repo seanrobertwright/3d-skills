@@ -5,6 +5,12 @@ description: Use when press fits come out wrong, when a hole prints undersize or
 
 # lril3d-calibrate — from a printed coupon to a measured compensation constant
 
+> **Where the Python runs.** Run every Python snippet in this skill with `threedp-python`, the
+> interpreter the README's "Use the skills from any folder" step puts on the PATH, so the skill
+> works from any folder. Inside the checkout, `uv run python` works too. `profiles/` is read from the
+> checkout unless `THREEDP_PROFILES` says otherwise; `models/<name>/...` paths are relative to
+> where you are.
+
 Thin skill, thick library. **No deltas, no tolerances, no step sizes belong in this file** — the
 numbers live in `profiles/calibration.json` beside the date they were measured. Read `PRD.md` §6.4
 and §15.7.

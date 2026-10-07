@@ -25,3 +25,6 @@ viewer/dist/
 # Claude Code local (machine-specific) settings. The committed gate lives in
 # .claude/settings.json — see ADR-5.
 .claude/settings.local.json
+
+# Generated from uv.lock by the README's "Use the skills from any folder" step.
+tool-requirements.txt
