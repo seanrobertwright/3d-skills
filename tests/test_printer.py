@@ -25,6 +25,7 @@ import ast
 import ftplib
 import json
 import zipfile
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -1280,6 +1281,20 @@ def test_the_p1s_profile_matches_what_the_printer_reports():
     assert str(profile["nozzle_diameter"]) == reported["nozzle_diameter"]
     assert "vendor-spec" != profile["source"], "the source must name the measurement, not the spec"
     assert "2026-08-02" in profile["source"]
+
+
+def test_the_p1s_profile_records_its_latest_nozzle_reading_with_the_date():
+    """fpv #5: the nozzle is read from the printer and recorded with the date it was read.
+
+    A reading without a date cannot say whether a nozzle swap happened since, and PAHT-CF is only
+    printable on a hardened nozzle, so the date is what tells the next reader to read it again.
+    """
+    profile = json.loads((REPO / "profiles" / "printer-p1s.json").read_text(encoding="utf-8"))
+    reading = profile["nozzle_reading"]
+    date.fromisoformat(reading["date"])
+    assert reading["nozzle_type"] == profile["nozzle_material"].replace("-", "_")
+    assert reading["nozzle_diameter"] == str(profile["nozzle_diameter"])
+    assert reading["date"] in profile["source"], "the source must name the latest reading"
 
 
 def test_the_p1s_profile_names_the_plate_that_is_on_the_machine():
