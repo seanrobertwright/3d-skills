@@ -410,3 +410,44 @@ def test_a_bridgeable_ceiling_is_judged_by_the_bridge_rule_not_the_overhang_rule
     rules = {f.rule: f.severity for f in wide.findings}
     assert rules.get("max_overhang_deg") == "BLOCKER"
     assert rules.get("max_bridge_mm") == "WARNING"
+
+
+# --- the frame materials (fpv #5) --------------------------------------------------------------
+
+FRAME_MATERIALS = ("PAHT-CF_bambu", "TPU-95A_bambu")
+
+
+def test_the_frame_materials_load_with_every_rule_sourced():
+    for material in FRAME_MATERIALS:
+        rules = dfm.load_rules(material)
+        assert set(rules) == set(dfm.load_rules("_defaults")), f"{material} dropped a rule"
+        for name, rule in rules.items():
+            assert rule.get("source"), f"{material}.{name} has no source"
+
+
+def test_paht_cf_tightens_footprint_only():
+    """Bambu's TDS rates PAHT-CF's overhang (~70 deg) and bridging (~40 mm) above the defaults,
+    which is no reason to loosen a gate, so those hold; what tightens is the footprint, because
+    Bambu lists 'Easy to warp' and requires an enclosure, glue and a brim."""
+    defaults = dfm.load_rules("_defaults")
+    pa = dfm.load_rules("PAHT-CF_bambu")
+    assert pa["max_overhang_deg"]["value"] == defaults["max_overhang_deg"]["value"]
+    assert pa["max_bridge_mm"]["value"] == defaults["max_bridge_mm"]["value"]
+    assert pa["min_footprint_mm2"]["value"] > defaults["min_footprint_mm2"]["value"]
+    assert pa["min_wall_mm"]["value"] == defaults["min_wall_mm"]["value"]
+    assert "Technical Data Sheet" in pa["max_bridge_mm"]["source"]
+
+
+def test_tpu_tightens_bridges_but_not_overhangs():
+    """TPU's TDS bridging figure is half PAHT-CF's and a soft bridge sags; overhangs hold the
+    default at 100% part cooling."""
+    defaults = dfm.load_rules("_defaults")
+    tpu = dfm.load_rules("TPU-95A_bambu")
+    assert tpu["max_bridge_mm"]["value"] < defaults["max_bridge_mm"]["value"]
+    assert tpu["max_overhang_deg"]["value"] == defaults["max_overhang_deg"]["value"]
+
+
+def test_unknown_material_message_names_the_frame_materials():
+    with pytest.raises(dfm.DfmError) as exc:
+        dfm.load_rules("PAHT-CF")
+    assert "PAHT-CF_bambu" in str(exc.value) and "TPU-95A_bambu" in str(exc.value)

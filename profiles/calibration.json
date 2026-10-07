@@ -19,5 +19,21 @@
     "first_layer_squish": 0.14,
     "measured": null,
     "source": "published-default"
+  },
+  "PAHT-CF_bambu": {
+    "hole_delta_mm": 0.0,
+    "outer_delta_mm": 0.0,
+    "first_layer_squish": null,
+    "measured": null,
+    "source": "no-published-default",
+    "note": "No published hole/outer default exists for this filament on this printer, and nothing is borrowed from PLA, PETG or ABS to look complete. Zero deltas mean NO compensation until lril3d-calibrate prints and measures a hole gauge and a pin gauge in this material; every compensated export warns until then. Added 2026-10-07 for seanrobertwright/fpv #5."
+  },
+  "TPU-95A_bambu": {
+    "hole_delta_mm": 0.0,
+    "outer_delta_mm": 0.0,
+    "first_layer_squish": null,
+    "measured": null,
+    "source": "no-published-default",
+    "note": "No published hole/outer default exists for this filament on this printer, and nothing is borrowed from PLA, PETG or ABS to look complete. Zero deltas mean NO compensation until lril3d-calibrate prints and measures a hole gauge and a pin gauge in this material; every compensated export warns until then. Added 2026-10-07 for seanrobertwright/fpv #5."
   }
 }

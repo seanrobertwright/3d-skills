@@ -636,3 +636,118 @@ def test_a_malformed_filament_inventory_raises_a_slicer_error(tmp_path):
     with pytest.raises(slicer.SlicerError) as exc:
         slicer.load_inventory(bad)
     assert "not valid JSON" in str(exc.value)
+
+
+# --- per-material process overrides (fpv #5) ---------------------------------------------------
+
+
+def _full_preset_tree(tmp_path) -> Path:
+    """A machine, a process and two filament presets, so _write_presets can run without a slicer."""
+    root = _preset_tree(tmp_path)
+    (root / "machine").mkdir()
+    (root / "process").mkdir()
+    (root / "machine" / "Bambu Lab P1S 0.4 nozzle.json").write_text(
+        json.dumps({"name": "Bambu Lab P1S 0.4 nozzle", "nozzle_diameter": ["0.4"]}),
+        encoding="utf-8",
+    )
+    (root / "process" / "0.20mm Standard @BBL X1C.json").write_text(
+        json.dumps(
+            {
+                "name": "0.20mm Standard @BBL X1C",
+                "sparse_infill_density": "15%",
+                "sparse_infill_pattern": "grid",
+                "infill_direction": "45",
+            }
+        ),
+        encoding="utf-8",
+    )
+    (root / "filament" / "Bambu PAHT-CF @BBL X1C.json").write_text(
+        json.dumps({"name": "Bambu PAHT-CF @BBL X1C", "filament_density": ["1.06"]}),
+        encoding="utf-8",
+    )
+    return root
+
+
+def _config_with_material_overrides() -> dict:
+    return {
+        "presets": {
+            "machine": "Bambu Lab P1S 0.4 nozzle",
+            "process": "0.20mm Standard @BBL X1C",
+            "filament": {
+                "PLA": "Bambu PLA Basic @BBL P1S 0.4 nozzle",
+                "PA-CF": "Bambu PAHT-CF @BBL X1C",
+            },
+        },
+        "preset_overrides": {"process": {"curr_bed_type": "Textured PEI Plate"}},
+        "material_process_overrides": {
+            "PA-CF": {
+                "sparse_infill_density": "100%",
+                "sparse_infill_pattern": "alignedrectilinear",
+                "infill_direction": "0",
+            }
+        },
+    }
+
+
+def _written_process(root: Path, material: str) -> dict:
+    into = root.parent / f"presets-{material}"
+    into.mkdir()
+    written = slicer._write_presets(_config_with_material_overrides(), material, root, into)
+    return json.loads(written["process"].read_text(encoding="utf-8"))
+
+
+def test_material_process_overrides_apply_to_that_material_only(tmp_path):
+    """Structural PAHT-CF prints what was modelled solid as solid; PLA keeps the preset's infill."""
+    root = _full_preset_tree(tmp_path)
+    pa = _written_process(root, "PA-CF")
+    assert pa["sparse_infill_density"] == "100%"
+    assert pa["sparse_infill_pattern"] == "alignedrectilinear"
+    assert pa["infill_direction"] == "0"
+    assert pa["curr_bed_type"] == "Textured PEI Plate", "the global override still applies"
+
+    pla = _written_process(root, "PLA")
+    assert pla["sparse_infill_density"] == "15%"
+    assert pla["sparse_infill_pattern"] == "grid"
+    assert pla["curr_bed_type"] == "Textured PEI Plate"
+
+
+def test_material_process_overrides_keep_the_process_name(tmp_path):
+    """Renaming the process fails compatible_printers with rc -17 (S4), per material too."""
+    process = _written_process(_full_preset_tree(tmp_path), "PA-CF")
+    assert process["name"] == "0.20mm Standard @BBL X1C"
+
+
+def test_material_process_overrides_for_an_unconfigured_material_raise(tmp_path):
+    """A typo'd material key would apply to nothing, silently, and the part would print hollow."""
+    root = _full_preset_tree(tmp_path)
+    config = _config_with_material_overrides()
+    config["material_process_overrides"]["PAHT-CF"] = {"sparse_infill_density": "100%"}
+    with pytest.raises(slicer.SlicerError) as exc:
+        slicer._write_presets(config, "PA-CF", root, tmp_path / "p")
+    message = str(exc.value)
+    assert "PAHT-CF" in message and "PA-CF" in message
+
+
+def test_material_process_overrides_may_not_rename_the_process(tmp_path):
+    root = _full_preset_tree(tmp_path)
+    config = _config_with_material_overrides()
+    config["material_process_overrides"]["PA-CF"]["name"] = "renamed"
+    into = tmp_path / "p"
+    into.mkdir()
+    with pytest.raises(slicer.SlicerError) as exc:
+        slicer._write_presets(config, "PA-CF", root, into)
+    assert "name" in str(exc.value)
+
+
+def test_the_shipped_config_asks_for_solid_pa_cf_and_leaves_tpu_alone():
+    """fpv #5: the config asks for modelled-solid PA-CF to print solid; TPU keeps the preset.
+    This reads the JSON only; whether the slicer honours it is checked on G-code later."""
+    cfg = slicer.load_config()
+    assert cfg["presets"]["filament"]["PA-CF"] == "Bambu PAHT-CF @BBL X1C"
+    assert cfg["presets"]["filament"]["TPU"] == "Bambu TPU 95A @BBL X1C"
+    structural = cfg["material_process_overrides"]["PA-CF"]
+    assert structural["sparse_infill_density"] == "100%"
+    assert structural["sparse_infill_pattern"] == "alignedrectilinear"
+    assert structural["infill_direction"] == "0"
+    assert "TPU" not in cfg["material_process_overrides"]
+    assert set(cfg["material_process_overrides"]) <= set(cfg["presets"]["filament"])

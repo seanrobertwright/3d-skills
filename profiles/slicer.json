@@ -11,7 +11,9 @@
     "filament": {
       "PLA": "Bambu PLA Basic @BBL P1S 0.4 nozzle",
       "PETG": "Bambu PETG HF @BBL P1S 0.4 nozzle",
-      "ABS": "Bambu ABS @BBL P1S 0.4 nozzle"
+      "ABS": "Bambu ABS @BBL P1S 0.4 nozzle",
+      "PA-CF": "Bambu PAHT-CF @BBL X1C",
+      "TPU": "Bambu TPU 95A @BBL X1C"
     }
   },
   "preset_overrides": {
@@ -19,12 +21,21 @@
       "curr_bed_type": "Textured PEI Plate"
     }
   },
+  "material_process_overrides": {
+    "PA-CF": {
+      "sparse_infill_density": "100%",
+      "sparse_infill_pattern": "alignedrectilinear",
+      "infill_direction": "0"
+    }
+  },
   "timeout_s": 300,
   "notes": {
     "process_name": "The process preset really is named '@BBL X1C' for a P1S. The P1S machine profile's own default_print_profile says so, and the process's compatible_printers lists 'Bambu Lab P1S 0.4 nozzle'. Do not 'fix' it to '@BBL P1S' - that file does not exist and the slice fails with return_code -17.",
     "env_overrides": "THREEDP_SLICER overrides the executable; THREEDP_SLICER_PROFILES overrides profile_root. Both raise when set to something that is not there, rather than falling back.",
     "orcaslicer": "OrcaSlicer is a Bambu Studio fork and shares the CLI surface and the '; FEATURE:' G-code markers, so it sits in the candidate list. It is NOT installed on this machine and has not been exercised.",
-    "bed_type": "The CLI writes `; curr_bed_type = Cool Plate` unless told otherwise, because default_bed_type lives in the printer-MODEL json (Bambu Lab P1S.json) and not in the machine-PRESET chain --load-settings walks. The P1S ships a textured PEI plate, so the sliced first-layer bed temperature was the cool-plate one (35 C) instead of the textured one (55 C). Measured 2026-08-02 (S23). bed_type:'auto' over MQTT does NOT fix this - the temperature is baked into the G-code long before MQTT sees it."
+    "bed_type": "The CLI writes `; curr_bed_type = Cool Plate` unless told otherwise, because default_bed_type lives in the printer-MODEL json (Bambu Lab P1S.json) and not in the machine-PRESET chain --load-settings walks. The P1S ships a textured PEI plate, so the sliced first-layer bed temperature was the cool-plate one (35 C) instead of the textured one (55 C). Measured 2026-08-02 (S23). bed_type:'auto' over MQTT does NOT fix this - the temperature is baked into the G-code long before MQTT sees it.",
+    "frame_materials": "PA-CF and TPU are the fpv frame's materials (seanrobertwright/fpv #5): Bambu PAHT-CF (filament_id GFN04, filament_type PA-CF, density 1.06) and Bambu TPU 95A (GFU01, filament_type TPU, density 1.22). The keys are the filament_type the AMS reports as tray_type, because ams_mapping and printer.reconcile_ams match on that string; neither spool has been loaded yet, so the tray_type spelling is from Bambu's filament profiles, not from telemetry. Bambu ships no '@BBL P1S 0.4 nozzle' file for either; the '@BBL X1C' presets list 'Bambu Lab P1S 0.4 nozzle' in compatible_printers. Read from github.com/bambulab/BambuStudio resources/profiles/BBL/filament on 2026-10-07; not yet flattened on this machine because no Bambu Studio install was found here that day. Data sheets: Bambu PAHT-CF TDS V3.0 (wiki.bambulab.com/filament-acc/asacf-pahtcf/65f1b18a6d6142d794a1a6a00f1496ef.pdf): nozzle 260-290 C, bed 80-100 C, chamber 45-60 C, dry 80 C 8-12 h, density 1.06. Bambu TPU 95A TDS V2.0 (cdn.shopify.com/s/files/1/0584/7236/6216/files/Bambu_TPU_95A_Technical_Data_Sheet.pdf): nozzle 220-240 C, bed 30-35 C, fan 100%, dry 70 C 8 h, speed < 80 mm/s, density 1.20 where the slicer profile says 1.22; the profile's figure is what the slice report will use. TPU is not AMS-compatible (Bambu filament guide: too soft for the feed channel) and runs from the external spool. DISPATCH: ams_mapping raises for an external spool by design, so a TPU part can be sliced here but cannot yet be mapped and sent through lril3d-print; hand-feeding TPU is outside this tooling until that path exists.",
+    "material_process_overrides": "Process settings keyed by material, merged after preset_overrides.process for that material only. PA-CF is the frame's structural material and its parts are modelled hollow with explicit walls (fpv ADR 0002), so anything modelled solid must print solid: sparse_infill_density 100%. Pattern alignedrectilinear with infill_direction 0 lays every internal solid line along plate X, which is the arm axis when arms are placed along X: in BambuStudio's Fill code every fill takes infill_direction as its base angle and FillBase::_layer_angle alternates it by 90 deg per layer, while FillAlignedRectilinear overrides _layer_angle to 0 (src/libslic3r/Fill/FillRectilinear.hpp). The top/bottom shell layers still alternate, so a skin is part along, part across. UNVERIFIED on G-code: no slicer was installed on this machine on 2026-10-07; check the preview when one is. SCOPE: the override is keyed by material, so every PA-CF part gets it, the tray and deck included, not only the arms; the body parts therefore print their internal solid fill along X on every layer too. A per-part override does not exist yet; add one if a body part wants alternating layers."
   },
-  "source": "measured on this machine 2026-07-31; Bambu Studio 02.07.01.62. preset_overrides.curr_bed_type measured 2026-08-02 (S23)"
+  "source": "measured on this machine 2026-07-31; Bambu Studio 02.07.01.62. preset_overrides.curr_bed_type measured 2026-08-02 (S23); PA-CF and TPU presets and material_process_overrides added 2026-10-07 from Bambu's public profile tree, unsliced"
 }

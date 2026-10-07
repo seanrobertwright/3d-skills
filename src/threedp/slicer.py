@@ -456,18 +456,34 @@ def _write_presets(
             f"profiles/{CONFIG_FILE}: preset_overrides names {unknown}; "
             f"valid preset kinds are {sorted(wanted)}"
         )
+    # Process settings that depend on what the material is FOR, not on the printer: a structural
+    # PAHT-CF part prints what was modelled solid as solid, a TPU bumper keeps the preset's
+    # infill. Keyed by the same material names as presets.filament, and checked against them for
+    # the same reason as above -- an override under a misspelt material applies to nothing, and
+    # the part prints hollow with a clean slice report.
+    per_material = config.get("material_process_overrides", {}) or {}
+    unknown_materials = sorted(set(per_material) - set(filaments))
+    if unknown_materials:
+        raise SlicerError(
+            f"profiles/{CONFIG_FILE}: material_process_overrides names {unknown_materials}, "
+            f"which have no filament preset; configured materials are {sorted(filaments)}"
+        )
 
     written: dict[str, Path] = {}
     for kind, name in wanted.items():
         merged = flatten_preset(kind, name, root)
-        for key, value in (overrides.get(kind) or {}).items():
-            if key == "name":
-                raise SlicerError(
-                    "preset_overrides must never set 'name': a process preset's "
-                    "compatible_printers is a list of printer names, and renaming fails the "
-                    "match with return_code -17 (S4)"
-                )
-            merged[key] = value
+        layers = [overrides.get(kind) or {}]
+        if kind == "process":
+            layers.append(per_material.get(material) or {})
+        for layer in layers:
+            for key, value in layer.items():
+                if key == "name":
+                    raise SlicerError(
+                        "preset_overrides and material_process_overrides must never set 'name': "
+                        "a process preset's compatible_printers is a list of printer names, and "
+                        "renaming fails the match with return_code -17 (S4)"
+                    )
+                merged[key] = value
         path = into / f"{kind}.json"
         path.write_text(json.dumps(merged), encoding="utf-8")
         written[kind] = path
