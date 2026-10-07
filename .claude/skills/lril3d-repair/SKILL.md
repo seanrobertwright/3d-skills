@@ -5,6 +5,12 @@ description: Use when a mesh arrives from outside — a downloaded STL, a scan, 
 
 # lril3d-repair — import, diagnose, fix, **verify**
 
+> **Where the Python runs.** Run every Python snippet in this skill with `threedp-python`, the
+> interpreter the README's "Use the skills from any folder" step puts on the PATH, so the skill
+> works from any folder. Inside the checkout, `uv run python` works too. `profiles/` is read from the
+> checkout unless `THREEDP_PROFILES` says otherwise; `models/<name>/...` paths are relative to
+> where you are.
+
 Thin skill, thick library. **No geometry or measurement logic belongs in this file.** Read
 `PRD.md` §6.2 and §9.
 

@@ -5,6 +5,12 @@ description: Use when the user describes a physical object to model, print, or f
 
 # lril3d-model — intent capture and geometry authoring
 
+> **Where the Python runs.** Run every Python snippet in this skill with `threedp-python`, the
+> interpreter the README's "Use the skills from any folder" step puts on the PATH, so the skill
+> works from any folder. Inside the checkout, `uv run python` works too. `profiles/` is read from the
+> checkout unless `THREEDP_PROFILES` says otherwise; `models/<name>/...` paths are relative to
+> where you are.
+
 Thin skill, thick library. **No geometry or measurement logic belongs in this file.** Everything
 numeric goes through the `threedp` package, which is tested without an agent.
 

@@ -24,6 +24,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
 
+[project.scripts]
+# `uv tool install --editable .` puts this on the PATH; the lril3d-* skills run their snippets
+# with it so they work from any folder. See src/threedp/launcher.py.
+threedp-python = "threedp.launcher:main"
+
 [tool.uv.sources]
 sdf = { git = "https://github.com/fogleman/sdf" }    # NOT PyPI 'sdf' (correction C2)
 

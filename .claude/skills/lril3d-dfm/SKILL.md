@@ -5,6 +5,12 @@ description: Use when a part needs checking for printability rather than correct
 
 # lril3d-dfm — will it print?
 
+> **Where the Python runs.** Run every Python snippet in this skill with `threedp-python`, the
+> interpreter the README's "Use the skills from any folder" step puts on the PATH, so the skill
+> works from any folder. Inside the checkout, `uv run python` works too. `profiles/` is read from the
+> checkout unless `THREEDP_PROFILES` says otherwise; `models/<name>/...` paths are relative to
+> where you are.
+
 Thin skill, thick library. **No thresholds belong in this file.** Every number lives in
 `profiles/dfm-rules.json` next to the `source` that justifies it. Read `PRD.md` §7 for where this
 sits in the loop.

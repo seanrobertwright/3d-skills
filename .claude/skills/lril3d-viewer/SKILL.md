@@ -5,6 +5,11 @@ description: Use when the user wants to see a model live in the browser, watch i
 
 # lril3d-viewer — the live browser viewer
 
+> **Where it runs.** The viewer is part of the checkout: run `npm` from the checkout's `viewer/`
+> folder, and point `--model` at the model folder from the checkout root. Run the Python snippet
+> below with `threedp-python`, the interpreter the README's "Use the skills from any folder" step
+> puts on the PATH, so it works from any folder.
+
 A local Vite + three.js page that loads the exported mesh and hot-reloads it within about a
 second of a file write, preserving the camera. Its purpose is that the user can react to a
 change immediately instead of describing a problem in text.

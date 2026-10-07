@@ -5,6 +5,12 @@ description: Use when a modelled part needs verifying, measuring, or critiquing 
 
 # lril3d-inspect — measure, verify, critique
 
+> **Where the Python runs.** Run every Python snippet in this skill with `threedp-python`, the
+> interpreter the README's "Use the skills from any folder" step puts on the PATH, so the skill
+> works from any folder. Inside the checkout, `uv run python` works too. `profiles/` is read from the
+> checkout unless `THREEDP_PROFILES` says otherwise; `models/<name>/...` paths are relative to
+> where you are.
+
 Thin skill, thick library. **No measurement logic belongs in this file.** Read `PRD.md` §7 and
 §6.2 for the tier rules.
 
