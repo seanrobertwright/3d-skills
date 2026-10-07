@@ -129,5 +129,53 @@
       "note": "ABS warps; a small footprint lifts a corner and the print detaches",
       "source": "bed adhesion / tipping risk, raised for a shrinking material"
     }
+  },
+
+  "PAHT-CF_bambu": {
+    "_note": "Bambu PAHT-CF (GFN04), the fpv frame's structural material (seanrobertwright/fpv #5). Bambu's TDS V3.0 rates it at a max overhang of ~70 deg and a max bridge of ~40 mm, which are best-case figures from Bambu's own test parts, so the overhang and bridge rules hold the conventional defaults rather than loosening to them. What does tighten is the footprint: Bambu lists 'Easy to warp' as a con, requires an enclosed printer, and 'strongly' recommends glue stick and a brim against warping. Wall and hole minimums stay at the 0.4 mm defaults; the TDS recommends a 0.6 mm nozzle and lists 0.4 mm as supported. Part cooling is 0-40% (TDS), 10-30% in Bambu's slicer profile.",
+    "max_overhang_deg": {
+      "value": 45.0,
+      "unit": "deg",
+      "compare": "max",
+      "severity": "BLOCKER",
+      "note": "held at the conventional threshold; Bambu's TDS claims '~ 70 deg' under its own test conditions with 0-40% part cooling, which is not a reason to loosen a gate",
+      "source": "conventional FDM support threshold, measured from vertical; Bambu PAHT-CF Technical Data Sheet V3.0, 'Max Overhang Angle ~ 70 deg', 'Cooling Fan 0 - 40%' (wiki.bambulab.com/filament-acc/asacf-pahtcf/65f1b18a6d6142d794a1a6a00f1496ef.pdf, read 2026-10-07)"
+    },
+    "max_bridge_mm": {
+      "value": 10.0,
+      "unit": "mm",
+      "compare": "max",
+      "severity": "WARNING",
+      "note": "held at the default; Bambu's TDS claims '~ 40 mm', four times this, as a best case",
+      "source": "unsupported bridge span before sag; Bambu PAHT-CF Technical Data Sheet V3.0, 'Max Bridging Length ~ 40 mm' (read 2026-10-07)"
+    },
+    "min_footprint_mm2": {
+      "value": 400.0,
+      "unit": "mm2",
+      "compare": "min",
+      "severity": "WARNING",
+      "note": "nylon warps as it cools and a small footprint lifts a corner off the plate; Bambu requires an enclosure and recommends glue stick plus a brim for exactly this",
+      "source": "bed adhesion / tipping risk, raised for a warping material, as for ABS; bambulab.com/en/filament/paht-cf lists 'Easy to warp' under Cons and 'Enclosure Printer Required'; wiki.bambulab.com/en/filament/asacf_pahtcf: 'To minimize warping, it is strongly recommended to ... apply Bambu Lab Glue Stick' and 'Enable a Brim' (read 2026-10-07)"
+    }
+  },
+
+  "TPU-95A_bambu": {
+    "_note": "Bambu TPU 95A (GFU01), the fpv frame's soft material for bumpers, clips and cradles (seanrobertwright/fpv #5). Bambu's TDS V2.0 rates it at a max overhang of ~70 deg, the same as PAHT-CF, with 100% part cooling, so the overhang rule holds the default. Its max bridging length is 20 mm against PAHT-CF's ~40 mm, so the bridge rule is halved in the same ratio: a soft bead stretched across a gap sags under its own weight. Bambu's wiki says TPU 95A is not AMS-compatible (too soft for the feed channel), so it runs from the external spool.",
+    "max_overhang_deg": {
+      "value": 45.0,
+      "unit": "deg",
+      "compare": "max",
+      "severity": "BLOCKER",
+      "note": "held at the conventional threshold; TDS claims '~70 deg' with 'Cooling Fan 100%'",
+      "source": "conventional FDM support threshold, measured from vertical; Bambu TPU 95A Technical Data Sheet V2.0, 'Max Overhang Angle ~70 deg', 'Cooling Fan 100%' (cdn.shopify.com/s/files/1/0584/7236/6216/files/Bambu_TPU_95A_Technical_Data_Sheet.pdf, read 2026-10-07)"
+    },
+    "max_bridge_mm": {
+      "value": 5.0,
+      "unit": "mm",
+      "compare": "max",
+      "severity": "WARNING",
+      "note": "half the default: Bambu rates TPU 95A's bridging at half of PAHT-CF's, and a soft bead cannot be pulled taut",
+      "source": "unsupported bridge span before sag, halved for a flexible filament; Bambu TPU 95A Technical Data Sheet V2.0 'Max Bridging Length 20mm' against Bambu PAHT-CF Technical Data Sheet V3.0 'Max Bridging Length ~ 40 mm' (read 2026-10-07)"
+    }
   }
 }

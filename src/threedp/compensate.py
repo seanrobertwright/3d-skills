@@ -49,19 +49,27 @@ class Resolved(dict):
         deltas: dict[str, float] | None = None,
         stale: bool = False,
         compensated: bool = False,
+        source: str | None = None,
     ):
         super().__init__(values)
         self.material = material
         self.deltas = deltas or {}
         self.stale = stale
         self.compensated = compensated
+        self.source = source
 
     @property
     def staleness_warning(self) -> str:
+        # Two honest unmeasured states, and the warning says which one it is: a literature
+        # default that was applied, or a material with no default at all, where the "compensated"
+        # export is in fact uncompensated (zero deltas) until a coupon is measured.
+        if self.source == "no-published-default":
+            what = "has no published default: its deltas are zero, so this export is uncompensated"
+        else:
+            what = 'is a published literature default ("measured": null)'
         return (
-            f"calibration for {self.material!r} is a published literature default "
-            f'("measured": null) and has never been verified on this printer. '
-            f"Fits derived from it are unvalidated until a coupon is measured (Phase 3)."
+            f"calibration for {self.material!r} {what} and has never been verified on this "
+            f"printer. Fits derived from it are unvalidated until a coupon is measured (Phase 3)."
         )
 
 
@@ -207,4 +215,5 @@ def resolve(params: dict[str, Any], calibration: Any = None) -> Resolved:
         deltas=deltas,
         stale=record.get("measured") is None,
         compensated=True,
+        source=record.get("source"),
     )

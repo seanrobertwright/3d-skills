@@ -10,6 +10,7 @@
   ],
   "notes": {
     "this_file_is_a_claim": "It is checked against the printer before every dispatch by printer.reconcile_ams (ADR-16), and a material mismatch in a slot the print uses is a BLOCKER. It shipped through two phases disagreeing with the AMS in four of five slots, and nothing noticed, because nothing had ever asked the printer. tests/fixtures/filaments_drifted_s16.json is that version, frozen as a regression.",
+    "frame_materials_not_loaded": "Neither Bambu PAHT-CF (PA-CF) nor Bambu TPU 95A (TPU), the fpv frame's materials, is loaded as of 2026-10-07. PAHT-CF is AMS-compatible per Bambu and would take a bay; TPU 95A is not (too soft for the feed channel, Bambu filament guide) and goes on the external spool. Until a spool is loaded and this inventory re-read from telemetry, ams_mapping(['PA-CF']) and ams_mapping(['TPU']) raise 'not loaded', and profiles/calibration.json's PAHT-CF_bambu and TPU-95A_bambu stay unmeasured (seanrobertwright/fpv #5).",
     "no_abs_is_loaded": "ABS is not in the AMS. slicer.ams_mapping(['ABS']) now raises 'not loaded', which is correct and is why profiles/calibration.json's ABS_generic stays a published default with \"measured\": null."
   },
   "source": "read from this printer's own push_status telemetry on 2026-08-02 and reconciled against it by tests/test_printer_live.py; slots 2 and 3 re-read from telemetry on 2026-09-13 (PETG grey / PLA green); superseded a hand-maintained inventory that had drifted (spike S16)"
