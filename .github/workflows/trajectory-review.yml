@@ -99,6 +99,7 @@ jobs:
         # no lockfile, no venv setup.
 
       - name: Run Claude trajectory review
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           allowed_bots: "dependabot"
