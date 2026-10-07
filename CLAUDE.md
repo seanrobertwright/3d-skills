@@ -14,7 +14,7 @@ and `gcode_state` left `IDLE` for `PREPARE` in **5.8 s** — all four ADR-14 con
 then stopped before the first layer.
 
 **Phase 3B ships the calibration machinery and none of the calibration.** `calibrate.py` is
-complete and tested; all three records in `profiles/calibration.json` are still published defaults
+complete and tested; all five records in `profiles/calibration.json` are still unmeasured (three published defaults, and zero-delta records for the fpv frame's PAHT-CF and TPU 95A)
 with `"measured": null`, because replacing them requires printing two coupons and measuring them
 with a caliper. `calibrate.stale_materials()` lists what is still owed. `ABS_generic` is not
 merely outstanding — **no ABS is loaded**, so it cannot be measured here at all.

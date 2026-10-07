@@ -118,8 +118,8 @@ def test_shipped_profile_loads_and_is_all_unmeasured():
         assert record["measured"] is None, f"{name} claims a measurement Phase 1 cannot have made"
         # Two honest shapes: a literature default, or (fpv #5) a filament with no published
         # default at all, carrying zero deltas so that nothing is borrowed from another material.
-        assert record["source"] in ("published-default", "no-published-default"), name
-        if record["source"] == "no-published-default":
+        assert record["source"] in ("published-default", compensate.NO_PUBLISHED_DEFAULT), name
+        if record["source"] == compensate.NO_PUBLISHED_DEFAULT:
             assert record["hole_delta_mm"] == 0.0 and record["outer_delta_mm"] == 0.0, name
 
 

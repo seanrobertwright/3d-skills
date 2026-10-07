@@ -479,9 +479,9 @@ def _write_presets(
             for key, value in layer.items():
                 if key == "name":
                     raise SlicerError(
-                        "preset_overrides must never set 'name': a process preset's "
-                        "compatible_printers is a list of printer names, and renaming fails "
-                        "the match with return_code -17 (S4)"
+                        "preset_overrides and material_process_overrides must never set 'name': "
+                        "a process preset's compatible_printers is a list of printer names, and "
+                        "renaming fails the match with return_code -17 (S4)"
                     )
                 merged[key] = value
         path = into / f"{kind}.json"

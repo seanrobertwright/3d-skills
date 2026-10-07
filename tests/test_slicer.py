@@ -739,8 +739,9 @@ def test_material_process_overrides_may_not_rename_the_process(tmp_path):
     assert "name" in str(exc.value)
 
 
-def test_the_shipped_config_slices_the_frame_materials_solid_where_modelled_solid():
-    """fpv #5: PAHT-CF is the structural material and prints modelled solids solid; TPU does not."""
+def test_the_shipped_config_asks_for_solid_pa_cf_and_leaves_tpu_alone():
+    """fpv #5: the config asks for modelled-solid PA-CF to print solid; TPU keeps the preset.
+    This reads the JSON only; whether the slicer honours it is checked on G-code later."""
     cfg = slicer.load_config()
     assert cfg["presets"]["filament"]["PA-CF"] == "Bambu PAHT-CF @BBL X1C"
     assert cfg["presets"]["filament"]["TPU"] == "Bambu TPU 95A @BBL X1C"

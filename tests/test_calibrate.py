@@ -252,7 +252,7 @@ def test_the_shipped_calibration_says_which_records_are_unvalidated():
     data = compensate.load_calibration()
     for material in stale:
         assert data[material]["measured"] is None
-        assert data[material]["source"] in ("published-default", "no-published-default")
+        assert data[material]["source"] in ("published-default", compensate.NO_PUBLISHED_DEFAULT)
 
 
 def test_abs_is_not_fabricated_while_no_abs_is_loaded():
@@ -338,9 +338,10 @@ def test_the_frame_materials_start_unmeasured_with_nothing_borrowed():
     for material in ("PAHT-CF_bambu", "TPU-95A_bambu"):
         record = compensate.load_calibration(material)
         assert record["measured"] is None
-        assert record["source"] == "no-published-default"
+        assert record["source"] == compensate.NO_PUBLISHED_DEFAULT
         assert record["hole_delta_mm"] == 0.0
         assert record["outer_delta_mm"] == 0.0
+        assert record["first_layer_squish"] is None, "no gauge measured a squish"
         assert material in calibrate.stale_materials()
         resolved = compensate.resolve({"D": {"value": 10.0, "role": "hole"}}, material)
         assert resolved.stale and resolved["D"] == 10.0

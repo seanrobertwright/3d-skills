@@ -25,9 +25,15 @@ __all__ = [
     "load_calibration",
     "profiles_dir",
     "ROLES",
+    "NO_PUBLISHED_DEFAULT",
 ]
 
 ROLES = ("hole", "outer", "neutral")
+
+# The `source` a calibration record carries when no literature default exists for the material
+# and nothing was borrowed from another: its deltas are zero and the export is uncompensated until
+# a coupon is measured. The other unmeasured shape is "published-default".
+NO_PUBLISHED_DEFAULT = "no-published-default"
 
 
 class CompensationError(Exception):
@@ -63,7 +69,7 @@ class Resolved(dict):
         # Two honest unmeasured states, and the warning says which one it is: a literature
         # default that was applied, or a material with no default at all, where the "compensated"
         # export is in fact uncompensated (zero deltas) until a coupon is measured.
-        if self.source == "no-published-default":
+        if self.source == NO_PUBLISHED_DEFAULT:
             what = "has no published default: its deltas are zero, so this export is uncompensated"
         else:
             what = 'is a published literature default ("measured": null)'
